@@ -1,3 +1,14 @@
+# resnet.py
+#!/usr/bin/env	python3
+"""resnet in pytorch
+
+
+
+
+[1] Kaiming He, Xiangyu Zhang, Shaoqing Ren, Jian Sun 
+    Deep Residual Learning for Image Recognition
+    https://arxiv.org/abs/1512.03385
+"""
 
 import torch.nn as nn
 import torch
@@ -48,4 +59,6 @@ class ResNet(nn.Module):
 
     def _make_layer(self, block, out_channels, stride):
         stride = [stride] + [1] * (num_block - 1)
+
+
 
