@@ -1,5 +1,3 @@
-# resnet.py
-#!/usr/bin/env	python3
 """resnet in pytorch
 
 
@@ -31,6 +29,7 @@ class BasicBlock(nn.Module):
         self.residual_function = nn.Sequential(
             nn.Conv2d(in_channels, out_channels, kernel_size=3, stride=stride, padding=1, bias=False),
             nn.BatchNorm2d(out_channels),
+            nn.ReLU(inplace=True),
             nn.Conv2d(out_channels, out_channels, kernel_size=3, padding=1, bias=False),
             nn.BatchNorm2d(out_channels)
         )
@@ -47,7 +46,7 @@ class BasicBlock(nn.Module):
             )
         
     def forward(self, x):
-        return self.residual_function(x) + self.shortcut(x)
+        return nn.ReLU(inplace=True)(self.residual_function(x) + self.shortcut(x))
 
 
 class BottleNeck(nn.Module):
@@ -55,39 +54,42 @@ class BottleNeck(nn.Module):
 
     """
     expansion = 4
-    def __init__(slef, in_channels, out_channels, stride=1):
+    def __init__(self, in_channels, out_channels, stride=1):
         super().__init__()
         self.residual_function = nn.Sequential(
             nn.Conv2d(in_channels, out_channels, kernel_size=1, bias=False),
             nn.BatchNorm2d(out_channels),
+            nn.ReLU(inplace=True),
             nn.Conv2d(out_channels, out_channels, stride=stride, kernel_size=3, padding=1, bias=False),
             nn.BatchNorm2d(out_channels),
-            nn.Conv2d(out_channels, out_channels * BottleNeck.expansion, kernel_size=1, bias=Fase),
+            nn.ReLU(inplace=True),
+            nn.Conv2d(out_channels, out_channels * BottleNeck.expansion, kernel_size=1, bias=False),
             nn.BatchNorm2d(out_channels * BottleNeck.expansion)
         )
 
-        self.shortcut = nnSequential()
+        self.shortcut = nn.Sequential()
 
         if stride != 1 or in_channels != out_channels * BottleNeck.expansion:
             self.shortcut = nn.Sequential(
-                nn.Conv2d(in_channels, out_channels * BottleNeck.expansion, kernel_size=1, bias=1),
-                nn.BatchNorm2d(out_channels)
+                nn.Conv2d(in_channels, out_channels * BottleNeck.expansion, stride=stride, kernel_size=1, bias=1),
+                nn.BatchNorm2d(out_channels * BottleNeck.expansion)
             )
         
     def forward(self, x):
-        return self.residual_function(x) + self.shortcut(x)
+        return nn.ReLU(inplace=True)(self.residual_function(x) + self.shortcut(x))
     
 
 class ResNet(nn.Module):
 
-    def __init__(self, block, num_block, num_classes=10):
+    def __init__(self, block, num_block, num_classes=100):
         super().__init__()
 
         self.in_channels = 64
 
         self.conv1 = nn.Sequential(
-            nn.Conv2d(3, 64, kernel_size=3, stride=1, padding=1, bias=False),
-            nn.BatchNorm2d(64))
+            nn.Conv2d(3, 64, kernel_size=3, padding=1, bias=False),
+            nn.BatchNorm2d(64),
+            nn.ReLU(inplace=True))
         #we use a different inputsize than the original paper
         #so conv2_x's stride is 1
         self.conv2_x = self._make_layer(block, 64, num_block[0], 1)
@@ -96,8 +98,6 @@ class ResNet(nn.Module):
         self.conv5_x = self._make_layer(block, 512, num_block[3], 2)
         self.avg_pool = nn.AvgPool2d(4)
         self.fc = nn.Linear(512 * block.expansion, num_classes)
-
-
 
     def _make_layer(self, block, out_channels, num_blocks, stride):
         """make resnet layers(by layer i didnt mean this 'layer' was the 
@@ -125,7 +125,6 @@ class ResNet(nn.Module):
         return nn.Sequential(*layers)
 
     def forward(self, x):
-        residual = x
         output = self.conv1(x)
         output = self.conv2_x(output)
         output = self.conv3_x(output)
@@ -166,8 +165,12 @@ def ResNet152():
 
 
 
-from torch.autograd import Variable
-
-test = Variable(torch.randn(1, 3, 32, 32))
-resnet18 = ResNet18()
-print(resnet18(test))
+#from torch.autograd import Variable
+#
+#test = Variable(torch.randn(1, 3, 32, 32))
+#resnet18 = ResNet18()
+#print(resnet18(test))
+#print(torch.cuda.is_available())
+##device = torch.cuda.is_available() ? 'cude' : 'cpu'
+#device = 'cuda' if torch.cuda.is_available() else 'cpu'
+#print(device)
