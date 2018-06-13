@@ -30,31 +30,31 @@ if __name__ == '__main__':
     correct = 0.0
     total = 0.0
     net.train()
-    for batch_index, (labels, images) in enumerate(cifar100_train):
-        #labels, images = label.to(device), image.to(device)
-    
-        images = Variable(images.permute(0, 3, 1, 2).float())
-        labels = Variable(labels)
+    for epoch in range(200):
+        print('epoch {}'.format(epoch))
+        for batch_index, (labels, images) in enumerate(cifar100_train):
+            #labels, images = label.to(device), image.to(device)
 
-        labels = labels.cuda()
-        images = images.cuda()
-        #optimizer.zero_grad()
-        ##print(Variable(image.permute(0, )).size())
+            images = Variable(images.permute(0, 3, 1, 2).float())
+            labels = Variable(labels)
 
-        optimizer.zero_grad()
-        outputs = net(images)
-        loss = loss_function(outputs, labels)
-        loss.backward()
-        optimizer.step()
+            labels = labels.cuda()
+            images = images.cuda()
+            #optimizer.zero_grad()
+            ##print(Variable(image.permute(0, )).size())
 
-        train_loss += loss.data
-        _, predicted = outputs.max(1)
-        total += labels.size(0)
-        correct += predicted.eq(labels).sum().data[0]
-        
-        print(total)
-        print(correct)
-        print("loss: ", train_loss/(batch_index +1))
-        print('correct: ', correct/total)
-    
+            optimizer.zero_grad()
+            outputs = net(images)
+            loss = loss_function(outputs, labels)
+            loss.backward()
+            optimizer.step()
+
+            train_loss += loss.data
+            _, predicted = outputs.max(1)
+            total += labels.size(0)
+            correct += predicted.eq(labels).sum().data[0]
+
+            print("loss: ", train_loss/(batch_index +1))
+            print('correct: ', correct/total)
+
     torch.save(net.state_dict(), 'resnet.pt')

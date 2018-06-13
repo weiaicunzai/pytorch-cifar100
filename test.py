@@ -11,7 +11,7 @@ from matplotlib import pyplot as plt
 from models.resnet import *
 
 
-cifar100_test = DataLoader(CIFAR100Test(g_cifar_100_path), batch_size=2, shuffle=True, num_workers=2)
+cifar100_test = DataLoader(CIFAR100Test(g_cifar_100_path), batch_size=10, shuffle=True, num_workers=2)
 
 
 net = ResNet101()
@@ -29,8 +29,8 @@ for (label, image) in cifar100_test:
     #output = output.squeeze()
 
     _, res = output.max(1)
-    print(label)
-    print(res)
+    #print(label)
+    #print(res)
     correct += res.eq(Variable(label)).sum().data[0]
     total +=  output.size(0)
     print(correct / total)
