@@ -16,7 +16,7 @@ class CIFAR100Train(Dataset):
     def __init__(self, path):
         with open(os.path.join(path, 'train'), 'rb') as cifar100:
             self.data = pickle.load(cifar100, encoding='bytes')
-
+        
     def __len__(self):
         return len(self.data['fine_labels'.encode()])
 
@@ -46,18 +46,4 @@ class CIFAR100Test(Dataset):
         image = numpy.dstack((r, g, b))
         return label, image
 
-#print(sys.getdefaultencoding())
-#cifar100 = CIFAR100Train(g_cifar_100_path)
-#label, image = cifar100[24565]
-#
-#io.imshow(image)
-#plt.show()
-#print(label)
 
-#data = pickle.load(open(os.path.join(g_cifar_100_path, 'train'), 'rb'), encoding='bytes')
-#print(data.keys())
-#print(len(data['coarse_labels'.encode()]))
-
-
-test = pickle.load(open(os.path.join(g_cifar_100_path, 'test'), 'rb'), encoding='bytes')
-print(test['batch_label'.encode()])
