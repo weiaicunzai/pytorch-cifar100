@@ -15,7 +15,7 @@ cifar100_test = DataLoader(CIFAR100Test(g_cifar_100_path), batch_size=10, shuffl
 
 
 net = ResNet101()
-net.load_state_dict(torch.load('resnet.pt'))
+net.load_state_dict(torch.load('resnet101.pt'))
 net.eval()
 
 correct = 0
@@ -28,12 +28,16 @@ for (label, image) in cifar100_test:
     #print(output.max())
     #output = output.squeeze()
 
+    print(output)
     _, res = output.max(1)
+    print(res)
     #print(label)
     #print(res)
     correct += res.eq(Variable(label)).sum().data[0]
     total +=  output.size(0)
     print(correct / total)
+
+    break
     #res = output.max(0)[1]
     #for i in res.data:
     #    if i != 0:

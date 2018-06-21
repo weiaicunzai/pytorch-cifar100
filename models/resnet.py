@@ -10,7 +10,6 @@
 import torch
 import torch.nn as nn
 
-
 class BasicBlock(nn.Module):
     """Basic Block for resnet 18 and resnet 34
 
@@ -48,7 +47,6 @@ class BasicBlock(nn.Module):
     def forward(self, x):
         return nn.ReLU(inplace=True)(self.residual_function(x) + self.shortcut(x))
 
-
 class BottleNeck(nn.Module):
     """Residual block for resnet over 50 layers
 
@@ -78,7 +76,6 @@ class BottleNeck(nn.Module):
     def forward(self, x):
         return nn.ReLU(inplace=True)(self.residual_function(x) + self.shortcut(x))
     
-
 class ResNet(nn.Module):
 
     def __init__(self, block, num_block, num_classes=100):
@@ -165,12 +162,3 @@ def ResNet152():
 
 
 
-#from torch.autograd import Variable
-#
-#test = Variable(torch.randn(1, 3, 32, 32))
-#resnet18 = ResNet18()
-#print(resnet18(test))
-#print(torch.cuda.is_available())
-##device = torch.cuda.is_available() ? 'cude' : 'cpu'
-#device = 'cuda' if torch.cuda.is_available() else 'cpu'
-#print(device)
