@@ -54,7 +54,7 @@ net = ResNet101().cuda()
 
 loss_function = nn.CrossEntropyLoss()
 optimizer = optim.SGD(net.parameters(), lr=0.1, momentum=0.9, weight_decay=1e-4)
-
+scheduler = optim.lr_scheduler.MultiStepLR(optimizer, milestones=[100, 150], gamma=0.1) #learning rate decay
 
 
 def train(epoch):
@@ -90,7 +90,7 @@ def train(epoch):
         attr = attr[1:]
         writer.add_histogram("{}/{}".format(layer, attr), param, epoch)
 
-def test(epoch):
+def eval_training(epoch):
     net.eval()
 
     test_loss = 0.0 # cost function error
@@ -117,6 +117,8 @@ def test(epoch):
     writer.add_scalar('Test/Average loss', test_loss / len(cifar100_test), epoch)
     writer.add_scalar('Test/Accuracy', correct / len(cifar100_test), epoch)
 
+    return correct / len(cifar100_test)
+
 
 
 if __name__ == '__main__':
@@ -124,18 +126,32 @@ if __name__ == '__main__':
     input_tensor = torch.Tensor(12, 3, 32, 32).cuda()
     res = net(Variable(input_tensor, requires_grad=True))
 
+    #use tensorboard
+    if not os.path.exists('runs'):
+        os.mkdir('runs')
     writer = SummaryWriter(log_dir=os.path.join('runs', datetime.now().isoformat()))
     writer.add_graph(net, Variable(input_tensor, requires_grad=True))
 
+    #create checkpoint folder to save model
+    if not os.path.exists('checkpoint'):
+        os.mkdir('checkpoint')
     checkpoint_path = os.path.join('checkpoint', 'resnet101-{epoch}.pt')
+
+    best_acc = 0.0
     for epoch in range(1, 200):
+        scheduler.step()
         train(epoch)
-        test(epoch)
+        acc = eval_training(epoch)
+
+        #start to save best performance model after 120 epoch
+        if epoch > 120 and best_acc < acc:
+            torch.save(net.state_dict(), checkpoint_path.format(epoch=epoch))
+            best_acc = acc
+            continue
 
         if not epoch % 50:
             torch.save(net.state_dict(), checkpoint_path.format(epoch=epoch))
 
-    torch.save(net.state_dict(), os.path.join('checkpoint', 'resnet101.pt'))
     writer.close()
         
  
