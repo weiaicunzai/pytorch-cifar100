@@ -21,7 +21,6 @@ $ cd pytorch-cifar-100
 
 ### 2. run tensorbard
 ```bash
-$ mkdir runs
 $ tensorboard --logdir='runs' --port=6006
 ```
 ### 3. train the model

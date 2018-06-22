@@ -2,6 +2,8 @@
 #!/usr/bin/env	python3
 
 """ train network using pytorch
+
+author baiyu
 """
 
 #import argparse
@@ -27,22 +29,25 @@ from settings import *
 
 
 #data preprocessing:
-cifar100_training = CIFAR100Train(g_cifar_100_path)
-train_mean, train_std = compute_mean_std(cifar100_training)
 transform_train = transforms.Compose([
-    transforms.Normalize(train_mean, train_std),
+    transforms.ToPILImage(),
     transforms.RandomCrop(32, padding=4),
     transforms.RandomHorizontalFlip(),
-    transforms.RandomRotation(15)
+    transforms.RandomRotation(15),
+    transforms.ToTensor(),
+    transforms.Normalize(g_cifar100_mean, g_cifar100_std)
 ])
+cifar100_training = CIFAR100Train(g_cifar100_path, transform=transform_train)
 cifar100_training_loader = DataLoader(cifar100_training, shuffle=True, num_workers=2, batch_size=16)
 
-cifar100_test = CIFAR100Test(g_cifar_100_path)
-test_mean, test_std = compute_mean_std(cifar100_test)
 transform_test = transforms.Compose([
-    transforms.Normalize(test_mean, test_std)
+    transforms.ToTensor(),
+    transforms.Normalize(g_cifar100_mean, g_cifar100_std)
 ])
+cifar100_test = CIFAR100Test(g_cifar100_path, transform=transform_test)
 cifar100_test_loader = DataLoader(cifar100_test, shuffle=True, num_workers=2, batch_size=16)
+
+
 
 net = ResNet101().cuda()
 
@@ -54,7 +59,7 @@ net = ResNet101().cuda()
 
 loss_function = nn.CrossEntropyLoss()
 optimizer = optim.SGD(net.parameters(), lr=0.1, momentum=0.9, weight_decay=1e-4)
-scheduler = optim.lr_scheduler.MultiStepLR(optimizer, milestones=[100, 150], gamma=0.1) #learning rate decay
+scheduler = optim.lr_scheduler.MultiStepLR(optimizer, milestones=[60, 120], gamma=0.1) #learning rate decay
 
 
 def train(epoch):
@@ -62,7 +67,7 @@ def train(epoch):
 
     for batch_index, (labels, images) in enumerate(cifar100_training_loader):
 
-        images = Variable(images.permute(0, 3, 1, 2).float())
+        images = Variable(images)
         labels = Variable(labels)
 
         labels = labels.cuda()
@@ -97,8 +102,11 @@ def eval_training(epoch):
     correct = 0.0
 
     for (labels, images) in cifar100_test_loader:
-        images = Variable(images.permute(0, 3, 1, 2).float()).cuda()
-        labels = Variable(labels).cuda()
+        images = Variable(images)
+        labels = Variable(labels)
+
+        images = images.cuda()
+        labels = labels.cuda()
 
         outputs = net(images)
         loss = loss_function(outputs, labels)
@@ -120,16 +128,11 @@ def eval_training(epoch):
     return correct / len(cifar100_test)
 
 
-
-if __name__ == '__main__':
-
-    input_tensor = torch.Tensor(12, 3, 32, 32).cuda()
-    res = net(Variable(input_tensor, requires_grad=True))
-
+def main():
     #use tensorboard
     if not os.path.exists('runs'):
         os.mkdir('runs')
-    writer = SummaryWriter(log_dir=os.path.join('runs', datetime.now().isoformat()))
+    input_tensor = torch.Tensor(12, 3, 32, 32).cuda()
     writer.add_graph(net, Variable(input_tensor, requires_grad=True))
 
     #create checkpoint folder to save model
@@ -143,8 +146,8 @@ if __name__ == '__main__':
         train(epoch)
         acc = eval_training(epoch)
 
-        #start to save best performance model after 120 epoch
-        if epoch > 120 and best_acc < acc:
+        #start to save best performance model after 130 epoch
+        if epoch > 130 and best_acc < acc:
             torch.save(net.state_dict(), checkpoint_path.format(epoch=epoch))
             best_acc = acc
             continue
@@ -157,3 +160,7 @@ if __name__ == '__main__':
  
 
     
+
+if __name__ == '__main__':
+    writer = SummaryWriter(log_dir=os.path.join('runs', datetime.now().isoformat()))
+    main()

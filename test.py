@@ -1,60 +1,62 @@
+#test.py
+#!/usr/bin/env python3
 
+""" test neuron network performace
+give top1 and top5 err metrics
 
+Avialble function
+- test print top1 and top5 err on test dataset
+
+author baiyu
+"""
 
 from dataset import *
 
-from torch.utils.data import DataLoader
-from torch.autograd import Variable
 from skimage import io
 from matplotlib import pyplot as plt
 
+import torchvision.transforms as transforms
+from torch.utils.data import DataLoader
+from torch.autograd import Variable
+
 from models.resnet import *
 
-
-cifar100_test = DataLoader(CIFAR100Test(g_cifar_100_path), batch_size=10, shuffle=True, num_workers=2)
+transform_test = transforms.Compose([
+    transforms.ToTensor(),
+    transforms.Normalize(g_cifar100_mean, g_cifar100_std),
+])
+cifar100_test = CIFAR100Test(g_cifar100_path, transform_test)
+cifar100_test_loader = DataLoader(cifar100_test, batch_size=16, shuffle=True, num_workers=2)
 
 
 net = ResNet101()
+#====================================
+#load the model you want to test here
+#====================================
 net.load_state_dict(torch.load('resnet101.pt'))
 net.eval()
 
-correct = 0
+correct_1 = 0.0
+correct_5 = 0.0
 total = 0
 
-for (label, image) in cifar100_test:
-    image = image.permute(0, 3, 1, 2).float()
-    output = net(Variable(image))
-    #print(output)
-    #print(output.max())
-    #output = output.squeeze()
+for n_iter, (label, image) in enumerate(cifar100_test_loader):
+    print("iteration: {}\ttotal {} iterations".format(n_iter, len(cifar100_test_loader)))
+    image = Variable(image)
+    label = Variable(label)
+    output = net(image)
+    _, pred = output.topk(5, 1, largest=True, sorted=True)
 
-    print(output)
-    _, res = output.max(1)
-    print(res)
-    #print(label)
-    #print(res)
-    correct += res.eq(Variable(label)).sum().data[0]
-    total +=  output.size(0)
-    print(correct / total)
+    label = label.view(16, -1).expand_as(pred)
+    correct = pred.eq(label)
 
-    break
-    #res = output.max(0)[1]
-    #for i in res.data:
-    #    if i != 0:
-    #        print(i)
-   # _, predict = outputs.max(0)
-   # correct += output
-    #print(label)
-    #print(image)
-#    image = image.squeeze()
-#
-#
-#    print(type(image))
-#    print(image.size())
-#    image = image.permute(2, 0, 1)
-#    print(image.size())
-#    image = image.permute(1, 2, 0)
-#    print(image.size())
-#    io.imshow(image.numpy())
-#    plt.show()
-#
+    #compute top 5
+    correct_5 += correct[:, :5].sum().data[0]
+
+    #compute top1 
+    correct_1 += correct[:, :1].sum().data[0]
+
+
+print()
+print("Top 1 err: ", 1 - correct_1 / len(cifar100_test))
+print("Top 5 err: ", 1 - correct_5 / len(cifar100_test))
