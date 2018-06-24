@@ -33,7 +33,7 @@ net = ResNet101()
 #====================================
 #load the model you want to test here
 #====================================
-net.load_state_dict(torch.load('resnet101.pt'))
+net.load_state_dict(torch.load('checkpoint/resnet101-150.pt'))
 net.eval()
 
 correct_1 = 0.0
