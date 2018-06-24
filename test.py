@@ -2,10 +2,8 @@
 #!/usr/bin/env python3
 
 """ test neuron network performace
-give top1 and top5 err metrics
-
-Avialble function
-- test print top1 and top5 err on test dataset
+print top1 and top5 err on test dataset
+of a model
 
 author baiyu
 """
