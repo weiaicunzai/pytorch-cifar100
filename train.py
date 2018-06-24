@@ -59,7 +59,7 @@ net = ResNet101().cuda()
 
 loss_function = nn.CrossEntropyLoss()
 optimizer = optim.SGD(net.parameters(), lr=0.1, momentum=0.9, weight_decay=1e-4)
-scheduler = optim.lr_scheduler.MultiStepLR(optimizer, milestones=[60, 120], gamma=0.1) #learning rate decay
+scheduler = optim.lr_scheduler.MultiStepLR(optimizer, milestones=[40, 80, 120], gamma=0.1) #learning rate decay
 
 
 def train(epoch):
@@ -127,7 +127,6 @@ def eval_training(epoch):
 
     return correct / len(cifar100_test)
 
-
 def main():
     #use tensorboard
     if not os.path.exists('runs'):
@@ -141,18 +140,18 @@ def main():
     checkpoint_path = os.path.join('checkpoint', 'resnet101-{epoch}.pt')
 
     best_acc = 0.0
-    for epoch in range(1, 200):
+    for epoch in range(1, 160):
         scheduler.step()
         train(epoch)
         acc = eval_training(epoch)
 
         #start to save best performance model after 130 epoch
-        if epoch > 130 and best_acc < acc:
+        if epoch > 90 and best_acc < acc:
             torch.save(net.state_dict(), checkpoint_path.format(epoch=epoch))
             best_acc = acc
             continue
 
-        if not epoch % 50:
+        if not epoch % 40:
             torch.save(net.state_dict(), checkpoint_path.format(epoch=epoch))
 
     writer.close()

@@ -28,6 +28,8 @@ cifar100_test_loader = DataLoader(cifar100_test, batch_size=16, shuffle=True, nu
 
 
 net = ResNet101()
+
+
 #====================================
 #load the model you want to test here
 #====================================
@@ -58,3 +60,4 @@ for n_iter, (label, image) in enumerate(cifar100_test_loader):
 print()
 print("Top 1 err: ", 1 - correct_1 / len(cifar100_test))
 print("Top 5 err: ", 1 - correct_5 / len(cifar100_test))
+print("Parameter numbers: {}".format(sum(p.numel() for p in net.parameters())))
