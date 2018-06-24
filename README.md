@@ -27,3 +27,10 @@ $ tensorboard --logdir='runs' --port=6006
 ```bash
 $ python train.py
 ```
+
+
+## results
+
+|dataset|network|params|top1 err|top5 err|
+|:---:|:---:|:---:|:---:|:---:|
+|cifar100|resnet101|42.7M|22.49|5.99|
