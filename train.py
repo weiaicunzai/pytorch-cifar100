@@ -59,7 +59,7 @@ net = ResNet101().cuda()
 
 loss_function = nn.CrossEntropyLoss()
 optimizer = optim.SGD(net.parameters(), lr=0.1, momentum=0.9, weight_decay=1e-4)
-scheduler = optim.lr_scheduler.MultiStepLR(optimizer, milestones=[40, 80, 120], gamma=0.1) #learning rate decay
+scheduler = optim.lr_scheduler.MultiStepLR(optimizer, milestones=[60, 100], gamma=0.1) #learning rate decay
 
 
 def train(epoch):
@@ -140,7 +140,7 @@ def main():
     checkpoint_path = os.path.join('checkpoint', 'resnet101-{epoch}.pt')
 
     best_acc = 0.0
-    for epoch in range(1, 160):
+    for epoch in range(1, 140):
         scheduler.step()
         train(epoch)
         acc = eval_training(epoch)
