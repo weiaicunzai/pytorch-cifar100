@@ -2,7 +2,8 @@
 
 
 [1] Karen Simonyan, Andrew Zisserman
-    Very Deep Convolutional Networks for Large-Scale Image Recognition
+
+    Very Deep Convolutional Networks for Large-Scale Image Recognition.
     https://arxiv.org/abs/1409.1556v6
 """
 
