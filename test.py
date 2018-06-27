@@ -27,13 +27,14 @@ cifar100_test = CIFAR100Test(g_cifar100_path, transform_test)
 cifar100_test_loader = DataLoader(cifar100_test, batch_size=16, shuffle=True, num_workers=2)
 
 
-net = ResNet101()
+net = resnet101()
 
 
 #====================================
 #load the model you want to test here
 #====================================
-net.load_state_dict(torch.load('checkpoint/resnet101-150.pt'))
+#net.load_state_dict(torch.load('checkpoint/resnet101-113.pt'))
+net.load_state_dict(torch.load('checkpoint/resnet101-120.pt'))
 net.eval()
 
 correct_1 = 0.0

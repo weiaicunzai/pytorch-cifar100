@@ -40,6 +40,7 @@ class VGG(nn.Module):
     
     def forward(self, x):
         output = self.features(x)
+        output = output.view(output.size()[0], -1)
         output = self.classifier(output)
     
         return output

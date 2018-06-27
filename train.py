@@ -18,7 +18,6 @@ import torchvision.transforms as transforms
 
 from torch.utils.data import DataLoader
 from dataset import *
-from models.resnet import *
 from torch.autograd import Variable
 
 from tensorboardX import SummaryWriter
@@ -49,7 +48,11 @@ cifar100_test_loader = DataLoader(cifar100_test, shuffle=True, num_workers=2, ba
 
 
 
-net = resnet101().cuda()
+#from models.resnet import *
+#net = resnet101().cuda()
+
+from models.vgg import *
+net = vgg16().cuda()
 
 
 
@@ -137,7 +140,7 @@ def main():
     #create checkpoint folder to save model
     if not os.path.exists('checkpoint'):
         os.mkdir('checkpoint')
-    checkpoint_path = os.path.join('checkpoint', 'resnet101-{epoch}.pt')
+    checkpoint_path = os.path.join('checkpoint', 'vgg16-3fclayer-{epoch}.pt')
 
     best_acc = 0.0
     for epoch in range(1, 140):
@@ -146,7 +149,7 @@ def main():
         acc = eval_training(epoch)
 
         #start to save best performance model after 130 epoch
-        if epoch > 90 and best_acc < acc:
+        if epoch > 100 and best_acc < acc:
             torch.save(net.state_dict(), checkpoint_path.format(epoch=epoch))
             best_acc = acc
             continue
