@@ -2,9 +2,10 @@
 
 
 
-[1] Kaiming He, Xiangyu Zhang, Shaoqing Ren, Jian Sun 
+[1] Kaiming He, Xiangyu Zhang, Shaoqing Ren, Jian Sun.
+
     Deep Residual Learning for Image Recognition
-    https://arxiv.org/abs/1512.03385
+    https://arxiv.org/abs/1512.03385v1
 """
 
 import torch
@@ -134,31 +135,30 @@ class ResNet(nn.Module):
         return output 
 
 
-def ResNet18():
+def resnet18():
     """ return a ResNet 18 object
     """
     return ResNet(BasicBlock, [2, 2, 2, 2])
 
-def ResNet34():
+def nesnet34():
     """ return a ResNet 34 object
     """
     return ResNet(BasicBlock, [3, 4, 6, 3])
 
-def ResNet50():
+def nesnet50():
     """ return a ResNet 50 object
     """
     return ResNet(BottleNeck, [3, 4, 6, 3])
 
-def ResNet101():
+def resnet101():
     """ return a ResNet 101 object
     """
     return ResNet(BottleNeck, [3, 4, 23, 3])
 
-def ResNet152():
+def resnet152():
     """ return a ResNet 152 object
     """
     return ResNet(BottleNeck, [3, 8, 36, 3])
-
 
 
 

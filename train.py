@@ -49,7 +49,7 @@ cifar100_test_loader = DataLoader(cifar100_test, shuffle=True, num_workers=2, ba
 
 
 
-net = ResNet101().cuda()
+net = resnet101().cuda()
 
 
 
