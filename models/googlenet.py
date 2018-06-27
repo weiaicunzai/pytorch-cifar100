@@ -67,7 +67,7 @@ class GoogleNet(nn.Module):
     def __init__(self, num_class=100):
         super().__init__()
         self.prelayer = nn.Sequential(
-            nn.Conv2d(3, 192, kernel_size=3),
+            nn.Conv2d(3, 192, kernel_size=3, padding=1),
             nn.BatchNorm2d(192),
             nn.ReLU(inplace=True)
         )
@@ -125,6 +125,7 @@ class GoogleNet(nn.Module):
         output = self.linear(output)
 
         return output
+
 
 
 
