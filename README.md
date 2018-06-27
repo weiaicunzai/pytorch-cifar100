@@ -30,9 +30,9 @@ $ python train.py
 ### 4. training
 I train model for 140 epoch
 set learning rate at:
-epoch < 60, lr = 0.1
-epoch < 100, lr = 0.01
-epoch < 140, lr = 0.001
+- epoch < 60, lr = 0.1
+- epoch < 100, lr = 0.01
+- epoch < 140, lr = 0.001
 
 I found that training more epoch when lr = 0.1 can improve
 my model prformance by %1 or %2, but add more epoch at lr = 0.01
