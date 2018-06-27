@@ -146,7 +146,7 @@ def main():
         acc = eval_training(epoch)
 
         #start to save best performance model after 130 epoch
-        if epoch > 90 and best_acc < acc:
+        if epoch > 105 and best_acc < acc:
             torch.save(net.state_dict(), checkpoint_path.format(epoch=epoch))
             best_acc = acc
             continue
