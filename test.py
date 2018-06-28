@@ -17,8 +17,6 @@ import torchvision.transforms as transforms
 from torch.utils.data import DataLoader
 from torch.autograd import Variable
 
-from models.resnet import *
-
 transform_test = transforms.Compose([
     transforms.ToTensor(),
     transforms.Normalize(g_cifar100_mean, g_cifar100_std),
@@ -26,15 +24,15 @@ transform_test = transforms.Compose([
 cifar100_test = CIFAR100Test(g_cifar100_path, transform_test)
 cifar100_test_loader = DataLoader(cifar100_test, batch_size=16, shuffle=True, num_workers=2)
 
-
-net = resnet101()
+from models.vgg import *
+net = vgg16_bn()
 
 
 #====================================
 #load the model you want to test here
 #====================================
 #net.load_state_dict(torch.load('checkpoint/resnet101-113.pt'))
-net.load_state_dict(torch.load('checkpoint/resnet101-120.pt'))
+net.load_state_dict(torch.load('checkpoint/vgg16-3fclayer-125.pt'))
 net.eval()
 
 correct_1 = 0.0

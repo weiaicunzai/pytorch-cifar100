@@ -6,15 +6,72 @@
     Very Deep Convolutional Networks for Large-Scale Image Recognition.
     https://arxiv.org/abs/1409.1556v6
 """
+'''VGG11/13/16/19 in Pytorch.'''
+#import torch
+#import torch.nn as nn
+#
+#
+#cfg = {
+#    'VGG11': [64, 'M', 128, 'M', 256, 256, 'M', 512, 512, 'M', 512, 512, 'M'],
+#    'VGG13': [64, 64, 'M', 128, 128, 'M', 256, 256, 'M', 512, 512, 'M', 512, 512, 'M'],
+#    'VGG16': [64, 64, 'M', 128, 128, 'M', 256, 256, 256, 'M', 512, 512, 512, 'M', 512, 512, 512, 'M'],
+#    'VGG19': [64, 64, 'M', 128, 128, 'M', 256, 256, 256, 256, 'M', 512, 512, 512, 512, 'M', 512, 512, 512, 512, 'M'],
+#}
+#
+#
+#class VGG(nn.Module):
+#    def __init__(self, vgg_name):
+#        super(VGG, self).__init__()
+#        self.features = self._make_layers(cfg[vgg_name])
+#        self.classifier = nn.Linear(512, 100)
+#
+#    def forward(self, x):
+#        out = self.features(x)
+#        out = out.view(out.size(0), -1)
+#        out = self.classifier(out)
+#        return out
+#
+#    def _make_layers(self, cfg):
+#        layers = []
+#        in_channels = 3
+#        for x in cfg:
+#            if x == 'M':
+#                layers += [nn.MaxPool2d(kernel_size=2, stride=2)]
+#            else:
+#                layers += [nn.Conv2d(in_channels, x, kernel_size=3, padding=1),
+#                           nn.BatchNorm2d(x),
+#                           nn.ReLU(inplace=True)]
+#                in_channels = x
+#        layers += [nn.AvgPool2d(kernel_size=1, stride=1)]
+#        return nn.Sequential(*layers)
+#
+#def vgg16():
+#    return VGG('VGG16')
+#
+#from torch.autograd import Variable
+#def test():
+#    net = VGG('VGG11')
+#    x = torch.randn(2,3,32,32)
+#    y = net(Variable(x))
+#    print(y.size())
+#
+#net = vgg16()
+#print(net)
+#
+
+
+
+
+
 
 import torch
 import torch.nn as nn
 
 cfg = {
-    'A' : [64,     'M', 128,      'M', 256, 256,           'M', 512, 512,           'M', 512, 512,                'M'],
-    'B' : [64, 64, 'M', 128, 128, 'M', 256, 256,           'M', 512, 512,           'M', 512, 512,                'M'],
-    'D' : [64, 64, 'M', 128, 128, 'M', 256, 256, 256,      'M', 512, 512, 512,      'M', 512, 512, 512,           'M'],
-    'E' : [64, 64, 'M', 128, 128, 'M', 256, 256, 256, 256, 'M', 512, 512, 512, 512, 'M', 512, 512, 512, 512, 512, 'M']
+    'A' : [64,     'M', 128,      'M', 256, 256,           'M', 512, 512,           'M', 512, 512,           'M'],
+    'B' : [64, 64, 'M', 128, 128, 'M', 256, 256,           'M', 512, 512,           'M', 512, 512,           'M'],
+    'D' : [64, 64, 'M', 128, 128, 'M', 256, 256, 256,      'M', 512, 512, 512,      'M', 512, 512, 512,      'M'],
+    'E' : [64, 64, 'M', 128, 128, 'M', 256, 256, 256, 256, 'M', 512, 512, 512, 512, 'M', 512, 512, 512, 512, 'M']
 }
 
 class VGG(nn.Module):
@@ -24,19 +81,20 @@ class VGG(nn.Module):
         self.features = features
 
         #3 fc layers
-        self.classifier = nn.Sequential(
-            nn.Linear(512, 4096),
-            nn.ReLU(inplace=True),
-            nn.Dropout(),
-            nn.Linear(4096, 4096),
-            nn.ReLU(),
-            nn.Linear(4096, num_class)
-        )
-
-        #1 fc layer
         #self.classifier = nn.Sequential(
-        #    nn.Linear(512, num_class)
+        #    nn.Linear(512, 4096),
+        #    nn.ReLU(inplace=True),
+        #    nn.Dropout(),
+        #    nn.Linear(4096, 4096),
+        #    nn.ReLU(inplace=True),
+        #    nn.Dropout(),
+        #    nn.Linear(4096, num_class)
         #)
+
+        #1 fc layer without dropout
+        self.classifier = nn.Sequential(
+            nn.Linear(512, num_class)
+        )
     
     def forward(self, x):
         output = self.features(x)
@@ -90,4 +148,6 @@ def vgg16_bn():
 
 def vgg19_bn():
     return VGG(make_layers(cfg['E'], batch_norm=True))
+
+
 
