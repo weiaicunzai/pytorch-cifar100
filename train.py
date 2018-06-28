@@ -52,16 +52,10 @@ cifar100_test_loader = DataLoader(cifar100_test, shuffle=True, num_workers=2, ba
 #net = resnet101().cuda()
 
 from models.vgg import *
-net = vgg16().cuda()
-
-
-
-
-
-
+net = vgg16_bn().cuda()
 
 loss_function = nn.CrossEntropyLoss()
-optimizer = optim.SGD(net.parameters(), lr=0.1, momentum=0.9, weight_decay=1e-4)
+optimizer = optim.SGD(net.parameters(), lr=0.01, momentum=0.9, weight_decay=1e-4)
 scheduler = optim.lr_scheduler.MultiStepLR(optimizer, milestones=[60, 100], gamma=0.1) #learning rate decay
 
 
