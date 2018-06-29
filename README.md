@@ -36,7 +36,7 @@ set learning rate at:
 
 I found that training more epoch when lr = 0.1 can improve
 my model prformance by %1 or %2, but adding more epoch at lr = 0.01
-or lr = 0.001 own't make much difference.So I decide to train my
+or lr = 0.001 won't make much difference.So I decide to train my
 model for more epoch when lr = 0.1
 
 ## Results

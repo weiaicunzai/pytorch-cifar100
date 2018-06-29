@@ -51,8 +51,11 @@ cifar100_test_loader = DataLoader(cifar100_test, shuffle=True, num_workers=2, ba
 #from models.resnet import *
 #net = resnet101().cuda()
 
-from models.vgg import *
-net = vgg16_bn().cuda()
+#from models.vgg import *
+#net = vgg16_bn().cuda()
+
+from models.densenet import *
+net = densenet121().cuda()
 
 loss_function = nn.CrossEntropyLoss()
 optimizer = optim.SGD(net.parameters(), lr=0.01, momentum=0.9, weight_decay=1e-4)
@@ -134,7 +137,7 @@ def main():
     #create checkpoint folder to save model
     if not os.path.exists('checkpoint'):
         os.mkdir('checkpoint')
-    checkpoint_path = os.path.join('checkpoint', 'vgg16-1fclayer-nodropout-{epoch}.pt')
+    checkpoint_path = os.path.join('checkpoint', 'densenet121-{epoch}.pt')
 
     best_acc = 0.0
     for epoch in range(1, 140):
