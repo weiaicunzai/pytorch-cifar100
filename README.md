@@ -43,10 +43,5 @@ model for more epoch when lr = 0.1
 
 |dataset|network|params|top1 err|top5 err|
 |:---:|:---:|:---:|:---:|:---:|
-<<<<<<< HEAD
 |cifar100|vgg16_bn|14.8M|28.70|8.48|
 |cifar100|resnet101|42.7M|22.22|5.61|
-=======
-|cifar100|resnet101|42.7M|22.22|5.61|
-|cifar100|vgg16_bn|34.1M|29.57|9.67|
->>>>>>> 7bb1d4a721f22fded9dad72f8f16af560b43d1c1
