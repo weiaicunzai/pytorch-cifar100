@@ -32,7 +32,7 @@ net = vgg16_bn()
 #load the model you want to test here
 #====================================
 #net.load_state_dict(torch.load('checkpoint/resnet101-113.pt'))
-net.load_state_dict(torch.load('checkpoint/vgg16-3fclayer-125.pt'))
+net.load_state_dict(torch.load('checkpoint/vgg16-1fclayer-nodropout-133.pt'))
 net.eval()
 
 correct_1 = 0.0

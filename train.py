@@ -134,7 +134,7 @@ def main():
     #create checkpoint folder to save model
     if not os.path.exists('checkpoint'):
         os.mkdir('checkpoint')
-    checkpoint_path = os.path.join('checkpoint', 'vgg16-3fclayer-{epoch}.pt')
+    checkpoint_path = os.path.join('checkpoint', 'vgg16-1fclayer-nodropout-{epoch}.pt')
 
     best_acc = 0.0
     for epoch in range(1, 140):

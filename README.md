@@ -43,5 +43,5 @@ model for more epoch whye lr = 0.1
 
 |dataset|network|params|top1 err|top5 err|
 |:---:|:---:|:---:|:---:|:---:|
+|cifar100|vgg16_bn|14.8M|28.70|8.48|
 |cifar100|resnet101|42.7M|22.22|5.61|
-|cifar100|vgg16_bn|34.0.7M|29.57|9.67|
