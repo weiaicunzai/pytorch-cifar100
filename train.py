@@ -54,8 +54,12 @@ cifar100_test_loader = DataLoader(cifar100_test, shuffle=True, num_workers=2, ba
 #from models.vgg import *
 #net = vgg16_bn().cuda()
 
-from models.densenet import *
-net = densenet161().cuda()
+#from models.densenet import *
+#net = densenet121().cuda()
+#net = densenet161().cuda()
+
+from models.googlenet import *
+net = GoogleNet().cuda()
 
 
 loss_function = nn.CrossEntropyLoss()
@@ -138,7 +142,7 @@ def main():
     #create checkpoint folder to save model
     if not os.path.exists('checkpoint'):
         os.mkdir('checkpoint')
-    checkpoint_path = os.path.join('checkpoint', 'densenet161-{epoch}.pt')
+    checkpoint_path = os.path.join('checkpoint', 'googlenet-{epoch}.pt')
 
     best_acc = 0.0
     for epoch in range(1, 140):
