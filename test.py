@@ -24,15 +24,24 @@ transform_test = transforms.Compose([
 cifar100_test = CIFAR100Test(g_cifar100_path, transform_test)
 cifar100_test_loader = DataLoader(cifar100_test, batch_size=16, shuffle=True, num_workers=2)
 
+<<<<<<< HEAD
 from models.vgg import *
 net = vgg16_bn().cuda()
+=======
+from models.densenet import *
+net = densenet121().cuda()
+>>>>>>> 4311acdbd248b3eb342ce69bc9c9b0a0fc32e356
 
 
 #====================================
 #load the model you want to test here
 #====================================
 #net.load_state_dict(torch.load('checkpoint/resnet101-113.pt'))
+<<<<<<< HEAD
 net.load_state_dict(torch.load('checkpoint/vgg16-3fclayer-200.pt'))
+=======
+net.load_state_dict(torch.load('checkpoint/densenet121-139.pt'))
+>>>>>>> 4311acdbd248b3eb342ce69bc9c9b0a0fc32e356
 net.eval()
 
 correct_1 = 0.0
