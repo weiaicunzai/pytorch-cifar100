@@ -51,12 +51,15 @@ cifar100_test_loader = DataLoader(cifar100_test, shuffle=True, num_workers=2, ba
 #from models.resnet import *
 #net = resnet101().cuda()
 
-from models.vgg import *
-net = vgg16_bn().cuda()
+#from models.vgg import *
+#net = vgg16_bn().cuda()
+
+from models.densenet import *
+net = DenseNet201().cuda()
 
 loss_function = nn.CrossEntropyLoss()
 optimizer = optim.SGD(net.parameters(), lr=0.01, momentum=0.9, weight_decay=1e-4)
-scheduler = optim.lr_scheduler.MultiStepLR(optimizer, milestones=[60, 100], gamma=0.1) #learning rate decay
+scheduler = optim.lr_scheduler.MultiStepLR(optimizer, milestones=[100, 140], gamma=0.1) #learning rate decay
 
 
 def train(epoch):
@@ -134,21 +137,21 @@ def main():
     #create checkpoint folder to save model
     if not os.path.exists('checkpoint'):
         os.mkdir('checkpoint')
-    checkpoint_path = os.path.join('checkpoint', 'vgg16-1fclayer-nodropout-{epoch}.pt')
+    checkpoint_path = os.path.join('checkpoint', 'DenseNet201-{epoch}.pt')
 
     best_acc = 0.0
-    for epoch in range(1, 140):
+    for epoch in range(1, 180):
         scheduler.step()
         train(epoch)
         acc = eval_training(epoch)
 
         #start to save best performance model after 130 epoch
-        if epoch > 100 and best_acc < acc:
+        if epoch > 180 and best_acc < acc:
             torch.save(net.state_dict(), checkpoint_path.format(epoch=epoch))
             best_acc = acc
             continue
 
-        if not epoch % 40:
+        if not epoch % 50:
             torch.save(net.state_dict(), checkpoint_path.format(epoch=epoch))
 
     writer.close()

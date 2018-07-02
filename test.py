@@ -25,14 +25,14 @@ cifar100_test = CIFAR100Test(g_cifar100_path, transform_test)
 cifar100_test_loader = DataLoader(cifar100_test, batch_size=16, shuffle=True, num_workers=2)
 
 from models.vgg import *
-net = vgg16_bn()
+net = vgg16_bn().cuda()
 
 
 #====================================
 #load the model you want to test here
 #====================================
 #net.load_state_dict(torch.load('checkpoint/resnet101-113.pt'))
-net.load_state_dict(torch.load('checkpoint/vgg16-1fclayer-nodropout-133.pt'))
+net.load_state_dict(torch.load('checkpoint/vgg16-3fclayer-200.pt'))
 net.eval()
 
 correct_1 = 0.0
@@ -41,8 +41,8 @@ total = 0
 
 for n_iter, (label, image) in enumerate(cifar100_test_loader):
     print("iteration: {}\ttotal {} iterations".format(n_iter, len(cifar100_test_loader)))
-    image = Variable(image)
-    label = Variable(label)
+    image = Variable(image).cuda()
+    label = Variable(label).cuda()
     output = net(image)
     _, pred = output.topk(5, 1, largest=True, sorted=True)
 

@@ -41,7 +41,8 @@ model for more epoch when lr = 0.1
 
 ## Results
 
-|dataset|network|params|top1 err|top5 err|
-|:---:|:---:|:---:|:---:|:---:|
-|cifar100|vgg16_bn|14.8M|28.70|8.48|
+|dataset|network|params|top1 err|top5 err|epoch(lr = 0.1)|epoch(lr = 0.01)|epoch(lr = 0.001)|totle epoch|
+|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
+|cifar100|vgg16_bn|34.0M|27.77|8.84|140|40|40|220|
+|cifar100|desnet|34.0M|27.77|8.84|140|40|40|220|
 |cifar100|resnet101|42.7M|22.22|5.61|
