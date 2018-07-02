@@ -64,7 +64,7 @@ net = GoogleNet().cuda()
 
 loss_function = nn.CrossEntropyLoss()
 optimizer = optim.SGD(net.parameters(), lr=0.01, momentum=0.9, weight_decay=1e-4)
-scheduler = optim.lr_scheduler.MultiStepLR(optimizer, milestones=[80, 120], gamma=0.1) #learning rate decay
+scheduler = optim.lr_scheduler.MultiStepLR(optimizer, milestones=[100, 140], gamma=0.1) #learning rate decay
 
 
 def train(epoch):
@@ -145,18 +145,18 @@ def main():
     checkpoint_path = os.path.join('checkpoint', 'googlenet-{epoch}.pt')
 
     best_acc = 0.0
-    for epoch in range(1, 140):
+    for epoch in range(1, 180):
         scheduler.step()
         train(epoch)
         acc = eval_training(epoch)
 
         #start to save best performance model after 130 epoch
-        if epoch > 120 and best_acc < acc:
+        if epoch > 140 and best_acc < acc:
             torch.save(net.state_dict(), checkpoint_path.format(epoch=epoch))
             best_acc = acc
             continue
 
-        if not epoch % 40:
+        if not epoch % 50:
             torch.save(net.state_dict(), checkpoint_path.format(epoch=epoch))
 
     writer.close()

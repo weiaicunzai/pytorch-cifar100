@@ -24,14 +24,16 @@ class VGG(nn.Module):
         super().__init__()
         self.features = features
 
-        #1 fc layer without dropout
-        #with fewer parameters, I was
-        #able to improve 1 percent
-        #accuracy
         self.classifier = nn.Sequential(
-            nn.Linear(512, num_class)
+            nn.Linear(512, 4096),
+            nn.ReLU(inplace=True),
+            nn.Dropout(),
+            nn.Linear(4096, 4096),
+            nn.ReLU(inplace=True),
+            nn.Dropout(),
+            nn.Linear(4096, num_class)
         )
-    
+
     def forward(self, x):
         output = self.features(x)
         output = output.view(output.size()[0], -1)
@@ -86,6 +88,3 @@ def vgg19_bn():
     return VGG(make_layers(cfg['E'], batch_norm=True))
 
 
-
-net = vgg16_bn()
-print(sum([p.numel() for p in net.parameters() if p.requires_grad]))

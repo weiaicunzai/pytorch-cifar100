@@ -41,10 +41,15 @@ model for more epoch when lr = 0.1
 
 ## Results
 Best result I can get from a certain model
-|dataset|network|params|top1 err|top5 err|memory| 
-|:---:|:---:|:---:|:---:|:---:|:---:|  
-|cifar100|vgg16_bn|14.8M|28.70|8.48|2.83GB| 
-|cifar100|densenet121|7.0M|22.99|6.45|1.28GB| 
-|cifar100|resnet101|42.7M|22.22|5.61|3.72GB| 
-|cifar100|densenet161||||2.10GB|
+
+|dataset|network|params|top1 err|top5 err|memory|epoch(lr = 0.1)|epoch(lr = 0.01)|epoch(lr = 0.001)|total epoch|
+|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
+|cifar100|vgg16_bn|34.0M|27.77|8.84|2.83GB|140|40|40|220|
+|cifar100|densenet121|7.0M|22.99|6.45|1.28GB|60|40|40|140|
+|cifar100|resnet101|42.7M|22.22|5.61|3.72GB|60|40|40|140|
+|cifar100|densenet161|26M|21.56|6.04|2.10GB|80|40|40|160|
+|cifar100|densenet201|??|??|??|2.10GB|
+|cifar100|googlenet|6.2M|22.09|5.94|2.10GB|100|40|40|180
+
+
 

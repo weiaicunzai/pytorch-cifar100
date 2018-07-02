@@ -126,6 +126,7 @@ class GoogleNet(nn.Module):
 
         return output
 
-
+def googlenet():
+    return GoogleNet()
 
 
