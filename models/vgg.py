@@ -41,8 +41,6 @@ class VGG(nn.Module):
     
         return output
 
-
-
 def make_layers(cfg, batch_norm=False):
     layers = []
 
@@ -61,7 +59,6 @@ def make_layers(cfg, batch_norm=False):
         input_channel = l
     
     return nn.Sequential(*layers)
-
 
 def vgg11():
     return VGG(make_layers(cfg['A']))

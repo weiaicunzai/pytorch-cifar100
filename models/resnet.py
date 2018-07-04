@@ -134,7 +134,6 @@ class ResNet(nn.Module):
 
         return output 
 
-
 def resnet18():
     """ return a ResNet 18 object
     """

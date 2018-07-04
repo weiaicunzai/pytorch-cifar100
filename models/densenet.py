@@ -111,16 +111,12 @@ class DenseNet(nn.Module):
         output = self.linear(output)
         return output
 
-
-    
     def _make_dense_layers(self, block, in_channels, nblocks):
         dense_block = nn.Sequential()
         for index in range(nblocks):
             dense_block.add_module('bottle_neck_layer_{}'.format(index), block(in_channels, self.growth_rate))
             in_channels += self.growth_rate
         return dense_block
-    
-
 
 def densenet121():
     return DenseNet(Bottleneck, [6,12,24,16], growth_rate=32)

@@ -25,13 +25,15 @@ cifar100_test = CIFAR100Test(g_cifar100_path, transform_test)
 cifar100_test_loader = DataLoader(cifar100_test, batch_size=16, shuffle=True, num_workers=2)
 
 from models.densenet import *
-net = densenet161().cuda()
+#net = densenet121().cuda()
+#net = densenet161().cuda()
+net = densenet201().cuda()
 
 #====================================
 #load the model you want to test here
 #====================================
 #net.load_state_dict(torch.load('checkpoint/resnet101-113.pt'))
-net.load_state_dict(torch.load('checkpoint/densenet161-135.pt'))
+net.load_state_dict(torch.load('checkpoint/densenet201-159.pt'))
 net.eval()
 
 correct_1 = 0.0

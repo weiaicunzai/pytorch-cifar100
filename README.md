@@ -1,6 +1,6 @@
-# pytorch-cifar-100
+# pytorch-cifar100
 
-practice on cifar-100 using pytorch
+practice on cifar100 using pytorch
 
 
 inspired by [this](https://github.com/kuangliu/pytorch-cifar) repo
@@ -16,7 +16,7 @@ inspired by [this](https://github.com/kuangliu/pytorch-cifar) repo
 
 ### 1. enter directory
 ```bash
-$ cd pytorch-cifar-100
+$ cd pytorch-cifar100
 ```
 
 ### 2. run tensorbard
@@ -48,8 +48,8 @@ Best result I can get from a certain model
 |cifar100|densenet121|7.0M|22.99|6.45|1.28GB|60|40|40|140|
 |cifar100|resnet101|42.7M|22.22|5.61|3.72GB|60|40|40|140|
 |cifar100|densenet161|26M|21.56|6.04|2.10GB|80|40|40|160|
-|cifar100|densenet201|??|??|??|2.10GB|
-|cifar100|googlenet|6.2M|22.09|5.94|2.10GB|100|40|40|180
+|cifar100|densenet201|18M|21.46|5.9|2.10GB|100|40|40|180|
+|cifar100|googlenet|6.2M|22.09|5.94|2.10GB|100|40|40|180|
 
 
 
