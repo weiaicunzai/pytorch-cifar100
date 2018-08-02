@@ -1,4 +1,4 @@
-#(will implement more network in the future)
+# (will implement more network in the near future....)
 # pytorch-cifar100
 
 practice on cifar100 using pytorch
