@@ -1,9 +1,7 @@
+# (will implement more network in the near future....)
 # pytorch-cifar100
 
 practice on cifar100 using pytorch
-
-
-inspired by [this](https://github.com/kuangliu/pytorch-cifar) repo
 
 ## Requirements
 - python3.5
