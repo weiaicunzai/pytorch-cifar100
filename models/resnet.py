@@ -63,7 +63,7 @@ class BottleNeck(nn.Module):
             nn.BatchNorm2d(out_channels),
             nn.ReLU(inplace=True),
             nn.Conv2d(out_channels, out_channels * BottleNeck.expansion, kernel_size=1, bias=False),
-            nn.BatchNorm2d(out_channels * BottleNeck.expansion)
+            nn.BatchNorm2d(out_channels * BottleNeck.expansion),
         )
 
         self.shortcut = nn.Sequential()

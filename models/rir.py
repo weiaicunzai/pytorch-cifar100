@@ -48,6 +48,7 @@ class ResnetInit(nn.Module):
             self.short_cut = nn.Sequential(
                 nn.Conv2d(in_channel, out_channel, kernel_size=1, stride=stride)
             )
+        
 
     def forward(self, x):
         x_residual, x_transient = x
@@ -67,19 +68,21 @@ class ResnetInit(nn.Module):
 
         return x_residual, x_transient
     
+
+
 class RiRBlock(nn.Module):
     def __init__(self, in_channel, out_channel, layer_num, stride, layer=ResnetInit):
         super().__init__()
         self.resnetinit = self._make_layers(in_channel, out_channel, layer_num, stride)
 
-        self.short_cut = nn.Sequential()
-        if stride != 1 or in_channel != out_channel:
-            self.short_cut = nn.Conv2d(in_channel, out_channel, kernel_size=1, stride=stride) 
+        #self.short_cut = nn.Sequential()
+        #if stride != 1 or in_channel != out_channel:
+        #    self.short_cut = nn.Conv2d(in_channel, out_channel, kernel_size=1, stride=stride) 
 
     def forward(self, x):
         x_residual, x_transient = self.resnetinit(x)
-        x_residual = x_residual + self.short_cut(x[0])
-        x_transient = x_transient + self.short_cut(x[1])
+        #x_residual = x_residual + self.short_cut(x[0])
+        #x_transient = x_transient + self.short_cut(x[1])
 
         return (x_residual, x_transient)
 
@@ -116,6 +119,8 @@ class ResnetInResneet(nn.Module):
             nn.Conv2d(384, num_classes, kernel_size=3, stride=2), #without this convolution, loss will soon be nan
             nn.AvgPool2d(2, 2)
         )
+
+        self._weight_init()
     
     def forward(self, x):
         x_residual = self.residual_pre_conv(x)
@@ -132,6 +137,13 @@ class ResnetInResneet(nn.Module):
         h = self.classifier(h)
         h = h.view(h.size()[0], -1)
         return h
-        
+
+    def _weight_init(self):
+        for m in self.modules():
+            if isinstance(m, nn.Conv2d):
+                torch.nn.init.kaiming_normal(m.weight)
+                m.bias.data.fill_(0.01)    
+    
+
 def resnet_in_resnet():
     return ResnetInResneet()
