@@ -146,7 +146,7 @@ def main():
     #create checkpoint folder to save model
     if not os.path.exists('checkpoint'):
         os.mkdir('checkpoint')
-    checkpoint_path = os.path.join('checkpoint', 'densenet201-{epoch}.pt')
+    checkpoint_path = os.path.join('checkpoint', 'rir-{epoch}.pt')
 
     best_acc = 0.0
     for epoch in range(1, 180):

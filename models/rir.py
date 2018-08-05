@@ -103,8 +103,17 @@ class ResnetInResneet(nn.Module):
     def __init__(self, num_classes=100):
         super().__init__()
         base = int(96 / 2)
-        self.residual_pre_conv = nn.Conv2d(3, base, 3, padding=1)
-        self.transient_pre_conv = nn.Conv2d(3, base, 3, padding=1)
+        self.residual_pre_conv = nn.Sequential(
+            nn.Conv2d(3, base, 3, padding=1),
+            nn.BatchNorm2d(base),
+            nn.ReLU(inplace=True)
+        )
+
+        self.transient_pre_conv = nn.Sequential(
+            nn.Conv2d(3, base, 3, padding=1),
+            nn.BatchNorm2d(base),
+            nn.ReLU(inplace=True)
+        )
 
         self.rir1 = RiRBlock(base, base, 2, 1)
         self.rir2 = RiRBlock(base, base, 2, 1)
@@ -117,14 +126,17 @@ class ResnetInResneet(nn.Module):
 
         self.classifier = nn.Sequential(
             nn.Conv2d(384, num_classes, kernel_size=3, stride=2), #without this convolution, loss will soon be nan
-            nn.AvgPool2d(2, 2)
+            nn.BatchNorm2d(num_classes),
+            nn.ReLU(inplace=True),
         )
 
+        self.fc = nn.Linear(900, 100)
         self._weight_init()
     
     def forward(self, x):
         x_residual = self.residual_pre_conv(x)
         x_transient = self.transient_pre_conv(x)
+
         x_residual, x_transient = self.rir1((x_residual, x_transient))
         x_residual, x_transient = self.rir2((x_residual, x_transient))
         x_residual, x_transient = self.rir3((x_residual, x_transient))
@@ -136,6 +148,7 @@ class ResnetInResneet(nn.Module):
         h = torch.cat([x_residual, x_transient], 1)
         h = self.classifier(h)
         h = h.view(h.size()[0], -1)
+        h = self.fc(h)
         return h
 
     def _weight_init(self):
@@ -147,3 +160,8 @@ class ResnetInResneet(nn.Module):
 
 def resnet_in_resnet():
     return ResnetInResneet()
+
+#from torch.autograd import Variable
+#
+#net = resnet_in_resnet()
+#print(net(Variable(torch.randn(3, 3, 32, 32))).shape)
