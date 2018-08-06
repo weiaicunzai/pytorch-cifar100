@@ -36,7 +36,12 @@ class ResnetInit(nn.Module):
         #further potential improvements."""
         self.transient_stream_conv_across = nn.Conv2d(in_channel, out_channel, 3, padding=1, stride=stride)
 
-        self.bn_relu = nn.Sequential(
+        self.residual_bn_relu = nn.Sequential(
+            nn.BatchNorm2d(out_channel),
+            nn.ReLU(inplace=True)
+        )
+
+        self.transient_bn_relu = nn.Sequential(
             nn.BatchNorm2d(out_channel),
             nn.ReLU(inplace=True)
         )
@@ -59,12 +64,14 @@ class ResnetInit(nn.Module):
         transient_t_t = self.transient_stream_conv(x_transient)
         transient_t_r = self.transient_stream_conv_across(x_transient)
 
+        #transient_t_t = self.transient_stream_conv(x_residual)
+        #transient_t_r = self.transient_stream_conv_across(x_residual)
         #"""Same-stream and cross-stream activations are summed (along with the 
         #shortcut connection for the residual stream) before applying batch 
         #normalization and ReLU nonlinearities (together σ) to get the output 
         #states of the block (Equation 1) (Ioffe & Szegedy, 2015)."""
-        x_residual = self.bn_relu(residual_r_r + transient_t_r + residual_shortcut)
-        x_transient = self.bn_relu(residual_r_t + transient_t_t)
+        x_residual = self.residual_bn_relu(residual_r_r + transient_t_r + residual_shortcut)
+        x_transient = self.transient_bn_relu(residual_r_t + transient_t_t)
 
         return x_residual, x_transient
     
