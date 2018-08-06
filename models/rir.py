@@ -63,8 +63,8 @@ class ResnetInit(nn.Module):
         #shortcut connection for the residual stream) before applying batch 
         #normalization and ReLU nonlinearities (together σ) to get the output 
         #states of the block (Equation 1) (Ioffe & Szegedy, 2015)."""
-        x_residual = self.bn_relu(residual_r_r + residual_r_t + residual_shortcut)
-        x_transient = self.bn_relu(transient_t_t + transient_t_r)
+        x_residual = self.bn_relu(residual_r_r + transient_t_r + residual_shortcut)
+        x_transient = self.bn_relu(residual_r_t + transient_t_t)
 
         return x_residual, x_transient
     
@@ -124,13 +124,19 @@ class ResnetInResneet(nn.Module):
         self.rir7 = RiRBlock(base * 4, base * 4, 2, 1)
         self.rir8 = RiRBlock(base * 4, base * 4, 2, 1)
 
-        self.classifier = nn.Sequential(
+        self.conv1 = nn.Sequential(
             nn.Conv2d(384, num_classes, kernel_size=3, stride=2), #without this convolution, loss will soon be nan
             nn.BatchNorm2d(num_classes),
             nn.ReLU(inplace=True),
         )
 
-        self.fc = nn.Linear(900, 100)
+        self.classifier = nn.Sequential(
+            nn.Linear(900, 450),
+            nn.ReLU(),
+            nn.Dropout(),
+            nn.Linear(450, 100),
+        )
+
         self._weight_init()
     
     def forward(self, x):
@@ -146,9 +152,10 @@ class ResnetInResneet(nn.Module):
         x_residual, x_transient = self.rir7((x_residual, x_transient))
         x_residual, x_transient = self.rir8((x_residual, x_transient))
         h = torch.cat([x_residual, x_transient], 1)
-        h = self.classifier(h)
+        h = self.conv1(h)
         h = h.view(h.size()[0], -1)
-        h = self.fc(h)
+        h = self.classifier(h)
+
         return h
 
     def _weight_init(self):
