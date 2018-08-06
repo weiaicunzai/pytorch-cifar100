@@ -67,7 +67,7 @@ net = resnet_in_resnet().cuda()
 
 
 loss_function = nn.CrossEntropyLoss()
-optimizer = optim.SGD(net.parameters(), lr=0.01, momentum=0.9, weight_decay=1e-4)
+optimizer = optim.SGD(net.parameters(), lr=0.1, momentum=0.9, weight_decay=1e-4)
 scheduler = optim.lr_scheduler.MultiStepLR(optimizer, milestones=[100, 140], gamma=0.1) #learning rate decay
 
 
