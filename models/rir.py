@@ -36,7 +36,12 @@ class ResnetInit(nn.Module):
         #further potential improvements."""
         self.transient_stream_conv_across = nn.Conv2d(in_channel, out_channel, 3, padding=1, stride=stride)
 
-        self.bn_relu = nn.Sequential(
+        self.residual_bn_relu = nn.Sequential(
+            nn.BatchNorm2d(out_channel),
+            nn.ReLU(inplace=True)
+        )
+
+        self.transient_bn_relu = nn.Sequential(
             nn.BatchNorm2d(out_channel),
             nn.ReLU(inplace=True)
         )
@@ -48,6 +53,7 @@ class ResnetInit(nn.Module):
             self.short_cut = nn.Sequential(
                 nn.Conv2d(in_channel, out_channel, kernel_size=1, stride=stride)
             )
+        
 
     def forward(self, x):
         x_residual, x_transient = x
@@ -58,31 +64,32 @@ class ResnetInit(nn.Module):
         transient_t_t = self.transient_stream_conv(x_transient)
         transient_t_r = self.transient_stream_conv_across(x_transient)
 
+        #transient_t_t = self.transient_stream_conv(x_residual)
+        #transient_t_r = self.transient_stream_conv_across(x_residual)
         #"""Same-stream and cross-stream activations are summed (along with the 
         #shortcut connection for the residual stream) before applying batch 
         #normalization and ReLU nonlinearities (together σ) to get the output 
         #states of the block (Equation 1) (Ioffe & Szegedy, 2015)."""
-        x_residual = self.bn_relu(residual_r_r + transient_t_r + residual_shortcut)
-        x_transient = self.bn_relu(transient_t_t + residual_r_t)
+        x_residual = self.residual_bn_relu(residual_r_r + transient_t_r + residual_shortcut)
+        x_transient = self.transient_bn_relu(residual_r_t + transient_t_t)
 
         return x_residual, x_transient
     
+
+
 class RiRBlock(nn.Module):
     def __init__(self, in_channel, out_channel, layer_num, stride, layer=ResnetInit):
         super().__init__()
         self.resnetinit = self._make_layers(in_channel, out_channel, layer_num, stride)
 
-        self.short_cut = nn.Sequential()
-        if stride != 1 or in_channel != out_channel:
-            self.short_cut = nn.Sequential(
-                nn.Conv2d(in_channel, out_channel, kernel_size=1, stride=stride) ,
-                nn.BatchNorm2d(out_channel),
-                nn.ReLU(inplace=True)
-            )
-            
+        #self.short_cut = nn.Sequential()
+        #if stride != 1 or in_channel != out_channel:
+        #    self.short_cut = nn.Conv2d(in_channel, out_channel, kernel_size=1, stride=stride) 
+
     def forward(self, x):
         x_residual, x_transient = self.resnetinit(x)
-        x_residual = x_residual + self.short_cut(x[0])
+        #x_residual = x_residual + self.short_cut(x[0])
+        #x_transient = x_transient + self.short_cut(x[1])
 
         return (x_residual, x_transient)
 
@@ -123,28 +130,25 @@ class ResnetInResneet(nn.Module):
         self.rir7 = RiRBlock(base * 4, base * 4, 2, 1)
         self.rir8 = RiRBlock(base * 4, base * 4, 2, 1)
 
-        self.conv = nn.Sequential(
-            nn.Conv2d(384, num_classes, kernel_size=1, stride=1), #without this convolution, loss will soon be nan
+        self.conv1 = nn.Sequential(
+            nn.Conv2d(384, num_classes, kernel_size=3, stride=2), #without this convolution, loss will soon be nan
             nn.BatchNorm2d(num_classes),
             nn.ReLU(inplace=True),
-            nn.Conv2d(num_classes, num_classes, kernel_size=3, stride=2, padding=1),
-            nn.BatchNorm2d(num_classes),
-            nn.ReLU(inplace=True)
         )
 
         self.classifier = nn.Sequential(
-            nn.Linear(1600, 1024),
-            nn.ReLU(inplace=True),
-            nn.Dropout(0.4),
-            nn.Linear(1024, 512),
-            nn.ReLU(inplace=True),
-            nn.Dropout(0.4),
-            nn.Linear(512, num_classes),
+            nn.Linear(900, 450),
+            nn.ReLU(),
+            nn.Dropout(),
+            nn.Linear(450, 100),
         )
+
+        self._weight_init()
     
     def forward(self, x):
         x_residual = self.residual_pre_conv(x)
         x_transient = self.transient_pre_conv(x)
+
         x_residual, x_transient = self.rir1((x_residual, x_transient))
         x_residual, x_transient = self.rir2((x_residual, x_transient))
         x_residual, x_transient = self.rir3((x_residual, x_transient))
@@ -154,18 +158,23 @@ class ResnetInResneet(nn.Module):
         x_residual, x_transient = self.rir7((x_residual, x_transient))
         x_residual, x_transient = self.rir8((x_residual, x_transient))
         h = torch.cat([x_residual, x_transient], 1)
-        h = self.conv(h)
+        h = self.conv1(h)
         h = h.view(h.size()[0], -1)
         h = self.classifier(h)
+
         return h
-        
+
+    def _weight_init(self):
+        for m in self.modules():
+            if isinstance(m, nn.Conv2d):
+                torch.nn.init.kaiming_normal(m.weight)
+                m.bias.data.fill_(0.01)    
+    
+
 def resnet_in_resnet():
     return ResnetInResneet()
 
-
-from torch.autograd import Variable
-
-v1 = Variable(torch.Tensor(1, 3, 32, 32))
-net = resnet_in_resnet()
-a = net(v1)
-print(a)
+#from torch.autograd import Variable
+#
+#net = resnet_in_resnet()
+#print(net(Variable(torch.randn(3, 3, 32, 32))).shape)

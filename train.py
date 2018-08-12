@@ -67,8 +67,9 @@ net = resnet_in_resnet().cuda()
 
 
 loss_function = nn.CrossEntropyLoss()
-optimizer = optim.SGD(net.parameters(), lr=0.01, momentum=0.9, weight_decay=1e-4)
-scheduler = optim.lr_scheduler.MultiStepLR(optimizer, milestones=[42, 62], gamma=0.1) #learning rate decay
+#optimizer = optim.SGD(net.parameters(), lr=0.1, momentum=0.9, weight_decay=1e-4)
+optimizer = optim.Adam(net.parameters(), lr=0.1, weight_decay=1e-4)
+scheduler = optim.lr_scheduler.MultiStepLR(optimizer, milestones=[100, 140], gamma=0.1) #learning rate decay
 
 
 def train(epoch):
@@ -146,7 +147,7 @@ def main():
     #create checkpoint folder to save model
     if not os.path.exists('checkpoint'):
         os.mkdir('checkpoint')
-    checkpoint_path = os.path.join('checkpoint', 'resnet_in_resnet.pt')
+    checkpoint_path = os.path.join('checkpoint', 'rir-{epoch}.pt')
 
     best_acc = 0.0
     for epoch in range(1, 82):
