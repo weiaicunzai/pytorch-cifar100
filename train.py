@@ -68,7 +68,7 @@ net = resnet_in_resnet().cuda()
 
 loss_function = nn.CrossEntropyLoss()
 #optimizer = optim.SGD(net.parameters(), lr=0.1, momentum=0.9, weight_decay=1e-4)
-optimizer = optim.Adam(net.parameters(), lr=0.1, weight_decay=1e-4)
+optimizer = optim.Adam(net.parameters(), lr=0.5, weight_decay=1e-4)
 scheduler = optim.lr_scheduler.MultiStepLR(optimizer, milestones=[100, 140], gamma=0.1) #learning rate decay
 
 
@@ -156,7 +156,7 @@ def main():
         acc = eval_training(epoch)
 
         #start to save best performance model after 130 epoch
-        if epoch > 42 and best_acc < acc:
+        if epoch > 100 and best_acc < acc:
             torch.save(net.state_dict(), checkpoint_path.format(epoch=epoch))
             best_acc = acc
             continue
