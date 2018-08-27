@@ -228,8 +228,12 @@ class InceptionE(nn.Module):
 
         return torch.cat(outputs, 1)
 
-
+class Inceptionv3(nn.Module):
+    
+    def __init__(self, num_classes=100):
+        super().__init__()
+        
 
 inceptionb = InceptionA(3, 33)
 
-print(inceptionb(torch.Tensor(13, 3, 32, 32)).shape)
+print(inceptionb(torch.Tensor(13, 3, 32, 32)).shape
