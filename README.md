@@ -25,6 +25,16 @@ $ tensorboard --logdir='runs' --port=6006
 ```bash
 $ python train.py
 ```
+## Implementated NetWork
+
+- vgg [Very Deep Convolutional Networks for Large-Scale Image Recognition](https://arxiv.org/abs/1409.1556v6)
+- google net [Going Deeper with Convolutions](https://arxiv.org/abs/1409.4842v1)
+- inceptionv3 [Rethinking the Inception Architecture for Computer Vision](https://arxiv.org/abs/1512.00567v3)
+- inceptionv4 [Inception-v4, Inception-ResNet and the Impact of Residual Connections on Learning](https://arxiv.org/abs/1602.07261)
+- resnet [Deep Residual Learning for Image Recognition](https://arxiv.org/abs/1512.03385v1)
+- resnet in resnet [Resnet in Resnet: Generalizing Residual Architectures](https://arxiv.org/abs/1603.08029v1)
+- densenet [Densely Connected Convolutional Networks](https://arxiv.org/abs/1608.06993v5)
+    
 ## Training
 I train model for 140 epoch(most of the time, but not always)
 set learning rate at:
