@@ -562,8 +562,8 @@ def inception_resnet_v2():
 #net = InceptionResNetB(3)
 #net = InceptionResNetC(3)
 #net = InceptionResNetA(3)
-net = inception_resnet_v2()
-print(net(torch.Tensor(4, 3, 32, 32)).shape)
+#net = inception_resnet_v2()
+#print(net(torch.Tensor(4, 3, 32, 32)).shape)
 #print(sum([p.numel() for p in net.parameters()]))
 
 
