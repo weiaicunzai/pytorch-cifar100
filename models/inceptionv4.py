@@ -286,7 +286,9 @@ class InceptionV4(nn.Module):
         self.reduction_b = ReductionB(1024)
         self.inception_c = self._generate_inception_module(1536, 1536, C, InceptionC)
         self.avgpool = nn.AvgPool2d(7)
-        self.dropout = nn.Dropout2d(0.8)
+
+        #"""Dropout (keep 0.8)"""
+        self.dropout = nn.Dropout2d(1 - 0.8)
         self.linear = nn.Linear(1536, class_nums)
 
     def forward(self, x):
@@ -511,9 +513,11 @@ class InceptionResNetV2(nn.Module):
         output_channels = self.reduction_a.output_channels
         self.inception_resnet_b = self._generate_inception_module(output_channels, 1154, B, InceptionResNetB)
         self.reduction_b = InceptionResNetReductionB(1154)
-        self.inception_resnet_c = self._generate_inception_module(1154, 2048, C, InceptionResNetC)
-
-
+        self.inception_resnet_c = self._generate_inception_module(2146, 2048, C, InceptionResNetC)
+        self.avgpool = nn.AvgPool2d(6)
+        #"""Dropout (keep 0.8)"""
+        self.dropout = nn.Dropout2d(1 - 0.8)
+        self.linear = nn.Linear(2048, class_nums)
 
     def forward(self, x):
         x = self.stem(x)
@@ -522,6 +526,10 @@ class InceptionResNetV2(nn.Module):
         x = self.inception_resnet_b(x)
         x = self.reduction_b(x)
         x = self.inception_resnet_c(x)
+        x = self.avgpool(x)
+        x = self.dropout(x)
+        x = x.view(-1, 2048)
+        x = self.linear(x)
 
         return x
 
@@ -538,6 +546,9 @@ class InceptionResNetV2(nn.Module):
 def inceptionv4():
     return InceptionV4(4, 7, 3)
 
+def inception_resnet_v2():
+    return InceptionResNetV2(5, 10, 5)
+
 #net = Inception_Stem(3)
 #net = InceptionA(33)
 #net = ReductionA(3, 192, 224, 256, 384)
@@ -551,9 +562,9 @@ def inceptionv4():
 #net = InceptionResNetB(3)
 #net = InceptionResNetC(3)
 #net = InceptionResNetA(3)
-net = InceptionResNetV2(5, 10, 5)
+net = inception_resnet_v2()
 print(net(torch.Tensor(4, 3, 32, 32)).shape)
-print(sum([p.numel() for p in net.parameters()]))
+#print(sum([p.numel() for p in net.parameters()]))
 
 
 

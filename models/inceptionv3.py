@@ -338,5 +338,5 @@ def inceptionv3():
 
 #print(inceptionb(torch.Tensor(13, 3, 32, 32)).shape)
 
-net = inceptionv3()
-print(sum([p.numel() for p in net.parameters()]))
+#net = inceptionv3()
+#print(sum([p.numel() for p in net.parameters()]))
