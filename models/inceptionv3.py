@@ -326,8 +326,8 @@ class InceptionV3(nn.Module):
         #2 -> 1
         x = self.avgpool(x)
         x = self.dropout(x)
-        #x = x.view(x.size(0), -1)
-        #x = self.linear(x)
+        x = x.view(x.size(0), -1)
+        x = self.linear(x)
         return x
 
 
