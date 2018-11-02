@@ -9,7 +9,7 @@ practice on cifar100 using pytorch
 - tensorflow1.4
 - cuda8.0
 - cudnnv5
-
+- tensorboardX1.4
 ## Usage
 
 ### 1. enter directory
