@@ -63,8 +63,11 @@ cifar100_test_loader = DataLoader(cifar100_test, shuffle=True, num_workers=2, ba
 #from models.googlenet import *
 #net = GoogleNet().cuda()
 
-from models.rir import *
-net = resnet_in_resnet().cuda()
+#from models.rir import *
+#net = resnet_in_resnet().cuda()
+
+from models.inceptionv3 import *
+net = inceptionv3().cuda()
 
 
 loss_function = nn.CrossEntropyLoss()
