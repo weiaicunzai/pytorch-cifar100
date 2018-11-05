@@ -25,15 +25,17 @@ $ tensorboard --logdir='runs' --port=6006
 ```
 
 ### 4. train the model
-```bash
-$ python train.py
-```
 You need to specify the network you want to train in these two lines
 ```python
 from models.inceptionv3 import *
 net = inceptionv3().cuda()
 ```
-Assign ```net``` variable to the network you want to train.
+Change the code, assign ```net``` variable to the network you want to train.
+
+then train the model
+```bash
+$ python train.py
+```
 
 ## Implementated NetWork
 
