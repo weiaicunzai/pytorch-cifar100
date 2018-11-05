@@ -5,7 +5,7 @@ practice on cifar100 using pytorch
 
 ## Requirements
 - python3.5
-- pytorch3.1
+- pytorch4.0
 - tensorflow1.4
 - cuda8.0
 - cudnnv5

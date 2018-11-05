@@ -68,8 +68,8 @@ net = resnet_in_resnet().cuda()
 
 
 loss_function = nn.CrossEntropyLoss()
-#optimizer = optim.SGD(net.parameters(), lr=0.1, momentum=0.9, weight_decay=1e-4)
-optimizer = optim.Adam(net.parameters(), lr=0.5, weight_decay=1e-4)
+optimizer = optim.SGD(net.parameters(), lr=0.1, momentum=0.9, weight_decay=1e-4)
+#optimizer = optim.Adam(net.parameters(), lr=0.5, weight_decay=1e-4)
 scheduler = optim.lr_scheduler.MultiStepLR(optimizer, milestones=[100, 140], gamma=0.1) #learning rate decay
 
 
@@ -131,12 +131,12 @@ def eval_training(epoch):
         loss = loss_function(outputs, labels)
         test_loss += loss.data[0]
         _, preds = outputs.max(1)
-        correct += preds.eq(labels).sum().data[0]
+        correct += preds.eq(labels).sum()
 
     print(test_loss / len(cifar100_test))
     print('Test set: Average loss: {:.4f}, Accuracy: {:.4f}'.format(
         test_loss / len(cifar100_test),
-        correct / len(cifar100_test)
+        correct.float() / len(cifar100_test)
     ))
     print()
 
@@ -159,7 +159,7 @@ def main():
     checkpoint_path = os.path.join('checkpoint', 'rir-{epoch}.pt')
 
     best_acc = 0.0
-    for epoch in range(1, 82):
+    for epoch in range(1, 160):
         scheduler.step()
         train(epoch)
         acc = eval_training(epoch)

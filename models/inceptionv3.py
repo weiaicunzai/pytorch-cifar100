@@ -199,8 +199,8 @@ class InceptionE(nn.Module):
             
         self.branch3x3stack_1 = BasicConv2d(input_channels, 448, kernel_size=1)
         self.branch3x3stack_2 = BasicConv2d(448, 384, kernel_size=3, padding=1)
-        self.branch3x4stack_3a = BasicConv2d(384, 384, kernel_size=(1, 3), padding=(0, 1))
-        self.branch3x4stack_3b = BasicConv2d(384, 384, kernel_size=(3, 1), padding=(1, 0))
+        self.branch3x3stack_3a = BasicConv2d(384, 384, kernel_size=(1, 3), padding=(0, 1))
+        self.branch3x3stack_3b = BasicConv2d(384, 384, kernel_size=(3, 1), padding=(1, 0))
 
         self.branch_pool = nn.Sequential(
             nn.AvgPool2d(kernel_size=3, stride=1, padding=1),
@@ -232,8 +232,8 @@ class InceptionE(nn.Module):
         branch3x3stack = self.branch3x3stack_1(x)
         branch3x3stack = self.branch3x3stack_2(branch3x3stack)
         branch3x3stack = [
-            self.branch3x4stack_3a(branch3x3stack),
-            self.branch3x4stack_3b(branch3x3stack)
+            self.branch3x3stack_3a(branch3x3stack),
+            self.branch3x3stack_3b(branch3x3stack)
         ]
         branch3x3stack = torch.cat(branch3x3stack, 1)
 
