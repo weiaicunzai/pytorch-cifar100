@@ -100,14 +100,14 @@ def train(epoch):
                 writer.add_scalar('Gradients/grad_norm2_bias', para.grad.norm(), n_iter)
 
         print('Training Epoch: {epoch} [{trained_samples}/{total_samples}]\tLoss: {:0.4f}\t'.format(
-            loss.data[0],
+            loss.item(),
             epoch=epoch,
             trained_samples=batch_index * len(images),
             total_samples=len(cifar100_training)
         ))
 
         #update training loss for each iteration
-        writer.add_scalar('Train/loss', loss.data[0], n_iter)
+        writer.add_scalar('Train/loss', loss.item(), n_iter)
 
     for name, param in net.named_parameters():
         layer, attr = os.path.splitext(name)
