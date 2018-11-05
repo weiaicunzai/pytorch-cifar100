@@ -1,4 +1,3 @@
-# (will implement more network in the near future....)
 # pytorch-cifar100
 
 practice on cifar100 using pytorch
@@ -17,14 +16,25 @@ practice on cifar100 using pytorch
 $ cd pytorch-cifar100
 ```
 
-### 2. run tensorbard
+### 2. change cifar100 dataset path in settings.py
+'''g_cifar100_path''' is the path to cifar100 dataset, you can download cifar100 by clicking [here](https://www.cs.toronto.edu/~kriz/cifar-100-python.tar.gz), or download from the offical website [here](https://www.cs.toronto.edu/~kriz/cifar.html). Noet that please download the python version cifar100 dataset.
+
+### 3. run tensorbard
 ```bash
 $ tensorboard --logdir='runs' --port=6006
 ```
-### 3. train the model
+
+### 4. train the model
 ```bash
 $ python train.py
 ```
+You need to specify the network you want to train in these two lines
+```python
+$ from models.inceptionv3 import *
+$ net = inceptionv3().cuda()
+```
+Assign '''net''' variable to the network you want to train.
+
 ## Implementated NetWork
 
 - vgg [Very Deep Convolutional Networks for Large-Scale Image Recognition](https://arxiv.org/abs/1409.1556v6)
