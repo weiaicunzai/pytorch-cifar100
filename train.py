@@ -90,6 +90,15 @@ def train(epoch):
         loss.backward()
         optimizer.step()
 
+        n_iter = (epoch - 1) * len(cifar100_training_loader) + batch_index + 1
+
+        last_layer = list(net.children())[-1]
+        for name, para in last_layer.named_parameters():
+            if 'weight' in name:
+                writer.add_scalar('Gradients/grad_norm2_weights', para.grad.norm(), n_iter)
+            if 'bias' in name:
+                writer.add_scalar('Gradients/grad_norm2_bias', para.grad.norm(), n_iter)
+
         print('Training Epoch: {epoch} [{trained_samples}/{total_samples}]\tLoss: {:0.4f}\t'.format(
             loss.data[0],
             epoch=epoch,
@@ -98,7 +107,6 @@ def train(epoch):
         ))
 
         #update training loss for each iteration
-        n_iter = (epoch - 1) * len(cifar100_training_loader) + batch_index + 1
         writer.add_scalar('Train/loss', loss.data[0], n_iter)
 
     for name, param in net.named_parameters():
