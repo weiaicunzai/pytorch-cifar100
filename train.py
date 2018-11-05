@@ -129,7 +129,7 @@ def eval_training(epoch):
 
         outputs = net(images)
         loss = loss_function(outputs, labels)
-        test_loss += loss.data[0]
+        test_loss += loss.item()
         _, preds = outputs.max(1)
         correct += preds.eq(labels).sum()
 
