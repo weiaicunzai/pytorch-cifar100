@@ -162,7 +162,7 @@ def main():
     checkpoint_path = os.path.join('checkpoint', 'rir-{epoch}.pt')
 
     best_acc = 0.0
-    for epoch in range(1, 160):
+    for epoch in range(1, 200):
         scheduler.step()
         train(epoch)
         acc = eval_training(epoch)
