@@ -50,8 +50,8 @@ from conf import settings
 #from models.rir import *
 #net = resnet_in_resnet().cuda()
 
-from models.inceptionv3 import *
-net = inceptionv3().cuda()
+#from models.inceptionv3 import *
+#net = inceptionv3().cuda()
 
 
 
@@ -59,9 +59,6 @@ net = inceptionv3().cuda()
 
 def train(epoch):
 
-    optimizer = optim.SGD(net.parameters(), lr=0.1, momentum=0.9, weight_decay=1e-4)
-    scheduler = optim.lr_scheduler.MultiStepLR(optimizer, milestones=[140, 220], gamma=0.1) #learning rate decay
-    loss_function = nn.CrossEntropyLoss()
 
     net.train()
     for batch_index, (labels, images) in enumerate(cifar100_training_loader):
@@ -134,27 +131,27 @@ def eval_training(epoch):
 
     return correct.float() / len(cifar100_test)
 
-def main(net_name):
+def main(net_name, checkpoint_path, epochs, milestones):
     #use tensorboard
     if not os.path.exists('runs'):
         os.mkdir('runs')
     input_tensor = torch.Tensor(12, 3, 32, 32).cuda()
     writer.add_graph(net, Variable(input_tensor, requires_grad=True))
 
-    checkpoints = os.path.join(settings.CHECKPOINT_PATH, time_now)
+    #checkpoints = os.path.join(settings.CHECKPOINT_PATH, time_now)
     #create checkpoint folder to save model
-    if not os.path.exists('checkpoint'):
-        os.mkdir('checkpoint')
-    checkpoint_path = os.path.join('checkpoint', '{net}-{epoch}.pt')
+    if not os.path.exists(checkpoint_path):
+        os.makedirs(checkpoint_path)
+    checkpoint_path = os.path.join(checkpoint_path, '{net}-{epoch}.pt')
 
     best_acc = 0.0
-    for epoch in range(1, 280):
+    for epoch in range(1, epochs):
         scheduler.step()
         train(epoch)
         acc = eval_training(epoch)
 
-        #start to save best performance model after 130 epoch
-        if epoch > 140 and best_acc < acc:
+        #start to save best performance model after learning rate decay to 0.01 
+        if epoch > milestones[1] and best_acc < acc:
             torch.save(net.state_dict(), checkpoint_path.format(net=net_name, epoch=epoch))
             best_acc = acc
             continue
@@ -193,7 +190,7 @@ if __name__ == '__main__':
         from models.inceptionv4 import inceptionv4
         net = inceptionv4()
     else:
-        print('the network you have entered not supported yet')
+        print('the network name you have entered is not supported yet')
     #data preprocessing:
     transform_train = transforms.Compose([
         transforms.ToPILImage(),
@@ -201,7 +198,7 @@ if __name__ == '__main__':
         transforms.RandomHorizontalFlip(),
         transforms.RandomRotation(15),
         transforms.ToTensor(),
-        transforms.Normalize(settings.CIFAR100_MEAN, settings.IFAR100_STD)
+        transforms.Normalize(settings.CIFAR100_MEAN, settings.CIFAR100_STD)
     ])
     cifar100_training = CIFAR100Train(
         settings.CIFAR100_PATH, transform=transform_train)
@@ -216,12 +213,12 @@ if __name__ == '__main__':
     cifar100_test_loader = DataLoader(
         cifar100_test, shuffle=True, num_workers=2, batch_size=16)
     
-    #loss_function = nn.CrossEntropyLoss()
-    #optimizer = optim.SGD(net.parameters(), lr=0.1, momentum=0.9, weight_decay=1e-4)
-    #scheduler = optim.lr_scheduler.MultiStepLR(optimizer, milestones=[140, 220], gamma=0.1) #learning rate decay
-
+    loss_function = nn.CrossEntropyLoss()
+    optimizer = optim.SGD(net.parameters(), lr=settings.INIT_LR, momentum=0.9, weight_decay=1e-4)
+    scheduler = optim.lr_scheduler.MultiStepLR(optimizer, milestones=settings.MILESTONES, gamma=0.1) #learning rate decay
+    checkpoint_path = os.path.join(settings.CHECKPOINT_PATH, settings.TIME_NOW)
 
     writer = SummaryWriter(log_dir=os.path.join(
             'runs', settings.TIME_NOW))
 
-    main()
+    main(args.net_name, checkpoint_path, settings.EPOCH, settings.MILESTONES)

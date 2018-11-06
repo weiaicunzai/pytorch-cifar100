@@ -8,6 +8,7 @@ of a model
 author baiyu
 """
 
+import argparse
 from dataset import *
 
 from skimage import io
@@ -17,49 +18,83 @@ import torchvision.transforms as transforms
 from torch.utils.data import DataLoader
 from torch.autograd import Variable
 
-transform_test = transforms.Compose([
-    transforms.ToTensor(),
-    transforms.Normalize(g_cifar100_mean, g_cifar100_std),
-])
-cifar100_test = CIFAR100Test(g_cifar100_path, transform_test)
-cifar100_test_loader = DataLoader(cifar100_test, batch_size=16, shuffle=True, num_workers=2)
+from conf import settings
 
-#from models.densenet import *
-#net = densenet121().cuda()
-#net = densenet161().cuda()
-from models.rir import *
-net = resnet_in_resnet().cuda()
+if __name__ == '__main__':
 
-#====================================
-#load the model you want to test here
-#====================================
-#net.load_state_dict(torch.load('checkpoint/resnet101-113.pt'))
-net.load_state_dict(torch.load('checkpoint/densenet201-150.pt'))
-print(net)
-net.eval()
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-net', type=str, required=True, help='net type')
+    parser.add_argument('-weights', type=str, required=True, help='the weights file you want to test')
+    args = parser.add_argument()
 
-correct_1 = 0.0
-correct_5 = 0.0
-total = 0
-
-for n_iter, (label, image) in enumerate(cifar100_test_loader):
-    print("iteration: {}\ttotal {} iterations".format(n_iter, len(cifar100_test_loader)))
-    image = Variable(image).cuda()
-    label = Variable(label).cuda()
-    output = net(image)
-    _, pred = output.topk(5, 1, largest=True, sorted=True)
-
-    label = label.view(16, -1).expand_as(pred)
-    correct = pred.eq(label)
-
-    #compute top 5
-    correct_5 += correct[:, :5].sum().data[0]
-
-    #compute top1 
-    correct_1 += correct[:, :1].sum().data[0]
+    if args.net == 'vgg16':
+        from models.vgg import vgg16_bn
+        net = vgg16_bn()
+    elif args.net == 'densenet121':
+        from models.densenet import densenet121
+        net = densenet121()
+    elif args.net == 'densenet161':
+        from models.densenet import densenet161
+        net = densenet161()
+    elif args.net == 'densenet201':
+        from models.densenet import densenet201
+        net = densenet201()
+    elif args.net == 'googlenet':
+        from models.googlenet import googlenet
+        net = googlenet()
+    elif args.net == 'inceptionv3':
+        from models.inceptionv3 import inceptionv3
+        net = inceptionv3()
+    elif args.net == 'inceptionv4':
+        from models.inceptionv4 import inceptionv4
+        net = inceptionv4()
+    else:
+        print('the network name you have entered is not supported yet')
 
 
-print()
-print("Top 1 err: ", 1 - correct_1 / len(cifar100_test))
-print("Top 5 err: ", 1 - correct_5 / len(cifar100_test))
-print("Parameter numbers: {}".format(sum(p.numel() for p in net.parameters())))
+    transform_test = transforms.Compose([
+        transforms.ToTensor(),
+        transforms.Normalize(settings.CIFAR100_MEAN, settings.CIFAR100_STD),
+    ])
+    cifar100_test = CIFAR100Test(settings.CIFAR100_PATH, transform_test)
+    cifar100_test_loader = DataLoader(cifar100_test, batch_size=16, shuffle=True, num_workers=2)
+
+    #from models.densenet import *
+    #net = densenet121().cuda()
+    #net = densenet161().cuda()
+    #from models.rir import *
+    #net = resnet_in_resnet().cuda()
+
+    #====================================
+    #load the model you want to test here
+    #====================================
+    #net.load_state_dict(torch.load('checkpoint/resnet101-113.pt'))
+    net.load_state_dict(torch.load(args.weights))
+    print(net)
+    net.eval()
+
+    correct_1 = 0.0
+    correct_5 = 0.0
+    total = 0
+
+    for n_iter, (label, image) in enumerate(cifar100_test_loader):
+        print("iteration: {}\ttotal {} iterations".format(n_iter, len(cifar100_test_loader)))
+        image = Variable(image).cuda()
+        label = Variable(label).cuda()
+        output = net(image)
+        _, pred = output.topk(5, 1, largest=True, sorted=True)
+
+        label = label.view(16, -1).expand_as(pred)
+        correct = pred.eq(label).float()
+
+        #compute top 5
+        correct_5 += correct[:, :5].sum()
+
+        #compute top1 
+        correct_1 += correct[:, :1].sum()
+
+
+    print()
+    print("Top 1 err: ", 1 - correct_1 / len(cifar100_test))
+    print("Top 5 err: ", 1 - correct_5 / len(cifar100_test))
+    print("Parameter numbers: {}".format(sum(p.numel() for p in net.parameters())))
