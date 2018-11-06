@@ -72,7 +72,7 @@ net = inceptionv3().cuda()
 
 loss_function = nn.CrossEntropyLoss()
 optimizer = optim.SGD(net.parameters(), lr=0.1, momentum=0.9, weight_decay=1e-4)
-scheduler = optim.lr_scheduler.MultiStepLR(optimizer, milestones=[100, 140], gamma=0.1) #learning rate decay
+scheduler = optim.lr_scheduler.MultiStepLR(optimizer, milestones=[140, 220], gamma=0.1) #learning rate decay
 
 
 def train(epoch):
@@ -97,9 +97,9 @@ def train(epoch):
         last_layer = list(net.children())[-1]
         for name, para in last_layer.named_parameters():
             if 'weight' in name:
-                writer.add_scalar('Gradients/grad_norm2_weights', para.grad.norm(), n_iter)
+                writer.add_scalar('LastLayerGradients/grad_norm2_weights', para.grad.norm(), n_iter)
             if 'bias' in name:
-                writer.add_scalar('Gradients/grad_norm2_bias', para.grad.norm(), n_iter)
+                writer.add_scalar('LastLayerGradients/grad_norm2_bias', para.grad.norm(), n_iter)
 
         print('Training Epoch: {epoch} [{trained_samples}/{total_samples}]\tLoss: {:0.4f}\t'.format(
             loss.item(),
@@ -161,13 +161,13 @@ def main():
     checkpoint_path = os.path.join('checkpoint', 'rir-{epoch}.pt')
 
     best_acc = 0.0
-    for epoch in range(1, 200):
+    for epoch in range(1, 280):
         scheduler.step()
         train(epoch)
         acc = eval_training(epoch)
 
         #start to save best performance model after 130 epoch
-        if epoch > 100 and best_acc < acc:
+        if epoch > 140 and best_acc < acc:
             torch.save(net.state_dict(), checkpoint_path.format(epoch=epoch))
             best_acc = acc
             continue

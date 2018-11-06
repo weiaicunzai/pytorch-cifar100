@@ -1,4 +1,4 @@
-# pytorch-cifar100
+# Pytorch-cifar100
 
 practice on cifar100 using pytorch
 
@@ -61,7 +61,7 @@ or lr = 0.001 won't make much difference.So I decide to train my
 model for more epoch when lr = 0.1
 
 ## Results
-Best result I can get from a certain model
+Best result I can get from a certain model, you can try yourself.
 
 |dataset|network|params|top1 err|top5 err|memory|epoch(lr = 0.1)|epoch(lr = 0.01)|epoch(lr = 0.001)|total epoch|
 |:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
