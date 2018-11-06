@@ -36,6 +36,12 @@ the supported net args are:
 vgg16, densenet121, densenet161, densenet201, googlenet, inceptionv3, inceptionv4
 ```
 
+### 5. test the model
+Test the model using test.py
+```bash
+$ python test.py -net vgg16 -weights path_to_vgg16_weights_file
+```
+
 ## Implementated NetWork
 
 - vgg [Very Deep Convolutional Networks for Large-Scale Image Recognition](https://arxiv.org/abs/1409.1556v6)
