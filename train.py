@@ -146,7 +146,7 @@ def eval_training(epoch):
     writer.add_scalar('Test/Average loss', test_loss / len(cifar100_test), epoch)
     writer.add_scalar('Test/Accuracy', correct.float() / len(cifar100_test), epoch)
 
-    return correct / len(cifar100_test)
+    return correct.float() / len(cifar100_test)
 
 def main():
     #use tensorboard
