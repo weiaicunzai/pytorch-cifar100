@@ -16,8 +16,8 @@ practice on cifar100 using pytorch
 $ cd pytorch-cifar100
 ```
 
-### 2. change cifar100 dataset path in settings.py
-```g_cifar100_path``` is the path to cifar100 dataset, you can download cifar100 by clicking [here](https://www.cs.toronto.edu/~kriz/cifar-100-python.tar.gz), or download from the offical website [here](https://www.cs.toronto.edu/~kriz/cifar.html). Noet that please download the python version cifar100 dataset.
+### 2. change cifar100 dataset path in conf/global_settings.py
+```CIFAR100_PATH``` is the path to cifar100 dataset, you can download cifar100 by clicking [here](https://www.cs.toronto.edu/~kriz/cifar-100-python.tar.gz), or download from the offical website [here](https://www.cs.toronto.edu/~kriz/cifar.html). Noet that please download the python version cifar100 dataset.
 
 ### 3. run tensorbard
 ```bash
@@ -26,16 +26,14 @@ $ tensorboard --logdir='runs' --port=6006
 ```
 
 ### 4. train the model
-You need to specify the network you want to train in these two lines
-```python
-from models.inceptionv3 import *
-net = inceptionv3().cuda()
-```
-Change the code, assign ```net``` variable to the network you want to train.
+You need to specify the net you want to train using arg -net
 
-then train the model
 ```bash
-$ python train.py
+$ python train.py -net vgg16
+```
+the supported net args are:
+```
+vgg16, densenet121, densenet161, densenet201, googlenet, inceptionv3, inceptionv4
 ```
 
 ## Implementated NetWork
