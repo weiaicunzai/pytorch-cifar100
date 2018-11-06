@@ -8,7 +8,8 @@ import numpy
 import torch
 from torch.utils.data import Dataset
 
-from settings import *
+#from settings import *
+
 
 
 

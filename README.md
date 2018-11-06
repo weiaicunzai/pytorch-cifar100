@@ -21,6 +21,7 @@ $ cd pytorch-cifar100
 
 ### 3. run tensorbard
 ```bash
+$ mkdir runs
 $ tensorboard --logdir='runs' --port=6006
 ```
 

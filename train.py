@@ -6,8 +6,8 @@
 author baiyu
 """
 
-#import argparse
 import os
+import argparse
 from datetime import datetime
 
 import numpy as np
@@ -22,30 +22,14 @@ from dataset import *
 from torch.autograd import Variable
 
 from tensorboardX import SummaryWriter
-from settings import *
+#from settings import *
+from conf import settings
 
 #parser = argparse.ArgumentParser(description='image classification with Pytorch')
 #parser.add_argument('--')
 
 
-#data preprocessing:
-transform_train = transforms.Compose([
-    transforms.ToPILImage(),
-    transforms.RandomCrop(32, padding=4),
-    transforms.RandomHorizontalFlip(),
-    transforms.RandomRotation(15),
-    transforms.ToTensor(),
-    transforms.Normalize(g_cifar100_mean, g_cifar100_std)
-])
-cifar100_training = CIFAR100Train(g_cifar100_path, transform=transform_train)
-cifar100_training_loader = DataLoader(cifar100_training, shuffle=True, num_workers=2, batch_size=16)
 
-transform_test = transforms.Compose([
-    transforms.ToTensor(),
-    transforms.Normalize(g_cifar100_mean, g_cifar100_std)
-])
-cifar100_test = CIFAR100Test(g_cifar100_path, transform=transform_test)
-cifar100_test_loader = DataLoader(cifar100_test, shuffle=True, num_workers=2, batch_size=16)
 
 
 
@@ -70,14 +54,16 @@ from models.inceptionv3 import *
 net = inceptionv3().cuda()
 
 
-loss_function = nn.CrossEntropyLoss()
-optimizer = optim.SGD(net.parameters(), lr=0.1, momentum=0.9, weight_decay=1e-4)
-scheduler = optim.lr_scheduler.MultiStepLR(optimizer, milestones=[140, 220], gamma=0.1) #learning rate decay
+
 
 
 def train(epoch):
-    net.train()
 
+    optimizer = optim.SGD(net.parameters(), lr=0.1, momentum=0.9, weight_decay=1e-4)
+    scheduler = optim.lr_scheduler.MultiStepLR(optimizer, milestones=[140, 220], gamma=0.1) #learning rate decay
+    loss_function = nn.CrossEntropyLoss()
+
+    net.train()
     for batch_index, (labels, images) in enumerate(cifar100_training_loader):
 
         images = Variable(images)
@@ -148,17 +134,18 @@ def eval_training(epoch):
 
     return correct.float() / len(cifar100_test)
 
-def main():
+def main(net_name):
     #use tensorboard
     if not os.path.exists('runs'):
         os.mkdir('runs')
     input_tensor = torch.Tensor(12, 3, 32, 32).cuda()
     writer.add_graph(net, Variable(input_tensor, requires_grad=True))
 
+    checkpoints = os.path.join(settings.CHECKPOINT_PATH, time_now)
     #create checkpoint folder to save model
     if not os.path.exists('checkpoint'):
         os.mkdir('checkpoint')
-    checkpoint_path = os.path.join('checkpoint', 'rir-{epoch}.pt')
+    checkpoint_path = os.path.join('checkpoint', '{net}-{epoch}.pt')
 
     best_acc = 0.0
     for epoch in range(1, 280):
@@ -168,19 +155,73 @@ def main():
 
         #start to save best performance model after 130 epoch
         if epoch > 140 and best_acc < acc:
-            torch.save(net.state_dict(), checkpoint_path.format(epoch=epoch))
+            torch.save(net.state_dict(), checkpoint_path.format(net=net_name, epoch=epoch))
             best_acc = acc
             continue
 
         if not epoch % 50:
-            torch.save(net.state_dict(), checkpoint_path.format(epoch=epoch))
+            torch.save(net.state_dict(), checkpoint_path.format(net=net_name, epoch=epoch))
 
     writer.close()
         
  
-
-    
-
 if __name__ == '__main__':
-    writer = SummaryWriter(log_dir=os.path.join('runs', datetime.now().isoformat()))
+    
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-net', type=str, required=True, help='net type')
+    args = parser.add_argument()
+
+    if args.net == 'vgg16':
+        from models.vgg import vgg16_bn
+        net = vgg16_bn()
+    elif args.net == 'densenet121':
+        from models.densenet import densenet121
+        net = densenet121()
+    elif args.net == 'densenet161':
+        from models.densenet import densenet161
+        net = densenet161()
+    elif args.net == 'densenet201':
+        from models.densenet import densenet201
+        net = densenet201()
+    elif args.net == 'googlenet':
+        from models.googlenet import googlenet
+        net = googlenet()
+    elif args.net == 'inceptionv3':
+        from models.inceptionv3 import inceptionv3
+        net = inceptionv3()
+    elif args.net == 'inceptionv4':
+        from models.inceptionv4 import inceptionv4
+        net = inceptionv4()
+    else:
+        print('the network you have entered not supported yet')
+    #data preprocessing:
+    transform_train = transforms.Compose([
+        transforms.ToPILImage(),
+        transforms.RandomCrop(32, padding=4),
+        transforms.RandomHorizontalFlip(),
+        transforms.RandomRotation(15),
+        transforms.ToTensor(),
+        transforms.Normalize(settings.CIFAR100_MEAN, settings.IFAR100_STD)
+    ])
+    cifar100_training = CIFAR100Train(
+        settings.CIFAR100_PATH, transform=transform_train)
+    cifar100_training_loader = DataLoader(
+        cifar100_training, shuffle=True, num_workers=2, batch_size=16)
+
+    transform_test = transforms.Compose([
+        transforms.ToTensor(),
+        transforms.Normalize(settings.CIFAR100_MEAN, settings.CIFAR100_STD)
+    ])
+    cifar100_test = CIFAR100Test(settings.CIFAR100_PATH, transform=transform_test)
+    cifar100_test_loader = DataLoader(
+        cifar100_test, shuffle=True, num_workers=2, batch_size=16)
+    
+    #loss_function = nn.CrossEntropyLoss()
+    #optimizer = optim.SGD(net.parameters(), lr=0.1, momentum=0.9, weight_decay=1e-4)
+    #scheduler = optim.lr_scheduler.MultiStepLR(optimizer, milestones=[140, 220], gamma=0.1) #learning rate decay
+
+
+    writer = SummaryWriter(log_dir=os.path.join(
+            'runs', settings.TIME_NOW))
+
     main()
