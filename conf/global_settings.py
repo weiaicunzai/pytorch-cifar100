@@ -25,7 +25,7 @@ MILESTONES = [140, 220]
 INIT_LR = 0.1
 
 #time of we run the script
-TIME_NOW = datetime.isoformat()
+TIME_NOW = datetime.now().isoformat()
 
 
 
