@@ -166,7 +166,7 @@ if __name__ == '__main__':
     
     parser = argparse.ArgumentParser()
     parser.add_argument('-net', type=str, required=True, help='net type')
-    args = parser.add_argument()
+    args = parser.parse_args()
 
     if args.net == 'vgg16':
         from models.vgg import vgg16_bn
