@@ -221,4 +221,4 @@ if __name__ == '__main__':
     writer = SummaryWriter(log_dir=os.path.join(
             'runs', settings.TIME_NOW))
 
-    main(args.net_name, checkpoint_path, settings.EPOCH, settings.MILESTONES)
+    main(args.net, checkpoint_path, settings.EPOCH, settings.MILESTONES)
