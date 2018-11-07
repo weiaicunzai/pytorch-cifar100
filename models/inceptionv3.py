@@ -247,8 +247,8 @@ class InceptionV3(nn.Module):
     
     def __init__(self, num_classes=100):
         super().__init__()
-        self.Conv2d_1a_3x3 = BasicConv2d(3, 32, kernel_size=3, stride=1, padding=1)
-        self.Conv2d_2a_3x3 = BasicConv2d(32, 32, kernel_size=3)
+        self.Conv2d_1a_3x3 = BasicConv2d(3, 32, kernel_size=3, padding=1)
+        self.Conv2d_2a_3x3 = BasicConv2d(32, 32, kernel_size=3, padding=1)
         self.Conv2d_2b_3x3 = BasicConv2d(32, 64, kernel_size=3, padding=1)
         self.Conv2d_3b_1x1 = BasicConv2d(64, 80, kernel_size=1)
         self.Conv2d_4a_3x3 = BasicConv2d(80, 192, kernel_size=3)
@@ -270,37 +270,31 @@ class InceptionV3(nn.Module):
         self.Mixed_7b = InceptionE(1280)
         self.Mixed_7c = InceptionE(2048)
         
-        self.maxpool = nn.MaxPool2d(kernel_size=3, stride=2)
-        self.avgpool = nn.AvgPool2d(kernel_size=2, stride=2)
+        self.maxpool = nn.MaxPool2d(kernel_size=3, stride=1)
+        self.avgpool = nn.AvgPool2d(kernel_size=6, stride=1)
         self.dropout = nn.Dropout2d()
         self.linear = nn.Linear(2048, num_classes)
 
     def forward(self, x):
 
-        #32 -> 32
-        x = self.Conv2d_1a_3x3(x)
-
         #32 -> 30
+        x = self.Conv2d_1a_3x3(x)
         x = self.Conv2d_2a_3x3(x)
-
-        #30 -> 30
         x = self.Conv2d_2b_3x3(x)
         x = self.Conv2d_3b_1x1(x)
-
-        #30 -> 28
         x = self.Conv2d_4a_3x3(x)
 
-        #28 -> 13
-        x = self.maxpool(x)
+        #30 -> 30
         x = self.Mixed_5b(x)
         x = self.Mixed_5c(x)
         x = self.Mixed_5d(x)
 
-        #13 -> 6
+        #30 -> 14
         #Efficient Grid Size Reduction to avoid representation
         #bottleneck
         x = self.Mixed_6a(x)
 
+        #14 -> 14
         #"""In practice, we have found that employing this factorization does not 
         #work well on early layers, but it gives very good results on medium 
         #grid-sizes (On m × m feature maps, where m ranges between 12 and 20). 
@@ -311,10 +305,11 @@ class InceptionV3(nn.Module):
         x = self.Mixed_6d(x)
         x = self.Mixed_6e(x)
 
-        #6 -> 2
+        #14 -> 6
         #Efficient Grid Size Reduction
         x = self.Mixed_7a(x)
 
+        #6 -> 6
         #We are using this solution only on the coarsest grid, 
         #since that is the place where producing high dimensional 
         #sparse representation is the most critical as the ratio of 
@@ -323,7 +318,7 @@ class InceptionV3(nn.Module):
         x = self.Mixed_7b(x)
         x = self.Mixed_7c(x)
 
-        #2 -> 1
+        #6 -> 1
         x = self.avgpool(x)
         x = self.dropout(x)
         x = x.view(x.size(0), -1)
