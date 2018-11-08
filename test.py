@@ -48,12 +48,24 @@ if __name__ == '__main__':
     elif args.net == 'inceptionv4':
         from models.inceptionv4 import inceptionv4
         net = inceptionv4().cuda()
-    elif args.net == 'resnet101':
-        from models.resnet import resnet101
-        net = resnet101().cuda()
     elif args.net == 'xception':
         from models.xception import xception
         net = xception().cuda()
+    elif args.net == 'resnet18':
+        from models.resnet import resnet18
+        net = resnet18().cuda()
+    elif args.net == 'resnet34':
+        from models.resnet import resnet34
+        net = resnet34().cuda()
+    elif args.net == 'resnet50':
+        from models.resnet import resnet50
+        net = resnet50().cuda()
+    elif args.net == 'resnet101':
+        from models.resnet import resnet101
+        net = resnet101().cuda()
+    elif args.net == 'resnet152':
+        from models.resnet import resnet152
+        net = resnet152().cuda()
     else:
         print('the network name you have entered is not supported yet')
 

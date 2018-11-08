@@ -41,7 +41,11 @@ googlenet
 inceptionv3
 inceptionv4
 xception
+resnet18
+resnet34
+resnet50
 resnet101
+resnet150
 ```
 Normally, the weights file with the best accuracy would be written to the disk(default in checkpoint folder).
 
