@@ -17,7 +17,7 @@ $ cd pytorch-cifar100
 ```
 
 ### 2. change cifar100 dataset path in conf/global_settings.py
-```CIFAR100_PATH``` is the path to cifar100 dataset, you can download cifar100 by clicking [here](https://www.cs.toronto.edu/~kriz/cifar-100-python.tar.gz), or download from the offical website [here](https://www.cs.toronto.edu/~kriz/cifar.html). Noet that please download the python version cifar100 dataset.
+```CIFAR100_PATH``` is the path to cifar100 dataset, you can download cifar100 by clicking [here](https://www.cs.toronto.edu/~kriz/cifar-100-python.tar.gz), or download from the offical website [here](https://www.cs.toronto.edu/~kriz/cifar.html). Note that please download the python version cifar100 dataset.
 
 ### 3. run tensorbard
 ```bash
@@ -31,9 +31,17 @@ You need to specify the net you want to train using arg -net
 ```bash
 $ python train.py -net vgg16
 ```
-the supported net args are:
+The supported net args are:
 ```
-vgg16, densenet121, densenet161, densenet201, googlenet, inceptionv3, inceptionv4
+vgg16
+densenet121
+densenet161
+densenet201
+googlenet
+inceptionv3
+inceptionv4
+xception
+resnet101
 ```
 Normally, the weights file with the best accuracy would be written to the disk(default in checkpoint folder).
 

@@ -7,6 +7,7 @@ author baiyu
 """
 
 import os
+import sys
 import argparse
 from datetime import datetime
 
@@ -155,9 +156,16 @@ if __name__ == '__main__':
     elif args.net == 'inceptionv4':
         from models.inceptionv4 import inceptionv4
         net = inceptionv4().cuda()
+    elif args.net == 'resnet101':
+        from models.resnet import resnet101
+        net = resnet101().cuda()
+    elif args.net == 'xception':
+        from models.xception import xception
+        net = xception().cuda()
     else:
         print('the network name you have entered is not supported yet')
-
+        sys.exit()
+        
     #data preprocessing:
     transform_train = transforms.Compose([
         transforms.ToPILImage(),
