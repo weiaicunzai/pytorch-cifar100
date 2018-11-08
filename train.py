@@ -25,40 +25,7 @@ from tensorboardX import SummaryWriter
 #from settings import *
 from conf import settings
 
-#parser = argparse.ArgumentParser(description='image classification with Pytorch')
-#parser.add_argument('--')
-
-
-
-
-
-
-#from models.resnet import *
-#net = resnet101().cuda()
-
-#from models.vgg import *
-#net = vgg16_bn().cuda()
-
-#from models.densenet import *
-##net = densenet121().cuda()
-##net = densenet161().cuda()
-#net = densenet201().cuda()
-
-#from models.googlenet import *
-#net = GoogleNet().cuda()
-
-#from models.rir import *
-#net = resnet_in_resnet().cuda()
-
-#from models.inceptionv3 import *
-#net = inceptionv3().cuda()
-
-
-
-
-
 def train(epoch):
-
 
     net.train()
     for batch_index, (labels, images) in enumerate(cifar100_training_loader):
@@ -138,7 +105,6 @@ def main(net_name, checkpoint_path, epochs, milestones):
     input_tensor = torch.Tensor(12, 3, 32, 32).cuda()
     writer.add_graph(net, Variable(input_tensor, requires_grad=True))
 
-    #checkpoints = os.path.join(settings.CHECKPOINT_PATH, time_now)
     #create checkpoint folder to save model
     if not os.path.exists(checkpoint_path):
         os.makedirs(checkpoint_path)
@@ -191,6 +157,7 @@ if __name__ == '__main__':
         net = inceptionv4().cuda()
     else:
         print('the network name you have entered is not supported yet')
+
     #data preprocessing:
     transform_train = transforms.Compose([
         transforms.ToPILImage(),

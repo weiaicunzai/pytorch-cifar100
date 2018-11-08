@@ -258,19 +258,20 @@ class InceptionV3(nn.Module):
         self.Mixed_5c = InceptionA(256, pool_features=64)
         self.Mixed_5d = InceptionA(288, pool_features=64)
 
+        #downsample
         self.Mixed_6a = InceptionB(288)
-
 
         self.Mixed_6b = InceptionC(768, channels_7x7=128)
         self.Mixed_6c = InceptionC(768, channels_7x7=160)
         self.Mixed_6d = InceptionC(768, channels_7x7=160)
         self.Mixed_6e = InceptionC(768, channels_7x7=192)
 
+        #downsample
         self.Mixed_7a = InceptionD(768)
+
         self.Mixed_7b = InceptionE(1280)
         self.Mixed_7c = InceptionE(2048)
         
-        self.maxpool = nn.MaxPool2d(kernel_size=3, stride=1)
         self.avgpool = nn.AvgPool2d(kernel_size=6, stride=1)
         self.dropout = nn.Dropout2d()
         self.linear = nn.Linear(2048, num_classes)
@@ -329,9 +330,5 @@ class InceptionV3(nn.Module):
 def inceptionv3():
     return InceptionV3()
 
-#inceptionb = InceptionV3()
 
-#print(inceptionb(torch.Tensor(13, 3, 32, 32)).shape)
 
-#net = inceptionv3()
-#print(sum([p.numel() for p in net.parameters()]))

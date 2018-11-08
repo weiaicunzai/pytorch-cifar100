@@ -25,29 +25,29 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('-net', type=str, required=True, help='net type')
     parser.add_argument('-weights', type=str, required=True, help='the weights file you want to test')
-    args = parser.add_argument()
+    args = parser.parse_args()
 
     if args.net == 'vgg16':
         from models.vgg import vgg16_bn
-        net = vgg16_bn()
+        net = vgg16_bn().cuda()
     elif args.net == 'densenet121':
         from models.densenet import densenet121
-        net = densenet121()
+        net = densenet121().cuda()
     elif args.net == 'densenet161':
         from models.densenet import densenet161
-        net = densenet161()
+        net = densenet161().cuda()
     elif args.net == 'densenet201':
         from models.densenet import densenet201
-        net = densenet201()
+        net = densenet201().cuda()
     elif args.net == 'googlenet':
         from models.googlenet import googlenet
-        net = googlenet()
+        net = googlenet().cuda()
     elif args.net == 'inceptionv3':
         from models.inceptionv3 import inceptionv3
-        net = inceptionv3()
+        net = inceptionv3().cuda()
     elif args.net == 'inceptionv4':
         from models.inceptionv4 import inceptionv4
-        net = inceptionv4()
+        net = inceptionv4().cuda()
     else:
         print('the network name you have entered is not supported yet')
 
@@ -59,16 +59,6 @@ if __name__ == '__main__':
     cifar100_test = CIFAR100Test(settings.CIFAR100_PATH, transform_test)
     cifar100_test_loader = DataLoader(cifar100_test, batch_size=16, shuffle=True, num_workers=2)
 
-    #from models.densenet import *
-    #net = densenet121().cuda()
-    #net = densenet161().cuda()
-    #from models.rir import *
-    #net = resnet_in_resnet().cuda()
-
-    #====================================
-    #load the model you want to test here
-    #====================================
-    #net.load_state_dict(torch.load('checkpoint/resnet101-113.pt'))
     net.load_state_dict(torch.load(args.weights))
     print(net)
     net.eval()

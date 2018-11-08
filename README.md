@@ -35,6 +35,7 @@ the supported net args are:
 ```
 vgg16, densenet121, densenet161, densenet201, googlenet, inceptionv3, inceptionv4
 ```
+Normally, the weights file with the best accuracy would be written to the disk(default in checkpoint folder).
 
 ### 5. test the model
 Test the model using test.py
