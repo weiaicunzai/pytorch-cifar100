@@ -18,8 +18,8 @@ CIFAR100_STD = (0.2675, 0.2565, 0.2761)
 CHECKPOINT_PATH = 'checkpoint'
 
 #total training epoches
-EPOCH = 280
-MILESTONES = [140, 220]
+EPOCH = 200 
+MILESTONES = [80, 140]
 
 #initial learning rate
 INIT_LR = 0.1
