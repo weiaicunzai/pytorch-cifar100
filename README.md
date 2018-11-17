@@ -50,7 +50,7 @@ resnext50
 resnext101
 resnext152
 ```
-Normally, the weights file with the best accuracy would be written to the disk(default in checkpoint folder).
+Normally, the weights file with the best accuracy would be written to the disk with name suffix 'best'(default in checkpoint folder).
 
 ### 5. test the model
 Test the model using test.py

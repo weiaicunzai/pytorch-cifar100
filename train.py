@@ -110,7 +110,7 @@ def main(net_name, checkpoint_path, epochs, milestones):
     #create checkpoint folder to save model
     if not os.path.exists(checkpoint_path):
         os.makedirs(checkpoint_path)
-    checkpoint_path = os.path.join(checkpoint_path, '{net}-{epoch}.pt')
+    checkpoint_path = os.path.join(checkpoint_path, '{net}-{epoch}-{type}.pt')
 
     best_acc = 0.0
     for epoch in range(1, epochs):
@@ -120,12 +120,12 @@ def main(net_name, checkpoint_path, epochs, milestones):
 
         #start to save best performance model after learning rate decay to 0.01 
         if epoch > milestones[1] and best_acc < acc:
-            torch.save(net.state_dict(), checkpoint_path.format(net=net_name, epoch=epoch))
+            torch.save(net.state_dict(), checkpoint_path.format(net=net_name, epoch=epoch, type='best'))
             best_acc = acc
             continue
 
-        if not epoch % 50:
-            torch.save(net.state_dict(), checkpoint_path.format(net=net_name, epoch=epoch))
+        if not epoch % 10:
+            torch.save(net.state_dict(), checkpoint_path.format(net=net_name, epoch=epoch, type='regular'))
 
     writer.close()
         
