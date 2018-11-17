@@ -46,6 +46,9 @@ resnet34
 resnet50
 resnet101
 resnet150
+resnext50
+resnext101
+resnext152
 ```
 Normally, the weights file with the best accuracy would be written to the disk(default in checkpoint folder).
 
@@ -63,20 +66,16 @@ $ python test.py -net vgg16 -weights path_to_vgg16_weights_file
 - inceptionv4, inception_resnet_v2 [Inception-v4, Inception-ResNet and the Impact of Residual Connections on Learning](https://arxiv.org/abs/1602.07261)
 - xception [Xception: Deep Learning with Depthwise Separable Convolutions](https://arxiv.org/abs/1610.02357)
 - resnet [Deep Residual Learning for Image Recognition](https://arxiv.org/abs/1512.03385v1)
+- resnext [Aggregated Residual Transformations for Deep Neural Networks](https://arxiv.org/abs/1611.05431v2)
 - resnet in resnet [Resnet in Resnet: Generalizing Residual Architectures](https://arxiv.org/abs/1603.08029v1)
 - densenet [Densely Connected Convolutional Networks](https://arxiv.org/abs/1608.06993v5)
     
-## Training
-I train model for 140 epoch(most of the time, but not always)
-set learning rate at:
-- epoch < 60, lr = 0.1
-- epoch < 100, lr = 0.01
-- epoch < 140, lr = 0.001
-
+## Training Details
 I found that training more epoch when lr = 0.1 can improve
 my model prformance by %1 or %2, but adding more epoch at lr = 0.01
 or lr = 0.001 won't make much difference.So I decide to train my
-model for more epoch when lr = 0.1
+model for more epoch when lr = 0.1.
+You can choose whether to use TensorBoard to visualize your training procedure
 
 ## Results
 Best result I can get from a certain model, you can try yourself.
@@ -87,7 +86,8 @@ Best result I can get from a certain model, you can try yourself.
 |cifar100|resnet18|11.2M|24.39|6.95|3.02GB|80|60|60|200|
 |cifar100|resnet34|21.3M|23.24|6.63|3.22GB|80|60|60|200|
 |cifar100|resnet50|23.7M|22.61|6.04|3.40GB|80|60|60|200|
-|cifar100|resnet101|42.7M|22.22|5.61|3.72GB|60|40|40|140|
+|cifar100|resnet101|42.7M|22.22|5.61|3.72GB|80|60|60|200|
+|cifar100|resnet152|58.3M|22.31|5.81|4.36GB|80|60|60|200|
 |cifar100|densenet121|7.0M|22.99|6.45|1.28GB|60|40|40|140|
 |cifar100|densenet161|26M|21.56|6.04|2.10GB|80|40|40|160|
 |cifar100|densenet201|18M|21.46|5.9|2.10GB|100|40|40|180|
