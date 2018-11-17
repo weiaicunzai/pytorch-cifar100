@@ -1,3 +1,7 @@
+""" train and test dataset
+
+author baiyu
+"""
 import os
 import sys
 import pickle
@@ -7,11 +11,6 @@ import matplotlib.pyplot as plt
 import numpy 
 import torch
 from torch.utils.data import Dataset
-
-#from settings import *
-
-
-
 
 class CIFAR100Train(Dataset):
     """cifar100 test dataset, derived from

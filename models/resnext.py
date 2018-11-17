@@ -16,17 +16,17 @@ import torch.nn.functional as F
 #only implements ResNext bottleneck c
 
 
-#This strategy exposes a new dimension, which we call “cardinality” 
+#"""This strategy exposes a new dimension, which we call “cardinality” 
 #(the size of the set of transformations), as an essential factor 
-#in addition to the dimensions of depth and width.
+#in addition to the dimensions of depth and width."""
 CARDINALITY = 32
 DEPTH = 4
 BASEWIDTH = 64
 
-#The grouped convolutional layer in Fig. 3(c) performs 32 groups 
+#"""The grouped convolutional layer in Fig. 3(c) performs 32 groups 
 #of convolutions whose input and output channels are 4-dimensional. 
 #The grouped convolutional layer concatenates them as the outputs 
-#of the layer.
+#of the layer."""
 
 class ResNextBottleNeckC(nn.Module):
 

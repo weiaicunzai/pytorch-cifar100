@@ -1,3 +1,8 @@
+""" helper function
+
+author baiyu
+"""
+
 import sys
 import torch
 
