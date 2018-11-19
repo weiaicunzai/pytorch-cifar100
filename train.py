@@ -124,7 +124,7 @@ def main(net_name, checkpoint_path, epochs, milestones):
             best_acc = acc
             continue
 
-        if not epoch % 10:
+        if not epoch % settings.SAVE_EPOCH:
             torch.save(net.state_dict(), checkpoint_path.format(net=net_name, epoch=epoch, type='regular'))
 
     writer.close()

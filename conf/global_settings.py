@@ -34,6 +34,9 @@ TIME_NOW = datetime.now().isoformat()
 #tensorboard log dir
 LOG_DIR = 'runs'
 
+#save weights file per SAVE_EPOCH epoch
+SAVE_EPOCH = 10
+
 
 
 
