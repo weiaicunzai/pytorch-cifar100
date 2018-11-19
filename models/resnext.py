@@ -34,6 +34,11 @@ class ResNextBottleNeckC(nn.Module):
         super().__init__()
 
         C = CARDINALITY #How many groups a feature map was splitted into
+
+        #"""We note that the input/output width of the template is fixed as 
+        #256-d (Fig. 3), We note that the input/output width of the template 
+        #is fixed as 256-d (Fig. 3), and all widths are dou- bled each time 
+        #when the feature map is subsampled (see Table 1)."""
         D = int(DEPTH * out_channels / BASEWIDTH) #number of channels per group
         self.split_transforms = nn.Sequential(
             nn.Conv2d(in_channels, C * D, kernel_size=1, groups=CARDINALITY, bias=False),

@@ -97,16 +97,19 @@ class DenseNet(nn.Module):
         self.features.add_module('bn', nn.BatchNorm2d(inner_channels))
         self.features.add_module('relu', nn.ReLU(inplace=True))
 
-        self.classifier = nn.Sequential(
-            nn.AvgPool2d(4)
-        )
+        self.avgpool = nn.AdaptiveAvgPool2d((1, 1))
+        #self.classifier = nn.Sequential(
+            #nn.AvgPool2d(4)
+        #    nn.AdaptiveAvgPool2d((1, 1))
+        #)
 
         self.linear = nn.Linear(inner_channels, num_class)
 
     def forward(self, x):
         output = self.conv1(x)
         output = self.features(output)
-        output = self.classifier(output)
+        #output = self.classifier(output)
+        output = self.avgpool(output)
         output = output.view(output.size()[0], -1)
         output = self.linear(output)
         return output
