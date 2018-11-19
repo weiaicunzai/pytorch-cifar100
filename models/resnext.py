@@ -33,8 +33,8 @@ class ResNextBottleNeckC(nn.Module):
     def __init__(self, in_channels, out_channels, stride):
         super().__init__()
 
-        C = CARDINALITY
-        D = int(out_channels * 4 / (2 * C))
+        C = CARDINALITY #How many groups a feature map was splitted into
+        D = int(DEPTH * out_channels / BASEWIDTH) #number of channels per group
         self.split_transforms = nn.Sequential(
             nn.Conv2d(in_channels, C * D, kernel_size=1, groups=CARDINALITY, bias=False),
             nn.BatchNorm2d(C * D),
