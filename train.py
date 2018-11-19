@@ -87,7 +87,6 @@ def eval_training(epoch):
         _, preds = outputs.max(1)
         correct += preds.eq(labels).sum()
 
-    print(test_loss / len(cifar100_test_loader.dataset))
     print('Test set: Average loss: {:.4f}, Accuracy: {:.4f}'.format(
         test_loss / len(cifar100_test_loader.dataset),
         correct.float() / len(cifar100_test_loader.dataset)
