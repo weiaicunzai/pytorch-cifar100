@@ -13,6 +13,15 @@ def get_network(args, use_gpu=True):
     if args.net == 'vgg16':
         from models.vgg import vgg16_bn
         net = vgg16_bn()
+    elif args.net == 'vgg13':
+        from models.vgg import vgg13_bn
+        net = vgg13_bn()
+    elif args.net == 'vgg11':
+        from models.vgg import vgg11_bn
+        net = vgg11_bn()
+    elif args.net == 'vgg19':
+        from models.vgg import vgg19_bn
+        net = vgg19_bn()
     elif args.net == 'densenet121':
         from models.densenet import densenet121
         net = densenet121()
