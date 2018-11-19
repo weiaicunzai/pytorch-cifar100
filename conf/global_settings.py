@@ -31,6 +31,9 @@ INIT_LR = 0.1
 #time of we run the script
 TIME_NOW = datetime.now().isoformat()
 
+#tensorboard log dir
+LOG_DIR = 'runs'
+
 
 
 

@@ -102,15 +102,15 @@ def eval_training(epoch):
 
 def main(net_name, checkpoint_path, epochs, milestones):
     #use tensorboard
-    if not os.path.exists('runs'):
-        os.mkdir('runs')
+    if not os.path.exists(settings.LOG_DIR):
+        os.mkdir(settings.LOG_DIR)
     input_tensor = torch.Tensor(12, 3, 32, 32).cuda()
     writer.add_graph(net, Variable(input_tensor, requires_grad=True))
 
     #create checkpoint folder to save model
     if not os.path.exists(checkpoint_path):
         os.makedirs(checkpoint_path)
-    checkpoint_path = os.path.join(checkpoint_path, '{net}-{epoch}-{type}.pt')
+    checkpoint_path = os.path.join(checkpoint_path, '{net}-{epoch}-{type}.pth')
 
     best_acc = 0.0
     for epoch in range(1, epochs):
@@ -163,9 +163,9 @@ if __name__ == '__main__':
     loss_function = nn.CrossEntropyLoss()
     optimizer = optim.SGD(net.parameters(), lr=settings.INIT_LR, momentum=0.9, weight_decay=1e-4)
     scheduler = optim.lr_scheduler.MultiStepLR(optimizer, milestones=settings.MILESTONES, gamma=0.1) #learning rate decay
-    checkpoint_path = os.path.join(settings.CHECKPOINT_PATH, settings.TIME_NOW)
+    checkpoint_path = os.path.join(settings.CHECKPOINT_PATH, args.net, settings.TIME_NOW)
 
     writer = SummaryWriter(log_dir=os.path.join(
-            'runs', settings.TIME_NOW))
+            settings.LOG_DIR, args.net, settings.TIME_NOW))
 
     main(args.net, checkpoint_path, settings.EPOCH, settings.MILESTONES)
