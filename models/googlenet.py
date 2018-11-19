@@ -93,7 +93,7 @@ class GoogleNet(nn.Module):
         self.b5 = Inception(832, 384, 192, 384, 48, 128, 128)
 
         #input feature size: 8*8*1024
-        self.avgpool = nn.AvgPool2d(8, stride=1)
+        self.avgpool = nn.AdaptiveAvgPool2d((1, 1))
         self.dropout = nn.Dropout2d(p=0.4)
         self.linear = nn.Linear(1024, num_class)
     

@@ -514,7 +514,9 @@ class InceptionResNetV2(nn.Module):
         self.inception_resnet_b = self._generate_inception_module(output_channels, 1154, B, InceptionResNetB)
         self.reduction_b = InceptionResNetReductionB(1154)
         self.inception_resnet_c = self._generate_inception_module(2146, 2048, C, InceptionResNetC)
-        self.avgpool = nn.AvgPool2d(6)
+
+        #6x6 featuresize
+        self.avgpool = nn.AdaptiveAvgPool2d((1, 1))
         #"""Dropout (keep 0.8)"""
         self.dropout = nn.Dropout2d(1 - 0.8)
         self.linear = nn.Linear(2048, class_nums)

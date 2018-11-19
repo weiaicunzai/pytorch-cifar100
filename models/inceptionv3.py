@@ -272,7 +272,7 @@ class InceptionV3(nn.Module):
         self.Mixed_7b = InceptionE(1280)
         self.Mixed_7c = InceptionE(2048)
         
-        #self.avgpool = nn.AvgPool2d(kernel_size=6, stride=1)
+        #6*6 feature size
         self.avgpool = nn.AdaptiveAvgPool2d((1, 1))
         self.dropout = nn.Dropout2d()
         self.linear = nn.Linear(2048, num_classes)

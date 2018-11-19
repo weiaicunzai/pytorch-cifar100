@@ -25,7 +25,7 @@ from torch.autograd import Variable
 from tensorboardX import SummaryWriter
 
 from conf import settings
-from utils import get_network
+from utils import get_network, get_training_dataloader, get_test_dataloader
 
 def train(epoch):
 
@@ -57,7 +57,7 @@ def train(epoch):
             loss.item(),
             epoch=epoch,
             trained_samples=batch_index * len(images),
-            total_samples=len(cifar100_training)
+            total_samples=len(cifar100_training_loader.dataset)
         ))
 
         #update training loss for each iteration
@@ -87,23 +87,60 @@ def eval_training(epoch):
         _, preds = outputs.max(1)
         correct += preds.eq(labels).sum()
 
-    print(test_loss / len(cifar100_test))
+    print(test_loss / len(cifar100_test_loader.dataset))
     print('Test set: Average loss: {:.4f}, Accuracy: {:.4f}'.format(
-        test_loss / len(cifar100_test),
-        correct.float() / len(cifar100_test)
+        test_loss / len(cifar100_test_loader.dataset),
+        correct.float() / len(cifar100_test_loader.dataset)
     ))
     print()
 
     #add informations to tensorboard
-    writer.add_scalar('Test/Average loss', test_loss / len(cifar100_test), epoch)
-    writer.add_scalar('Test/Accuracy', correct.float() / len(cifar100_test), epoch)
+    writer.add_scalar('Test/Average loss', test_loss / len(cifar100_test_loader.dataset), epoch)
+    writer.add_scalar('Test/Accuracy', correct.float() / len(cifar100_test_loader.dataset), epoch)
 
-    return correct.float() / len(cifar100_test)
+    return correct.float() / len(cifar100_test_loader.dataset)
 
-def main(net_name, checkpoint_path, epochs, milestones):
+if __name__ == '__main__':
+    
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-net', type=str, required=True, help='net type')
+    parser.add_argument('-gpu', type=bool, default=True, help='use gpu or not')
+    parser.add_argument('-w', type=int, default=2, help='number of workers for dataloader')
+    parser.add_argument('-b', type=int, default=16, help='batch size for dataloader')
+    parser.add_argument('-s', type=bool, default=True, help='whether shuffle the dataset')
+    args = parser.parse_args()
+
+    net = get_network(args, use_gpu=args.gpu)
+        
+    #data preprocessing:
+    cifar100_training_loader = get_training_dataloader(
+        settings.CIFAR100_TRAIN_MEAN,
+        settings.CIFAR100_TRAIN_STD,
+        settings.CIFAR100_PATH,
+        num_workers=args.w,
+        batch_size=args.b,
+        shuffle=args.s
+    )
+    
+    cifar100_test_loader = get_training_dataloader(
+        settings.CIFAR100_TEST_MEAN,
+        settings.CIFAR100_TEST_STD,
+        settings.CIFAR100_PATH,
+        num_workers=args.w,
+        batch_size=args.b,
+        shuffle=args.s
+    )
+    
+    loss_function = nn.CrossEntropyLoss()
+    optimizer = optim.SGD(net.parameters(), lr=settings.INIT_LR, momentum=0.9, weight_decay=1e-4)
+    scheduler = optim.lr_scheduler.MultiStepLR(optimizer, milestones=settings.MILESTONES, gamma=0.1) #learning rate decay
+    checkpoint_path = os.path.join(settings.CHECKPOINT_PATH, args.net, settings.TIME_NOW)
+
     #use tensorboard
     if not os.path.exists(settings.LOG_DIR):
         os.mkdir(settings.LOG_DIR)
+    writer = SummaryWriter(log_dir=os.path.join(
+            settings.LOG_DIR, args.net, settings.TIME_NOW))
     input_tensor = torch.Tensor(12, 3, 32, 32).cuda()
     writer.add_graph(net, Variable(input_tensor, requires_grad=True))
 
@@ -113,59 +150,18 @@ def main(net_name, checkpoint_path, epochs, milestones):
     checkpoint_path = os.path.join(checkpoint_path, '{net}-{epoch}-{type}.pth')
 
     best_acc = 0.0
-    for epoch in range(1, epochs):
+    for epoch in range(1, settings.EPOCH):
         scheduler.step()
         train(epoch)
         acc = eval_training(epoch)
 
         #start to save best performance model after learning rate decay to 0.01 
-        if epoch > milestones[1] and best_acc < acc:
-            torch.save(net.state_dict(), checkpoint_path.format(net=net_name, epoch=epoch, type='best'))
+        if epoch > settings.MILESTONES[1] and best_acc < acc:
+            torch.save(net.state_dict(), checkpoint_path.format(net=args.net, epoch=epoch, type='best'))
             best_acc = acc
             continue
 
         if not epoch % settings.SAVE_EPOCH:
-            torch.save(net.state_dict(), checkpoint_path.format(net=net_name, epoch=epoch, type='regular'))
+            torch.save(net.state_dict(), checkpoint_path.format(net=args.net, epoch=epoch, type='regular'))
 
     writer.close()
-        
-if __name__ == '__main__':
-    
-    parser = argparse.ArgumentParser()
-    parser.add_argument('-net', type=str, required=True, help='net type')
-    parser.add_argument('-gpu', type=bool, default=True, help='use gpu or not')
-    args = parser.parse_args()
-
-    net = get_network(args, use_gpu=args.gpu)
-        
-    #data preprocessing:
-    transform_train = transforms.Compose([
-        transforms.ToPILImage(),
-        transforms.RandomCrop(32, padding=4),
-        transforms.RandomHorizontalFlip(),
-        transforms.RandomRotation(15),
-        transforms.ToTensor(),
-        transforms.Normalize(settings.CIFAR100_MEAN, settings.CIFAR100_STD)
-    ])
-    cifar100_training = CIFAR100Train(
-        settings.CIFAR100_PATH, transform=transform_train)
-    cifar100_training_loader = DataLoader(
-        cifar100_training, shuffle=True, num_workers=2, batch_size=16)
-
-    transform_test = transforms.Compose([
-        transforms.ToTensor(),
-        transforms.Normalize(settings.CIFAR100_MEAN, settings.CIFAR100_STD)
-    ])
-    cifar100_test = CIFAR100Test(settings.CIFAR100_PATH, transform=transform_test)
-    cifar100_test_loader = DataLoader(
-        cifar100_test, shuffle=True, num_workers=2, batch_size=16)
-    
-    loss_function = nn.CrossEntropyLoss()
-    optimizer = optim.SGD(net.parameters(), lr=settings.INIT_LR, momentum=0.9, weight_decay=1e-4)
-    scheduler = optim.lr_scheduler.MultiStepLR(optimizer, milestones=settings.MILESTONES, gamma=0.1) #learning rate decay
-    checkpoint_path = os.path.join(settings.CHECKPOINT_PATH, args.net, settings.TIME_NOW)
-
-    writer = SummaryWriter(log_dir=os.path.join(
-            settings.LOG_DIR, args.net, settings.TIME_NOW))
-
-    main(args.net, checkpoint_path, settings.EPOCH, settings.MILESTONES)

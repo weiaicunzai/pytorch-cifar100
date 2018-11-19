@@ -19,7 +19,7 @@ from torch.utils.data import DataLoader
 from torch.autograd import Variable
 
 from conf import settings
-from utils import get_network
+from utils import get_network, get_test_dataloader
 
 if __name__ == '__main__':
 
@@ -27,15 +27,21 @@ if __name__ == '__main__':
     parser.add_argument('-net', type=str, required=True, help='net type')
     parser.add_argument('-weights', type=str, required=True, help='the weights file you want to test')
     parser.add_argument('-gpu', type=bool, default=True, help='use gpu or not')
+    parser.add_argument('-w', type=int, default=2, help='number of workers for dataloader')
+    parser.add_argument('-b', type=int, default=16, help='batch size for dataloader')
+    parser.add_argument('-s', type=bool, default=True, help='whether shuffle the dataset')
     args = parser.parse_args()
 
     net = get_network(args)
-    transform_test = transforms.Compose([
-        transforms.ToTensor(),
-        transforms.Normalize(settings.CIFAR100_MEAN, settings.CIFAR100_STD),
-    ])
-    cifar100_test = CIFAR100Test(settings.CIFAR100_PATH, transform_test)
-    cifar100_test_loader = DataLoader(cifar100_test, batch_size=16, shuffle=True, num_workers=2)
+
+    cifar100_test_loader = get_test_dataloader(
+        settings.CIFAR100_TEST_MEAN,
+        settings.CIFAR100_TEST_STD,
+        settings.CIFAR100_PATH,
+        num_workers=args.w,
+        batch_size=args.b,
+        shuffle=args.s
+    )
 
     net.load_state_dict(torch.load(args.weights), args.gpu)
     print(net)
@@ -63,6 +69,6 @@ if __name__ == '__main__':
 
 
     print()
-    print("Top 1 err: ", 1 - correct_1 / len(cifar100_test))
-    print("Top 5 err: ", 1 - correct_5 / len(cifar100_test))
+    print("Top 1 err: ", 1 - correct_1 / len(cifar100_test_loader.dataset))
+    print("Top 5 err: ", 1 - correct_5 / len(cifar100_test_loader.dataset))
     print("Parameter numbers: {}".format(sum(p.numel() for p in net.parameters())))
