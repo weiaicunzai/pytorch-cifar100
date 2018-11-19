@@ -78,6 +78,8 @@ model for more epoch when lr = 0.1.
 
 You can choose whether to use TensorBoard to visualize your training procedure
 
+All hyper parameters were written in conf/global_settings.py
+
 ## Results
 Best result I can get from a certain model, you can try yourself.
 
