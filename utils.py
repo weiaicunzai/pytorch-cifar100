@@ -36,6 +36,9 @@ def get_network(args, use_gpu=True):
     elif args.net == 'densenet161':
         from models.densenet import densenet161
         net = densenet161()
+    elif args.net == 'densenet169':
+        from models.densenet import densenet169
+        net = densenet169()
     elif args.net == 'densenet201':
         from models.densenet import densenet201
         net = densenet201()

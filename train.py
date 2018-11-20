@@ -121,7 +121,7 @@ if __name__ == '__main__':
         shuffle=args.s
     )
     
-    cifar100_test_loader = get_training_dataloader(
+    cifar100_test_loader = get_test_dataloader(
         settings.CIFAR100_TEST_MEAN,
         settings.CIFAR100_TEST_STD,
         settings.CIFAR100_PATH,
