@@ -132,7 +132,7 @@ class Xception(nn.Module):
             nn.BatchNorm2d(2048),
             nn.ReLU(inplace=True),
             #2x2
-            nn.AdaptiveAvgPool2d((2, 2))
+            nn.AdaptiveAvgPool2d((1, 1))
         )
 
         self.linear = nn.Linear(2048, class_nums)
