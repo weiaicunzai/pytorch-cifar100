@@ -1,4 +1,4 @@
-"""xception in pytorh
+"""xception in pytorch
 
 
 [1] François Chollet
@@ -108,7 +108,7 @@ class Xception(nn.Module):
             SeperableConv2d(728, 728, 3, padding=1),
             nn.BatchNorm2d(728)
         )
-        self.middle_flow_shorcut = nn.Sequential()
+        self.middle_flow_shortcut = nn.Sequential()
         self.relu = nn.ReLU(inplace=True)
 
         self.exit_flow_residual = nn.Sequential(
@@ -119,7 +119,7 @@ class Xception(nn.Module):
             nn.BatchNorm2d(1024),
             nn.MaxPool2d(kernel_size=3, stride=2, ceil_mode=True)
         )
-        self.exit_flow_shorcut = nn.Sequential(
+        self.exit_flow_shortcut = nn.Sequential(
             nn.Conv2d(728, 1024, 1, stride=2),
             nn.BatchNorm2d(1024)
         )
@@ -145,11 +145,11 @@ class Xception(nn.Module):
         x = self.entry_flow(x)
 
         #middle flow
-        x = self.middle_flow_residual(x) + self.middle_flow_shorcut(x)
+        x = self.middle_flow_residual(x) + self.middle_flow_shortcut(x)
         x = self.relu(x)
 
         #exit flow
-        x = self.exit_flow_residual(x) + self.exit_flow_shorcut(x)
+        x = self.exit_flow_residual(x) + self.exit_flow_shortcut(x)
 
         #no relu applied here
         x = self.tail(x)
