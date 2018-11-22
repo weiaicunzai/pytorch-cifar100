@@ -69,6 +69,7 @@ $ python test.py -net vgg16 -weights path_to_vgg16_weights_file
 - resnext [Aggregated Residual Transformations for Deep Neural Networks](https://arxiv.org/abs/1611.05431v2)
 - resnet in resnet [Resnet in Resnet: Generalizing Residual Architectures](https://arxiv.org/abs/1603.08029v1)
 - densenet [Densely Connected Convolutional Networks](https://arxiv.org/abs/1608.06993v5)
+- shufflenet [ShuffleNet: An Extremely Efficient Convolutional Neural Network for Mobile Devices](https://arxiv.org/abs/1707.01083v2)
     
 ## Training Details
 I found that training more epoch when lr = 0.1 can improve

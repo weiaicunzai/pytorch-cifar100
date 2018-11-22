@@ -78,6 +78,9 @@ def get_network(args, use_gpu=True):
     elif args.net == 'resnext152':
         from models.resnext import resnext152
         net = resnext152()
+    elif args.net == 'shufflenet':
+        from models.shufflenet import shufflenet
+        net = shufflenet()
     else:
         print('the network name you have entered is not supported yet')
         sys.exit()
