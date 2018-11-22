@@ -215,7 +215,6 @@ class ShuffleNet(nn.Module):
 
     def forward(self, x):
         x = self.conv1(x)
-        print(x)
         x = self.stage2(x)
         x = self.stage3(x)
         x = self.stage4(x)
