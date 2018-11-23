@@ -49,8 +49,6 @@ class ChannelShuffle(nn.Module):
 
         return x
 
-
-
 class DepthwiseConv2d(nn.Module):
 
     def __init__(self, input_channels, output_channels, kernel_size, **kwargs):
@@ -159,9 +157,6 @@ class ShuffleNetUnit(nn.Module):
 
         return output
 
-
-        
-
 class ShuffleNet(nn.Module):
 
     def __init__(self, num_blocks, num_classes=100, groups=3):
@@ -178,7 +173,6 @@ class ShuffleNet(nn.Module):
         elif groups == 8:
             out_channels = [24, 384, 768, 1536]
 
-        print(out_channels)
         self.conv1 = BasicConv2d(3, out_channels[0], 3, padding=1, stride=1)
         self.input_channels = out_channels[0]
 
@@ -210,7 +204,6 @@ class ShuffleNet(nn.Module):
         )
 
         self.avg = nn.AdaptiveAvgPool2d((1, 1))
-        print(out_channels[3])
         self.fc = nn.Linear(out_channels[3], num_classes)
 
     def forward(self, x):
@@ -223,8 +216,6 @@ class ShuffleNet(nn.Module):
         x = self.fc(x)
 
         return x
-
-
 
     def _make_stage(self, block, num_blocks, output_channels, stride, stage, groups):
         """make shufflenet stage 
@@ -257,17 +248,9 @@ class ShuffleNet(nn.Module):
 
         return nn.Sequential(*stage)
 
-
-
-
 def shufflenet():
     return ShuffleNet([4, 8, 4])
                               
 
-#a = torch.Tensor(3, 3, 32, 32)
-#net = shufflenet()
-#print(net(a))
-
-#channel_shuffle(a, 2)
 
 

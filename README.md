@@ -33,6 +33,7 @@ $ python train.py -net vgg16
 ```
 The supported net args are:
 ```
+shufflenet
 vgg16
 densenet121
 densenet161
@@ -86,6 +87,7 @@ Best result I can get from a certain model, you can try yourself.
 
 |dataset|network|params|top1 err|top5 err|memory|epoch(lr = 0.1)|epoch(lr = 0.01)|epoch(lr = 0.001)|total epoch|
 |:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
+|cifar100|shufflenet|1.0M|29.94|8.35|0.84GB|140|40|40|220|
 |cifar100|vgg16_bn|34.0M|27.77|8.84|2.83GB|140|40|40|220|
 |cifar100|resnet18|11.2M|24.39|6.95|3.02GB|80|60|60|200|
 |cifar100|resnet34|21.3M|23.24|6.63|3.22GB|80|60|60|200|
