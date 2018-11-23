@@ -21,7 +21,10 @@ $ cd pytorch-cifar100
 
 ### 3. run tensorbard
 ```bash
+Install tensorboardX (a tensorboard wrapper for pytorch)
+$ pip install tensorboardX
 $ mkdir runs
+Run tensorboard
 $ tensorboard --logdir='runs' --port=6006 --host='localhost'
 ```
 
