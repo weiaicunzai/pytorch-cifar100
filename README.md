@@ -86,7 +86,7 @@ You can choose whether to use TensorBoard to visualize your training procedure
 All hyper parameters were written in conf/global_settings.py
 
 ## Results
-Best result I can get from a certain model, you can try yourself.
+Best result I can get from a certain model, you can try yourself by finetuning hyperparameters.
 
 |dataset|network|params|top1 err|top5 err|memory|epoch(lr = 0.1)|epoch(lr = 0.01)|epoch(lr = 0.001)|total epoch|
 |:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
@@ -99,6 +99,7 @@ Best result I can get from a certain model, you can try yourself.
 |cifar100|resnet152|58.3M|22.31|5.81|4.36GB|80|60|60|200|
 |cifar100|resnext50|14.8M|22.23|6.00|1.91GB|80|60|60|200|
 |cifar100|resnext101|25.3M|22.22|5.99|2.63GB|80|60|60|200|
+|cifar100|resnext152|33.3M|22.40|5.58|3.18GB|80|60|60|200|
 |cifar100|densenet121|7.0M|22.99|6.45|1.28GB|60|40|40|140|
 |cifar100|densenet161|26M|21.56|6.04|2.10GB|80|40|40|160|
 |cifar100|densenet201|18M|21.46|5.9|2.10GB|100|40|40|180|
