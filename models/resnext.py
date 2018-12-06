@@ -41,7 +41,7 @@ class ResNextBottleNeckC(nn.Module):
         #when the feature map is subsampled (see Table 1)."""
         D = int(DEPTH * out_channels / BASEWIDTH) #number of channels per group
         self.split_transforms = nn.Sequential(
-            nn.Conv2d(in_channels, C * D, kernel_size=1, groups=CARDINALITY, bias=False),
+            nn.Conv2d(in_channels, C * D, kernel_size=1, groups=C, bias=False),
             nn.BatchNorm2d(C * D),
             nn.ReLU(inplace=True),
             nn.Conv2d(C * D, C * D, kernel_size=3, stride=stride, groups=C, padding=1, bias=False),

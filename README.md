@@ -20,8 +20,8 @@ $ cd pytorch-cifar100
 ```CIFAR100_PATH``` is the path to cifar100 dataset, you can download cifar100 by clicking [here](https://www.cs.toronto.edu/~kriz/cifar-100-python.tar.gz), or download from the offical website [here](https://www.cs.toronto.edu/~kriz/cifar.html). Note that please download the python version cifar100 dataset.
 
 ### 3. run tensorbard
-```bash
 Install tensorboardX (a tensorboard wrapper for pytorch)
+```bash
 $ pip install tensorboardX
 $ mkdir runs
 Run tensorboard
@@ -105,6 +105,7 @@ Best result I can get from a certain model, you can try yourself by finetuning h
 |cifar100|densenet201|18M|21.46|5.9|2.10GB|100|40|40|180|
 |cifar100|googlenet|6.2M|22.09|5.94|2.10GB|100|40|40|180|
 |cifar100|inceptionv3|22.3M|22.81|6.39|2.26GB|140|80|60|280|
+|cifar100|xception|12.4M|26.93|7.87|1.56GB|140|80|60|200|
 
 
 

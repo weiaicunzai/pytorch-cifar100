@@ -23,10 +23,11 @@ class SeperableConv2d(nn.Module):
             input_channels, 
             kernel_size, 
             groups=input_channels,
+            bias=False,
             **kwargs
         )
 
-        self.pointwise = nn.Conv2d(input_channels, output_channels, 1)
+        self.pointwise = nn.Conv2d(input_channels, output_channels, 1, bias=False)
 
     def forward(self, x):
         x = self.depthwise(x)
@@ -34,143 +35,188 @@ class SeperableConv2d(nn.Module):
 
         return x
 
-class Block(nn.Module):
+class EntryFlow(nn.Module):
 
-    def __init__(self, input_channels, output_channels, kernel_size=3, **kwargs):
-
-        super().__init__()
-        self.separabel_conv1 = SeperableConv2d(
-            input_channels, 
-            output_channels, 
-            kernel_size, 
-            **kwargs
-        )
-
-        self.separabel_conv2 = SeperableConv2d(
-            output_channels,
-            output_channels,
-            kernel_size,
-            **kwargs
-        )
-        self.maxpool = nn.MaxPool2d(kernel_size=kernel_size, stride=2, ceil_mode=True)
-
-        #"""Note that all Convolution and SeparableConvolution layers are 
-        #followed by batch normalization"""
-        self.bn = nn.BatchNorm2d(output_channels)
-        self.relu = nn.ReLU(inplace=True)
-        self.shortcut = nn.Conv2d(input_channels, output_channels, kernel_size=1, stride=2)
-    
-    def forward(self, x):
-        residual = self.separabel_conv1(x)
-        residual = self.bn(residual)
-        residual = self.relu(residual)
-        residual = self.separabel_conv2(residual)
-        residual = self.bn(residual)
-        residual = self.maxpool(residual)
-
-        shortcut = self.shortcut(x)
-        shortcut = self.bn(shortcut)
-
-        output = shortcut + residual
-        output = self.relu(output)
-        return output
-
-class Xception(nn.Module):
-
-    #"""Figure 5. The Xception architecture: the data first goes through the entry flow, 
-    #then through the middle flow which is repeated eight times, and finally through 
-    #the exit flow. """
-    def __init__(self, class_nums=100):
+    def __init__(self):
 
         super().__init__()
-        self.stem = nn.Sequential(
-            nn.Conv2d(3, 32, 3, padding=1),
+        self.conv1 = nn.Sequential(
+            nn.Conv2d(3, 32, 3, padding=1, bias=False),
             nn.BatchNorm2d(32),
-            nn.ReLU(inplace=True),
-            nn.Conv2d(32, 64, 3, padding=1),
+            nn.ReLU(inplace=True)
+        )
+
+        self.conv2 = nn.Sequential(
+            nn.Conv2d(32, 64, 3, padding=1, bias=False),
             nn.BatchNorm2d(64),
             nn.ReLU(inplace=True)
         )
 
-        self.entry_flow = nn.Sequential(
-            Block(64, 128, padding=1),
-            Block(128, 256, padding=1),
-            Block(256, 728, padding=1)
+        self.conv3_residual = nn.Sequential(
+            SeperableConv2d(64, 128, 3, padding=1),
+            nn.BatchNorm2d(128),
+            nn.ReLU(inplace=True),
+            SeperableConv2d(128, 128, 3, padding=1),
+            nn.BatchNorm2d(128),
+            nn.MaxPool2d(3, stride=2, padding=1),
         )
 
-        self.middle_flow_residual = nn.Sequential(
-            SeperableConv2d(728, 728, 3, padding=1),
+        self.conv3_shortcut = nn.Sequential(
+            nn.Conv2d(64, 128, 1, stride=2),
+            nn.BatchNorm2d(128),
+        )
+
+        self.conv4_residual = nn.Sequential(
+            nn.ReLU(inplace=True),
+            SeperableConv2d(128, 256, 3, padding=1),
+            nn.BatchNorm2d(256),
+            nn.ReLU(inplace=True),
+            SeperableConv2d(256, 256, 3, padding=1),
+            nn.BatchNorm2d(256),
+            nn.MaxPool2d(3, stride=2, padding=1)
+        )
+
+        self.conv4_shortcut = nn.Sequential(
+            nn.Conv2d(128, 256, 1, stride=2),
+            nn.BatchNorm2d(256),
+        )
+
+        #no downsampling
+        self.conv5_residual = nn.Sequential(
+            nn.ReLU(inplace=True),
+            SeperableConv2d(256, 728, 3, padding=1),
             nn.BatchNorm2d(728),
             nn.ReLU(inplace=True),
             SeperableConv2d(728, 728, 3, padding=1),
             nn.BatchNorm2d(728),
-            nn.ReLU(inplace=True),
-            SeperableConv2d(728, 728, 3, padding=1),
+            nn.MaxPool2d(3, 1, padding=1)
+        )
+
+        #no downsampling
+        self.conv5_shortcut = nn.Sequential(
+            nn.Conv2d(256, 728, 1),
             nn.BatchNorm2d(728)
         )
-        self.middle_flow_shortcut = nn.Sequential()
-        self.relu = nn.ReLU(inplace=True)
+    
+    def forward(self, x):
+        x = self.conv1(x)
+        x = self.conv2(x)
+        residual = self.conv3_residual(x)
+        shortcut = self.conv3_shortcut(x)
+        x = residual + shortcut
+        residual = self.conv4_residual(x)
+        shortcut = self.conv4_shortcut(x)
+        x = residual + shortcut
+        residual = self.conv5_residual(x)
+        shortcut = self.conv5_shortcut(x)
+        x = residual + shortcut
 
-        self.exit_flow_residual = nn.Sequential(
+        return x
+
+class MiddleFLowBlock(nn.Module):
+
+    def __init__(self):
+        super().__init__()
+        self.relu = nn.ReLU(inplace=True)
+        self.seperable_conv = SeperableConv2d(728, 728, 3, padding=1)
+        self.bn = nn.BatchNorm2d(728)
+        self.shortcut = nn.Sequential()
+    
+    def forward(self, x):
+        residual = self.relu(x)
+        residual = self.seperable_conv(residual)
+        residual = self.bn(residual)
+
+        residual = self.relu(residual)
+        residual = self.seperable_conv(residual)
+        residual = self.bn(residual)
+
+        residual = self.relu(residual)
+        residual = self.seperable_conv(residual)
+        residual = self.bn(residual)
+
+        shortcut = self.shortcut(x)
+
+        return shortcut + residual
+
+class MiddleFlow(nn.Module):
+    def __init__(self, block):
+        super().__init__()
+
+        #"""then through the middle flow which is repeated eight times"""
+        self.middel_block = self._make_flow(block, 8)
+    
+    def forward(self, x):
+        x = self.middel_block(x)
+        return x
+
+    def _make_flow(self, block, times):
+        flows = []
+        for i in range(times):
+            flows.append(block())
+        
+        return nn.Sequential(*flows)
+
+
+class ExitFLow(nn.Module):
+
+    def __init__(self):
+        super().__init__()
+        self.residual = nn.Sequential(
+            nn.ReLU(),
             SeperableConv2d(728, 728, 3, padding=1),
             nn.BatchNorm2d(728),
-            nn.ReLU(inplace=True),
+            nn.ReLU(),
             SeperableConv2d(728, 1024, 3, padding=1),
             nn.BatchNorm2d(1024),
-            nn.MaxPool2d(kernel_size=3, stride=2, ceil_mode=True)
+            nn.MaxPool2d(3, stride=2, padding=1)
         )
-        self.exit_flow_shortcut = nn.Sequential(
+
+        self.shortcut = nn.Sequential(
             nn.Conv2d(728, 1024, 1, stride=2),
             nn.BatchNorm2d(1024)
         )
 
-        self.tail = nn.Sequential(
+        self.conv = nn.Sequential(
             SeperableConv2d(1024, 1536, 3, padding=1),
             nn.BatchNorm2d(1536),
             nn.ReLU(inplace=True),
             SeperableConv2d(1536, 2048, 3, padding=1),
             nn.BatchNorm2d(2048),
-            nn.ReLU(inplace=True),
-            #2x2
-            nn.AdaptiveAvgPool2d((1, 1))
+            nn.ReLU(inplace=True)
         )
 
-        self.linear = nn.Linear(2048, class_nums)
+        self.avgpool = nn.AdaptiveAvgPool2d((1, 1))
 
+    def forward(self, x):
+        shortcut = self.shortcut(x) 
+        residual = self.residual(x)
+        output = shortcut + residual
+        output = self.conv(output) 
+        output = self.avgpool(output)
+       
+        return output
+
+class Xception(nn.Module):
+
+    def __init__(self, block, num_class=100):
+        super().__init__()
+        self.entry_flow = EntryFlow()
+        self.middel_flow = MiddleFlow(block)
+        self.exit_flow = ExitFLow()
+
+        self.fc = nn.Linear(2048, num_class)
     
     def forward(self, x):
-        x = self.stem(x)
-
-        #entry flow
         x = self.entry_flow(x)
-
-        #middle flow
-        x = self.middle_flow_residual(x) + self.middle_flow_shortcut(x)
-        x = self.relu(x)
-
-        #exit flow
-        x = self.exit_flow_residual(x) + self.exit_flow_shortcut(x)
-
-        #no relu applied here
-        x = self.tail(x)
-        x = x.view(-1, 2048)
-        x = self.linear(x)
+        x = self.middel_flow(x)
+        x = self.exit_flow(x)
+        x = x.view(x.size(0), -1)
+        x = self.fc(x)
 
         return x
 
 def xception():
-    return Xception()
+    return Xception(MiddleFLowBlock)
 
-#image = torch.Tensor(1, 3, 32, 32)
 
-#a = group_conv(image)
-#print(a.shape)
-#net = Block(3, 50, padding=1)
-#net = Xception()
-#print(net)
-#print(net(image).shape)
-#print(sum([p.numel() for p  in net.parameters()]))
-
-#net = xception()
-#print(net(image).shape)
-#print(sum([p.numel() for p  in net.parameters()]))
