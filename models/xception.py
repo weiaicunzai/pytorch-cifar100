@@ -117,23 +117,28 @@ class MiddleFLowBlock(nn.Module):
 
     def __init__(self):
         super().__init__()
-        self.relu = nn.ReLU(inplace=True)
-        self.seperable_conv = SeperableConv2d(728, 728, 3, padding=1)
-        self.bn = nn.BatchNorm2d(728)
+
         self.shortcut = nn.Sequential()
+        self.conv1 = nn.Sequential(
+            nn.ReLU(inplace=True),
+            SeperableConv2d(728, 728, 3, padding=1),
+            nn.BatchNorm2d(728)
+        )
+        self.conv2 = nn.Sequential(
+            nn.ReLU(inplace=True),
+            SeperableConv2d(728, 728, 3, padding=1),
+            nn.BatchNorm2d(728)
+        )
+        self.conv3 = nn.Sequential(
+            nn.ReLU(inplace=True),
+            SeperableConv2d(728, 728, 3, padding=1),
+            nn.BatchNorm2d(728)
+        )
     
     def forward(self, x):
-        residual = self.relu(x)
-        residual = self.seperable_conv(residual)
-        residual = self.bn(residual)
-
-        residual = self.relu(residual)
-        residual = self.seperable_conv(residual)
-        residual = self.bn(residual)
-
-        residual = self.relu(residual)
-        residual = self.seperable_conv(residual)
-        residual = self.bn(residual)
+        residual = self.conv1(x)
+        residual = self.conv2(residual)
+        residual = self.conv3(residual)
 
         shortcut = self.shortcut(x)
 
