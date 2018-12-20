@@ -49,8 +49,7 @@ resnet18
 resnet34
 resnet50
 resnet101
-resnet150
-resnext50
+resnet152
 resnext101
 resnext152
 ```
