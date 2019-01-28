@@ -56,7 +56,7 @@ def train(epoch):
         print('Training Epoch: {epoch} [{trained_samples}/{total_samples}]\tLoss: {:0.4f}\t'.format(
             loss.item(),
             epoch=epoch,
-            trained_samples=batch_index * len(images),
+            trained_samples=batch_index * args.b + len(images),
             total_samples=len(cifar100_training_loader.dataset)
         ))
 
@@ -115,16 +115,14 @@ if __name__ == '__main__':
     cifar100_training_loader = get_training_dataloader(
         settings.CIFAR100_TRAIN_MEAN,
         settings.CIFAR100_TRAIN_STD,
-        settings.CIFAR100_PATH,
         num_workers=args.w,
         batch_size=args.b,
         shuffle=args.s
     )
     
     cifar100_test_loader = get_test_dataloader(
-        settings.CIFAR100_TEST_MEAN,
-        settings.CIFAR100_TEST_STD,
-        settings.CIFAR100_PATH,
+        settings.CIFAR100_TRAIN_MEAN,
+        settings.CIFAR100_TRAIN_STD,
         num_workers=args.w,
         batch_size=args.b,
         shuffle=args.s
