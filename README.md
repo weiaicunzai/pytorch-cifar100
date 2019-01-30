@@ -3,12 +3,16 @@
 practice on cifar100 using pytorch
 
 ## Requirements
+
+This is my experiment eviroument, pytorch0.4 should also be fine
 - python3.5
-- pytorch4.0
-- tensorflow1.4
+- pytorch1.0
+- tensorflow1.5
 - cuda8.0
 - cudnnv5
-- tensorboardX1.4
+- tensorboardX1.6
+
+
 ## Usage
 
 ### 1. enter directory
@@ -17,7 +21,9 @@ $ cd pytorch-cifar100
 ```
 
 ### 2. change cifar100 dataset path in conf/global_settings.py
-```CIFAR100_PATH``` is the path to cifar100 dataset, you can download cifar100 by clicking [here](https://www.cs.toronto.edu/~kriz/cifar-100-python.tar.gz), or download from the offical website [here](https://www.cs.toronto.edu/~kriz/cifar.html). Note that please download the python version cifar100 dataset.
+I will use cifar100 dataset from torchvision since it's more convient, but I also
+kept the code sample for write your own dataset module in dataset folder, as an
+example for people don't know how to write it.
 
 ### 3. run tensorbard
 Install tensorboardX (a tensorboard wrapper for pytorch)
@@ -83,10 +89,11 @@ used. You could decrese the batchsize to 64 or whatever suits you, if you dont h
 
 You can choose whether to use TensorBoard to visualize your training procedure
 
-All hyper parameters were written in conf/global_settings.py
-
 ## Results
-Best result I can get from a certain model, you can try yourself by finetuning hyperparameters.
+The result I can get from a certain model, you can try yourself by finetuning the hyperparameters.
+I didn't use any training tricks to improve accuray, if you want to learn more about training tricks,
+please refer to my another [repo](https://github.com/weiaicunzai/Bag_of_Tricks_for_Image_Classification_with_Convolutional_Neural_Networks), contains
+various common training tricks and their pytorch implementations.
 
 |dataset|network|params|top1 err|top5 err|memory|epoch(lr = 0.1)|epoch(lr = 0.01)|epoch(lr = 0.001)|total epoch|
 |:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
