@@ -75,10 +75,11 @@ $ python test.py -net vgg16 -weights path_to_vgg16_weights_file
 - shufflenet [ShuffleNet: An Extremely Efficient Convolutional Neural Network for Mobile Devices](https://arxiv.org/abs/1707.01083v2)
     
 ## Training Details
-I found that training more epoch when lr = 0.1 can improve
-my model prformance by %1 or %2, but adding more epoch at lr = 0.01
-or lr = 0.001 won't make much difference.So I decide to train my
-model for more epoch when lr = 0.1.
+I follow the hyperparameter settings in paper [Improved Regularization of Convolutional Neural Networks with Cutout](https://arxiv.org/abs/1701.06548v1), which is init lr = 0.1 divide by 5 at 60th, 120th, 160th epochs, train for 200
+epochs with batchsize 128 and weight decay 5e-4, Nesterov momentum of 0.9. You could also use the hyperparameters from
+paper [Regularizing Neural Networks by Penalizing Confident Output Distributions](https://arxiv.org/abs/1701.06548) and [Random Erasing Data Augmentation](https://arxiv.org/abs/1701.06548), which is 
+initial lr = 0.1, lr divied by 10 at 150 and 225, and training for 300 epochs with batchsize 126, this is more commonly
+used. You could decrese the batchsize to 64 or whatever suits you, if you dont have enough gpu memory.
 
 You can choose whether to use TensorBoard to visualize your training procedure
 

@@ -12,7 +12,7 @@ import torchvision
 import torchvision.transforms as transforms
 from torch.utils.data import DataLoader
 
-from dataset import CIFAR100Train, CIFAR100Test
+#from dataset import CIFAR100Train, CIFAR100Test
 
 def get_network(args, use_gpu=True):
     """ return given network
@@ -135,7 +135,7 @@ def get_test_dataloader(mean, std, batch_size=16, num_workers=2, shuffle=True):
         transforms.Normalize(mean, std)
     ])
     #cifar100_test = CIFAR100Test(path, transform=transform_test)
-    cifar100_test = torchvision.datasets.CIFAR100(root='./data', train=True, download=True, transform=transform_test)
+    cifar100_test = torchvision.datasets.CIFAR100(root='./data', train=False, download=True, transform=transform_test)
     cifar100_test_loader = DataLoader(
         cifar100_test, shuffle=shuffle, num_workers=num_workers, batch_size=batch_size)
 

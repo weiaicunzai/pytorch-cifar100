@@ -19,7 +19,7 @@ import torchvision
 import torchvision.transforms as transforms
 
 from torch.utils.data import DataLoader
-from dataset import *
+#from dataset import *
 from torch.autograd import Variable
 
 from tensorboardX import SummaryWriter
@@ -30,7 +30,7 @@ from utils import get_network, get_training_dataloader, get_test_dataloader
 def train(epoch):
 
     net.train()
-    for batch_index, (labels, images) in enumerate(cifar100_training_loader):
+    for batch_index, (images, labels) in enumerate(cifar100_training_loader):
 
         images = Variable(images)
         labels = Variable(labels)
@@ -74,7 +74,7 @@ def eval_training(epoch):
     test_loss = 0.0 # cost function error
     correct = 0.0
 
-    for (labels, images) in cifar100_test_loader:
+    for (images, labels) in cifar100_test_loader:
         images = Variable(images)
         labels = Variable(labels)
 
@@ -105,7 +105,7 @@ if __name__ == '__main__':
     parser.add_argument('-net', type=str, required=True, help='net type')
     parser.add_argument('-gpu', type=bool, default=True, help='use gpu or not')
     parser.add_argument('-w', type=int, default=2, help='number of workers for dataloader')
-    parser.add_argument('-b', type=int, default=16, help='batch size for dataloader')
+    parser.add_argument('-b', type=int, default=128, help='batch size for dataloader')
     parser.add_argument('-s', type=bool, default=True, help='whether shuffle the dataset')
     args = parser.parse_args()
 
@@ -129,8 +129,8 @@ if __name__ == '__main__':
     )
     
     loss_function = nn.CrossEntropyLoss()
-    optimizer = optim.SGD(net.parameters(), lr=settings.INIT_LR, momentum=0.9, weight_decay=1e-4)
-    scheduler = optim.lr_scheduler.MultiStepLR(optimizer, milestones=settings.MILESTONES, gamma=0.1) #learning rate decay
+    optimizer = optim.SGD(net.parameters(), lr=settings.INIT_LR, momentum=0.9, weight_decay=5e-4)
+    scheduler = optim.lr_scheduler.MultiStepLR(optimizer, milestones=settings.MILESTONES, gamma=0.2) #learning rate decay
     checkpoint_path = os.path.join(settings.CHECKPOINT_PATH, args.net, settings.TIME_NOW)
 
     #use tensorboard

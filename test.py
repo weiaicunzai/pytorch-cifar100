@@ -9,11 +9,12 @@ author baiyu
 """
 
 import argparse
-from dataset import *
+#from dataset import *
 
-from skimage import io
+#from skimage import io
 from matplotlib import pyplot as plt
 
+import torch
 import torchvision.transforms as transforms
 from torch.utils.data import DataLoader
 from torch.autograd import Variable
@@ -35,9 +36,9 @@ if __name__ == '__main__':
     net = get_network(args)
 
     cifar100_test_loader = get_test_dataloader(
-        settings.CIFAR100_TEST_MEAN,
-        settings.CIFAR100_TEST_STD,
-        settings.CIFAR100_PATH,
+        settings.CIFAR100_TRAIN_MEAN,
+        settings.CIFAR100_TRAIN_STD,
+        #settings.CIFAR100_PATH,
         num_workers=args.w,
         batch_size=args.b,
         shuffle=args.s
@@ -51,7 +52,7 @@ if __name__ == '__main__':
     correct_5 = 0.0
     total = 0
 
-    for n_iter, (label, image) in enumerate(cifar100_test_loader):
+    for n_iter, (image, label) in enumerate(cifar100_test_loader):
         print("iteration: {}\ttotal {} iterations".format(n_iter, len(cifar100_test_loader)))
         image = Variable(image).cuda()
         label = Variable(label).cuda()
