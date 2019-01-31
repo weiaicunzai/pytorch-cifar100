@@ -78,14 +78,14 @@ $ python test.py -net vgg16 -weights path_to_vgg16_weights_file
 - resnext [Aggregated Residual Transformations for Deep Neural Networks](https://arxiv.org/abs/1611.05431v2)
 - resnet in resnet [Resnet in Resnet: Generalizing Residual Architectures](https://arxiv.org/abs/1603.08029v1)
 - densenet [Densely Connected Convolutional Networks](https://arxiv.org/abs/1608.06993v5)
+- nasnet [Learning Transferable Architectures for Scalable Image Recognition](https://arxiv.org/abs/1707.07012v4)
 - shufflenet [ShuffleNet: An Extremely Efficient Convolutional Neural Network for Mobile Devices](https://arxiv.org/abs/1707.01083v2)
     
 ## Training Details
 I follow the hyperparameter settings in paper [Improved Regularization of Convolutional Neural Networks with Cutout](https://arxiv.org/abs/1701.06548v1), which is init lr = 0.1 divide by 5 at 60th, 120th, 160th epochs, train for 200
 epochs with batchsize 128 and weight decay 5e-4, Nesterov momentum of 0.9. You could also use the hyperparameters from
 paper [Regularizing Neural Networks by Penalizing Confident Output Distributions](https://arxiv.org/abs/1701.06548) and [Random Erasing Data Augmentation](https://arxiv.org/abs/1701.06548), which is 
-initial lr = 0.1, lr divied by 10 at 150 and 225, and training for 300 epochs with batchsize 126, this is more commonly
-used. You could decrese the batchsize to 64 or whatever suits you, if you dont have enough gpu memory.
+initial lr = 0.1, lr divied by 10 at 150th and 225th epochs, and training for 300 epochs with batchsize 126, this is more commonly used. You could decrese the batchsize to 64 or whatever suits you, if you dont have enough gpu memory.
 
 You can choose whether to use TensorBoard to visualize your training procedure
 
@@ -95,10 +95,10 @@ I didn't use any training tricks to improve accuray, if you want to learn more a
 please refer to my another [repo](https://github.com/weiaicunzai/Bag_of_Tricks_for_Image_Classification_with_Convolutional_Neural_Networks), contains
 various common training tricks and their pytorch implementations.
 
-|dataset|network|params|top1 err|top5 err|memory|epoch(lr = 0.1)|epoch(lr = 0.01)|epoch(lr = 0.001)|total epoch|
+|dataset|network|params|top1 err|top5 err|memory|epoch(lr = 0.1)|epoch(lr = 0.02)|epoch(lr = 0.004)|epoch(lr = 0.0008)|total epoch|
 |:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
-|cifar100|shufflenet|1.0M|29.94|8.35|0.84GB|140|40|40|220|
-|cifar100|vgg16_bn|34.0M|27.77|8.84|2.83GB|140|40|40|220|
+|cifar100|shufflenet|1.0M|29.94|8.35|0.84GB|60|60|40|40|200|
+|cifar100|vgg16_bn|34.0M|27.77|8.84|2.83GB|60|60|40|40|200|
 |cifar100|resnet18|11.2M|24.39|6.95|3.02GB|80|60|60|200|
 |cifar100|resnet34|21.3M|23.24|6.63|3.22GB|80|60|60|200|
 |cifar100|resnet50|23.7M|22.61|6.04|3.40GB|80|60|60|200|
