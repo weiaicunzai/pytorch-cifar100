@@ -98,7 +98,9 @@ various common training tricks and their pytorch implementations.
 |dataset|network|params|top1 err|top5 err|memory|epoch(lr = 0.1)|epoch(lr = 0.02)|epoch(lr = 0.004)|epoch(lr = 0.0008)|total epoch|
 |:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:
 |cifar100|shufflenet|1.0M|29.94|8.35|0.84GB|60|60|40|40|200|
-|cifar100|vgg16_bn|34.0M|27.77|8.84|2.83GB|60|60|40|40|200|
+|cifar100|vgg13_bn|28.7M|28.00|9.71|1.98GB|60|60|40|40|200|
+|cifar100|vgg16_bn|34.0M|27.77|8.84|2.03GB|60|60|40|40|200|
+|cifar100|vgg19_bn|39.0M|27.77|8.84|2.08GB|60|60|40|40|200|
 |cifar100|resnet18|11.2M|24.39|6.95|3.02GB|60|60|40|40|200|
 |cifar100|resnet34|21.3M|23.24|6.63|3.22GB|60|60|40|40|200|
 |cifar100|resnet50|23.7M|22.61|6.04|3.40GB|60|60|40|40|200|
@@ -110,7 +112,7 @@ various common training tricks and their pytorch implementations.
 |cifar100|densenet121|7.0M|22.99|6.45|1.28GB|60|60|40|40|200|
 |cifar100|densenet161|26M|21.56|6.04|2.10GB|60|60|60|40|200|
 |cifar100|densenet201|18M|21.46|5.9|2.10GB|60|60|40|40|200|
-|cifar100|googlenet|6.2M|22.09|5.94|2.10GB|60|60|40|40|200|
+|cifar100|googlenet|6.2M|21.97|5.94|2.05GB|60|60|40|40|200|
 |cifar100|inceptionv3|22.3M|22.81|6.39|2.26GB|60|60|40|40|200|
 |cifar100|xception|21.0M|25.07|7.32|1.67GB|60|60|40|40|200|
 
