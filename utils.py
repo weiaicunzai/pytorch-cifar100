@@ -81,6 +81,15 @@ def get_network(args, use_gpu=True):
     elif args.net == 'shufflenet':
         from models.shufflenet import shufflenet
         net = shufflenet()
+    elif args.net == 'squeezenet':
+        from models.squeezenet import squeezenet
+        net = squeezenet()
+    elif args.net == 'mobilenet':
+        from models.mobilenet import mobilenet
+        net = mobilenet()
+    elif args.net == 'nasnet':
+        from models.nasnet import nasnet
+        net = nasnet()
     else:
         print('the network name you have entered is not supported yet')
         sys.exit()

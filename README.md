@@ -97,6 +97,8 @@ various common training tricks and their pytorch implementations.
 
 |dataset|network|params|top1 err|top5 err|memory|epoch(lr = 0.1)|epoch(lr = 0.02)|epoch(lr = 0.004)|epoch(lr = 0.0008)|total epoch|
 |:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:
+|cifar100|mobilenet|3.3M|34.02|10.56|0.69GB|60|60|40|40|200|
+|cifar100|squeezenet|0.78M|30.59|8.36|0.73GB|60|60|40|40|200|
 |cifar100|shufflenet|1.0M|29.94|8.35|0.84GB|60|60|40|40|200|
 |cifar100|vgg13_bn|28.7M|28.00|9.71|1.98GB|60|60|40|40|200|
 |cifar100|vgg16_bn|34.0M|27.77|8.84|2.03GB|60|60|40|40|200|

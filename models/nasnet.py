@@ -47,8 +47,8 @@ class SeperableBranch(nn.Module):
         )
 
         self.block2 = nn.Sequential(
-            nn.ReLU(inpace=True),
-            SeperableConv2d(output_channels, output_channels, kernel_size, **kwargs),
+            nn.ReLU(inplace=True),
+            SeperableConv2d(output_channels, output_channels, kernel_size, stride=1, padding=int(kernel_size / 2)),
             nn.BatchNorm2d(output_channels)
         )
     
@@ -67,11 +67,12 @@ class Fit(nn.Module):
     """
 
     def __init__(self, prev_filters, filters):
+        super().__init__()
         self.relu = nn.ReLU(inplace=True)
 
         self.p1 = nn.Sequential(
             nn.AvgPool2d(1, stride=2),
-            nn.Conv2d(int(prev_filters / 2), int(filters / 2), 1)
+            nn.Conv2d(prev_filters, int(filters / 2), 1)
         )
 
         #make sure there is no information loss
@@ -79,10 +80,10 @@ class Fit(nn.Module):
             nn.ConstantPad2d((0, 1, 0, 1), 0),
             nn.ConstantPad2d((-1, 0, -1, 0), 0),   #cropping
             nn.AvgPool2d(1, stride=2),
-            nn.Conv2d(int(prev_filters / 2), int(filters / 2))
+            nn.Conv2d(prev_filters, int(filters / 2), 1)
         )
 
-        self.bn = nn.BatchNorm2d(prev_filters)
+        self.bn = nn.BatchNorm2d(filters)
 
         self.dim_reduce = nn.Sequential(
             nn.ReLU(inplace=True),
@@ -92,7 +93,8 @@ class Fit(nn.Module):
 
         self.filters = filters
     
-    def forward(self, x, prev):
+    def forward(self, inputs):
+        x, prev = inputs
         if prev is None:
             return x
 
@@ -115,9 +117,15 @@ class NormalCell(nn.Module):
     def __init__(self, x_in, prev_in, output_channels):
         super().__init__()
 
-        self.dem_reduce = nn.Sequential(
+        self.dem_reduce1 = nn.Sequential(
             nn.ReLU(inplace=True),
             nn.Conv2d(x_in, output_channels, 1, bias=False),
+            nn.BatchNorm2d(output_channels)
+        )
+
+        self.dem_reduce2 = nn.Sequential(
+            nn.ReLU(inplace=True),
+            nn.Conv2d(prev_in, output_channels, 1, bias=False),
             nn.BatchNorm2d(output_channels)
         )
 
@@ -168,13 +176,14 @@ class NormalCell(nn.Module):
 
         self.fit = Fit(prev_in, output_channels)
     
-    def forward(self, x, prev):
+    def forward(self, x):
+        x, prev = x
 
         #return transformed x as new x, and original x as prev 
         #only prev tensor needs to be modified
-        prev = self.fit(x, prev) 
+        prev = self.fit((x, prev)) 
 
-        h = self.conv(x)
+        h = self.dem_reduce1(x)
 
         x1 = self.block1_left(h) + self.block1_right(h)
         x2 = self.block2_left(prev) + self.block2_right(h)
@@ -196,16 +205,16 @@ class ReductionCell(nn.Module):
         )
 
         #block1
-        self.layer1block1_left = SeperableBranch(prev_in, output_channels, 7, stride=2, padding=3)
+        self.layer1block1_left = SeperableBranch(output_channels, output_channels, 7, stride=2, padding=3)
         self.layer1block1_right = SeperableBranch(output_channels, output_channels, 5, stride=2, padding=2)
 
         #block2
-        self.layer1block2_left = nn.MaxPool2d(3, 2, 1)
-        self.layer1block2_right = SeperableBranch(prev_in, output_channels, 7, stride=2, padding=3)
+        self.layer1block2_left = nn.MaxPool2d(3, stride=2, padding=1)
+        self.layer1block2_right = SeperableBranch(output_channels, output_channels, 7, stride=2, padding=3)
 
         #block3
         self.layer1block3_left = nn.AvgPool2d(3, 2, 1)
-        self.layer1block3_right = SeperableBranch(prev_in, output_channels, 5, stride=2, padding=2)
+        self.layer1block3_right = SeperableBranch(output_channels, output_channels, 5, stride=2, padding=2)
 
         #block5
         self.layer2block1_left = nn.MaxPool2d(3, 2, 1)
@@ -217,9 +226,9 @@ class ReductionCell(nn.Module):
     
         self.fit = Fit(prev_in, output_channels)
     
-    def forward(self, x, prev):
-
-        prev = self.fit(x, prev)
+    def forward(self, x):
+        x, prev = x
+        prev = self.fit((x, prev))
 
         h = self.dim_reduce(x)
 
@@ -240,6 +249,8 @@ class ReductionCell(nn.Module):
 class NasNetA(nn.Module):
 
     def __init__(self, repeat_cell_num, reduction_num, filters, stemfilter, class_num=100):
+        super().__init__()
+
         self.stem = nn.Sequential(
             nn.Conv2d(3, stemfilter, 3, padding=1, bias=False),
             nn.BatchNorm2d(stemfilter)
@@ -249,8 +260,6 @@ class NasNetA(nn.Module):
         self.x_filters = stemfilter
         self.filters = filters
 
-        #self.normal1 = self._make_normal(NormalCell, repeat_cell_num, self.filters)
-        #self.reduction1 = self._make_reduction(ReductionCell, self.filters * 2)
         self.cell_layers = self._make_layers(repeat_cell_num, reduction_num)
 
         self.relu = nn.ReLU(inplace=True)
@@ -269,7 +278,7 @@ class NasNetA(nn.Module):
         """
 
         layers = [] 
-        for r in repeat:
+        for r in range(repeat):
             layers.append(block(self.x_filters, self.prev_filters, output))
             self.prev_filters = self.x_filters
             self.x_filters = output * 6 #concatenate 6 branches
@@ -294,7 +303,7 @@ class NasNetA(nn.Module):
     def _make_layers(self, repeat_cell_num, reduction_num):
 
         layers = []
-        for i in reduction_num:
+        for i in range(reduction_num):
 
             layers.extend(self._make_normal(NormalCell, repeat_cell_num, self.filters))
             self.filters *= 2
@@ -309,7 +318,7 @@ class NasNetA(nn.Module):
 
         x = self.stem(x)
         prev = None
-        x, prev = self.cell_layers(x, prev)
+        x, prev = self.cell_layers((x, prev))
         x = self.relu(x)
         x = self.avg(x)
         x = x.view(x.size(0), -1)
@@ -318,12 +327,8 @@ class NasNetA(nn.Module):
         return x
         
         
+def nasnet():
 
-#a = SeperableConv2d(3, 64, 3, padding=1)
-#a = SeperableBranch(3, 64, 5, padding=2)
-a = NormalCell(3, 64)
+    #stem filters must be 44, it's a pytorch wordaround, cant be change to other number
+    return NasNetA(4, 2, 44, 44)    
 
-img = torch.Tensor(4, 3, 224, 224)
-
-res = a(None, img)
-print(res.size())
