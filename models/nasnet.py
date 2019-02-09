@@ -41,13 +41,13 @@ class SeperableBranch(nn.Module):
         """Adds 2 blocks of [relu-separable conv-batchnorm]."""
         super().__init__()
         self.block1 = nn.Sequential(
-            nn.ReLU(inplace=True),
+            nn.ReLU(),
             SeperableConv2d(input_channels, output_channels, kernel_size, **kwargs),
             nn.BatchNorm2d(output_channels)
         )
 
         self.block2 = nn.Sequential(
-            nn.ReLU(inplace=True),
+            nn.ReLU(),
             SeperableConv2d(output_channels, output_channels, kernel_size, stride=1, padding=int(kernel_size / 2)),
             nn.BatchNorm2d(output_channels)
         )
@@ -68,7 +68,7 @@ class Fit(nn.Module):
 
     def __init__(self, prev_filters, filters):
         super().__init__()
-        self.relu = nn.ReLU(inplace=True)
+        self.relu = nn.ReLU()
 
         self.p1 = nn.Sequential(
             nn.AvgPool2d(1, stride=2),
@@ -86,7 +86,7 @@ class Fit(nn.Module):
         self.bn = nn.BatchNorm2d(filters)
 
         self.dim_reduce = nn.Sequential(
-            nn.ReLU(inplace=True),
+            nn.ReLU(),
             nn.Conv2d(prev_filters, filters, 1),
             nn.BatchNorm2d(filters)
         )
@@ -117,15 +117,9 @@ class NormalCell(nn.Module):
     def __init__(self, x_in, prev_in, output_channels):
         super().__init__()
 
-        self.dem_reduce1 = nn.Sequential(
-            nn.ReLU(inplace=True),
+        self.dem_reduce = nn.Sequential(
+            nn.ReLU(),
             nn.Conv2d(x_in, output_channels, 1, bias=False),
-            nn.BatchNorm2d(output_channels)
-        )
-
-        self.dem_reduce2 = nn.Sequential(
-            nn.ReLU(inplace=True),
-            nn.Conv2d(prev_in, output_channels, 1, bias=False),
             nn.BatchNorm2d(output_channels)
         )
 
@@ -183,7 +177,7 @@ class NormalCell(nn.Module):
         #only prev tensor needs to be modified
         prev = self.fit((x, prev)) 
 
-        h = self.dem_reduce1(x)
+        h = self.dem_reduce(x)
 
         x1 = self.block1_left(h) + self.block1_right(h)
         x2 = self.block2_left(prev) + self.block2_right(h)
@@ -199,7 +193,7 @@ class ReductionCell(nn.Module):
         super().__init__()
 
         self.dim_reduce = nn.Sequential(
-            nn.ReLU(inplace=True),
+            nn.ReLU(),
             nn.Conv2d(x_in, output_channels, 1),
             nn.BatchNorm2d(output_channels)
         )
@@ -262,7 +256,7 @@ class NasNetA(nn.Module):
 
         self.cell_layers = self._make_layers(repeat_cell_num, reduction_num)
 
-        self.relu = nn.ReLU(inplace=True)
+        self.relu = nn.ReLU()
         self.avg = nn.AdaptiveAvgPool2d(1)
         self.fc = nn.Linear(self.filters * 6, class_num)
     
