@@ -117,6 +117,7 @@ various common training tricks and their pytorch implementations.
 |cifar100|googlenet|6.2M|21.97|5.94|2.05GB|60|60|40|40|200|
 |cifar100|inceptionv3|22.3M|22.81|6.39|2.26GB|60|60|40|40|200|
 |cifar100|xception|21.0M|25.07|7.32|1.67GB|60|60|40|40|200|
+|cifar100|nasnet|5.2M|22.71|5.91|3.69GB|60|60|40|40|200|
 
 
 
