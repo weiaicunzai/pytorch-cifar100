@@ -44,8 +44,13 @@ $ python train.py -net vgg16
 ```
 The supported net args are:
 ```
+squeezenet
+mobilenet
 shufflenet
+vgg11
+vgg13
 vgg16
+vgg19
 densenet121
 densenet161
 densenet201
@@ -60,6 +65,7 @@ resnet101
 resnet152
 resnext101
 resnext152
+nasnet
 ```
 Normally, the weights file with the best accuracy would be written to the disk with name suffix 'best'(default in checkpoint folder).
 
