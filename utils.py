@@ -51,6 +51,9 @@ def get_network(args, use_gpu=True):
     elif args.net == 'inceptionv4':
         from models.inceptionv4 import inceptionv4
         net = inceptionv4()
+    elif args.net == 'inceptionresnetv2':
+        from models.inceptionv4 import inception_resnet_v2
+        net = inception_resnet_v2()
     elif args.net == 'xception':
         from models.xception import xception
         net = xception()

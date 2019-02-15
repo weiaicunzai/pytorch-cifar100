@@ -498,8 +498,6 @@ class InceptionResNetReductionB(nn.Module):
             self.branchpool(x)
         ]
 
-        for i in x:
-            print(i.shape)
         x = torch.cat(x, 1)
         return x
 
@@ -550,25 +548,3 @@ def inceptionv4():
 
 def inception_resnet_v2():
     return InceptionResNetV2(5, 10, 5)
-
-#net = Inception_Stem(3)
-#net = InceptionA(33)
-#net = ReductionA(3, 192, 224, 256, 384)
-#net = ReductionA(3, 192, 224, 256, 384)
-#net = InceptionB(35)
-#net = ReductionB(3)
-#net = InceptionC(3)
-
-#net = InceptionV4(4, 7, 3)
-#net = inceptionv4()
-#net = InceptionResNetB(3)
-#net = InceptionResNetC(3)
-#net = InceptionResNetA(3)
-#net = inception_resnet_v2()
-#print(net(torch.Tensor(4, 3, 32, 32)).shape)
-#print(sum([p.numel() for p in net.parameters()]))
-
-
-
-
-        
