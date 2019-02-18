@@ -35,7 +35,7 @@ $ tensorboard --logdir='runs' --port=6006 --host='localhost'
 ```
 
 ### 4. train the model
-Train all the model on a tesla P40(22912MiB)   
+Train all the model on a Tesla P40(22912MB)   
 
 You need to specify the net you want to train using arg -net
 
@@ -57,12 +57,14 @@ densenet201
 googlenet
 inceptionv3
 inceptionv4
+inceptionresnetv2
 xception
 resnet18
 resnet34
 resnet50
 resnet101
 resnet152
+resnext50
 resnext101
 resnext152
 nasnet
@@ -93,6 +95,11 @@ $ python test.py -net vgg16 -weights path_to_vgg16_weights_file
 - squeezenet [SqueezeNet: AlexNet-level accuracy with 50x fewer parameters and <0.5MB model size](https://arxiv.org/abs/1602.07360v4)
 
 ## Training Details
+I didn't use any training tricks to improve accuray, if you want to learn more about training tricks,
+please refer to my another [repo](https://github.com/weiaicunzai/Bag_of_Tricks_for_Image_Classification_with_Convolutional_Neural_Networks), contains
+various common training tricks and their pytorch implementations.
+
+
 I follow the hyperparameter settings in paper [Improved Regularization of Convolutional Neural Networks with Cutout](https://arxiv.org/abs/1701.06548v1), which is init lr = 0.1 divide by 5 at 60th, 120th, 160th epochs, train for 200
 epochs with batchsize 128 and weight decay 5e-4, Nesterov momentum of 0.9. You could also use the hyperparameters from paper [Regularizing Neural Networks by Penalizing Confident Output Distributions](https://arxiv.org/abs/1701.06548) and [Random Erasing Data Augmentation](https://arxiv.org/abs/1701.06548), which is initial lr = 0.1, lr divied by 10 at 150th and 225th epochs, and training for 300 epochs with batchsize 128, this is more commonly used. You could decrese the batchsize to 64 or whatever suits you, if you dont have enough gpu memory.
 
@@ -100,15 +107,13 @@ You can choose whether to use TensorBoard to visualize your training procedure
 
 ## Results
 The result I can get from a certain model, you can try yourself by finetuning the hyperparameters.
-I didn't use any training tricks to improve accuray, if you want to learn more about training tricks,
-please refer to my another [repo](https://github.com/weiaicunzai/Bag_of_Tricks_for_Image_Classification_with_Convolutional_Neural_Networks), contains
-various common training tricks and their pytorch implementations.
 
 |dataset|network|params|top1 err|top5 err|memory|epoch(lr = 0.1)|epoch(lr = 0.02)|epoch(lr = 0.004)|epoch(lr = 0.0008)|total epoch|
 |:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:
 |cifar100|mobilenet|3.3M|34.02|10.56|0.69GB|60|60|40|40|200|
 |cifar100|squeezenet|0.78M|30.59|8.36|0.73GB|60|60|40|40|200|
 |cifar100|shufflenet|1.0M|29.94|8.35|0.84GB|60|60|40|40|200|
+|cifar100|vgg11_bn|28.5M|31.36|11.85|1.98GB|60|60|40|40|200|
 |cifar100|vgg13_bn|28.7M|28.00|9.71|1.98GB|60|60|40|40|200|
 |cifar100|vgg16_bn|34.0M|27.77|8.84|2.03GB|60|60|40|40|200|
 |cifar100|vgg19_bn|39.0M|27.77|8.84|2.08GB|60|60|40|40|200|
@@ -126,6 +131,7 @@ various common training tricks and their pytorch implementations.
 |cifar100|googlenet|6.2M|21.97|5.94|2.05GB|60|60|40|40|200|
 |cifar100|inceptionv3|22.3M|22.81|6.39|2.26GB|60|60|40|40|200|
 |cifar100|inceptionv4|41.3M|24.14|6.90|4.11GB|60|60|40|40|200|
+|cifar100|inceptionresnetv2|65.4M|27.51|9.11|4.14GB|60|60|40|40|200|
 |cifar100|xception|21.0M|25.07|7.32|1.67GB|60|60|40|40|200|
 |cifar100|nasnet|5.2M|22.71|5.91|3.69GB|60|60|40|40|200|
 
