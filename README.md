@@ -7,10 +7,10 @@ practice on cifar100 using pytorch
 This is my experiment eviroument, pytorch0.4 should also be fine
 - python3.5
 - pytorch1.0
-- tensorflow1.5
+- tensorflow1.5(optional)
 - cuda8.0
 - cudnnv5
-- tensorboardX1.6
+- tensorboardX1.6(optional)
 
 
 ## Usage
@@ -25,7 +25,7 @@ I will use cifar100 dataset from torchvision since it's more convient, but I als
 kept the code sample for write your own dataset module in dataset folder, as an
 example for people don't know how to write it.
 
-### 3. run tensorbard
+### 3. run tensorbard(optional)
 Install tensorboardX (a tensorboard wrapper for pytorch)
 ```bash
 $ pip install tensorboardX
@@ -67,6 +67,8 @@ resnet152
 resnext50
 resnext101
 resnext152
+attention56
+attention92
 nasnet
 ```
 Normally, the weights file with the best accuracy would be written to the disk with name suffix 'best'(default in checkpoint folder).
@@ -93,6 +95,7 @@ $ python test.py -net vgg16 -weights path_to_vgg16_weights_file
 - shufflenet [ShuffleNet: An Extremely Efficient Convolutional Neural Network for Mobile Devices](https://arxiv.org/abs/1707.01083v2)
 - mobilenet [MobileNets: Efficient Convolutional Neural Networks for Mobile Vision Applications](https://arxiv.org/abs/1704.04861)
 - squeezenet [SqueezeNet: AlexNet-level accuracy with 50x fewer parameters and <0.5MB model size](https://arxiv.org/abs/1602.07360v4)
+- residual attention network [Residual Attention Network for Image Classification](https://arxiv.org/abs/1704.06904)
 
 ## Training Details
 I didn't use any training tricks to improve accuray, if you want to learn more about training tricks,

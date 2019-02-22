@@ -73,6 +73,21 @@ def get_network(args, use_gpu=True):
     elif args.net == 'resnet152':
         from models.resnet import resnet152
         net = resnet152()
+    elif args.net == 'preactresnet18':
+        from models.preactresnet import preactresnet18
+        net = preactresnet18()
+    elif args.net == 'preactresnet34':
+        from models.preactresnet import preactresnet34
+        net = preactresnet34()
+    elif args.net == 'preactresnet50':
+        from models.preactresnet import preactresnet50
+        net = preactresnet50()
+    elif args.net == 'preactresnet101':
+        from models.preactresnet import preactresnet101
+        net = preactresnet101()
+    elif args.net == 'preactresnet152':
+        from models.preactresnet import preactresnet152
+        net = preactresnet152()
     elif args.net == 'resnext50':
         from models.resnext import resnext50
         net = resnext50()

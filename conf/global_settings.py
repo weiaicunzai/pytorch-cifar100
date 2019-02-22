@@ -23,7 +23,7 @@ EPOCH = 200
 MILESTONES = [60, 120, 160]
 
 #initial learning rate
-INIT_LR = 0.1
+#INIT_LR = 0.1
 
 #time of we run the script
 TIME_NOW = datetime.now().isoformat()
