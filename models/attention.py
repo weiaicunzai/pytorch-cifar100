@@ -15,47 +15,61 @@ import torch.nn.functional as F
 #"""The Attention Module is built by pre-activation Residual Unit [11] with the 
 #number of channels in each stage is the same as ResNet [10]."""
 
-class ResidualUnit(nn.Module):
+class PreActResidualUnit(nn.Module):
+    """PreAct Residual Unit
+    Args:
+        in_channels: residual unit input channel number
+        out_channels: residual unit output channel numebr
+        stride: stride of residual unit when stride = 2, downsample the featuremap
+    """
 
     def __init__(self, in_channels, out_channels, stride):
+        super().__init__()
 
         self.residual_function = nn.Sequential(
-
             #1x1 conv
-            nn.BatchNorm2d(out_channels),
+            nn.BatchNorm2d(in_channels),
             nn.ReLU(inplace=True),
-            nn.Conv2d(in_channels, out_channels, 1),
+            nn.Conv2d(in_channels, int(out_channels / 4), 1, stride),
 
             #3x3 conv
-            nn.BatchNorm2d(out_channels),
+            nn.BatchNorm2d(int(out_channels / 4)),
             nn.ReLU(inplace=True),
-            nn.Conv2d(out_channels, out_channels, 3, padding=1, stride=stride, bias=False),
+            nn.Conv2d(int(out_channels / 4), int(out_channels / 4), 3, padding=1),
 
             #1x1 conv
-            nn.BatchNorm2d(out_channels),
+            nn.BatchNorm2d(int(out_channels / 4)),
             nn.ReLU(inplace=True),
-            nn.Conv2d(out_channels, out_channels * 4, 1)
+            nn.Conv2d(int(out_channels / 4), out_channels, 1)
         )
 
         self.shortcut = nn.Sequential()
-        if stride != 2 or (in_channels != out_channels * 4):
-            self.shortcut = nn.Conv2d(out_channels, out_channels * 4, 1, stride=stride)
+        if stride != 2 or (in_channels != out_channels):
+            self.shortcut = nn.Conv2d(in_channels, out_channels, 1, stride=stride)
     
     def forward(self, x):
 
         res = self.residual_function(x)
-        x = self.shortcut(x)
+        shortcut = self.shortcut(x)
 
-        return res + x
+        return res + shortcut
 
-class SoftBranch(nn.Module):
-
+class SoftMaskBranch(nn.Module):
+    """Soft Mask Branch for attention module
+    Args:
+        in_channels: input channels for soft mask branch
+        out_channels: output channels for soft mask branch
+        r: hyperparameters r for soft mask branch, denotes the
+            number of pre act residual units between adjacent
+            pooling layer
+    """
     def __init__(self, in_channels, out_channels, r):
+        super().__init__()
         
-        self.pre = self._make_risidual(in_channels, out_channels, r)
-        self.mid = self._make_risidual(in_channels, out_channels, 2 * r)
-        self.last = self._make_risidual(in_channels, out_channels, r)
-        self.shortcut = ResidualUnit(in_channels, int(out_channels / 4), 1)
+        self.pre = self._make_residual(in_channels, out_channels, r)
+        self.mid = self._make_residual(in_channels, out_channels, 2 * r)
+        self.last = self._make_residual(in_channels, out_channels, r)
+        self.shortcut = PreActResidualUnit(in_channels, out_channels, 1)
         self.sigmoid = nn.Sequential(
             nn.BatchNorm2d(out_channels),
             nn.ReLU(inplace=True),
@@ -68,20 +82,19 @@ class SoftBranch(nn.Module):
     
     def forward(self, x):
 
-        shape1 = (x.size(2).item(), x.size(3).item())
+        shape1 = (x.size(2), x.size(3))
         x = F.max_pool2d(x, kernel_size=3, stride=2, padding=1)
         x = self.pre(x)
 
-        shape2 = (x.size(2).item(), x.size(3).item())
+        shape2 = (x.size(2), x.size(3))
         x_mid = F.max_pool2d(x, kernel_size=3, stride=2, padding=1)
         x_mid = self.mid(x_mid)
-        x_mid = F.upsample_bilinear(x_mid, size=shape2)
+        x_mid = F.interpolate(x_mid, size=shape2)
         x_shortcut = self.shortcut(x)
-
         x = x_mid + x_shortcut
 
         x = self.last(x)
-        x = F.upsample_bilinear(x, size=shape1)
+        x = F.interpolate(x, size=shape1)
         x = self.sigmoid(x)
 
         return x
@@ -89,70 +102,102 @@ class SoftBranch(nn.Module):
     def _make_residual(self, in_channels, out_channels, n):
         """
         Args:
-            in_channels: SoftBranch residual unit input channels
-            out_channels: SoftBranch residual unit output channels
+            in_channels: SoftMaskBranch residual unit input channels
+            out_channels: SoftMaskBranch residual unit output channels
             n: number of residuals we need
         """
         layers = []
         for i in range(n):
-            layers.append(ResidualUnit(in_channels, int(out_channels / 4), 1))
+            layers.append(PreActResidualUnit(in_channels, out_channels, 1))
 
         return nn.Sequential(*layers)
 
+class TrunkBranch(nn.Module):
+
+    """trunk branch for attention module
+    Args:
+        in_channels: input channels for trunk branch
+        out_channels: output channels for trunk branch
+        t: hyperparameters t for trunk branch, the number
+            of residual unit for trunk branch
+    """ 
+
+    def __init__(self, in_channels, out_channels, t):
+        super().__init__()
+        self.trunk = self._make_trunk(in_channels, out_channels, t)
+    
+    def forward(self, x):
+        x = self.trunk(x)
+
+        return x
+
+    def _make_trunk(self, in_channels, out_channels, t):
+        
+        layers = []
+        for i in range(t):
+            layers.append(PreActResidualUnit(in_channels, out_channels, 1))
+        
+        return nn.Sequential(*layers)
+
+
 class AttentionModule(nn.Module):
     
-    def __init__(self, in_channels, out_channels, stride, p=1, t=2, r=1):
+    def __init__(self, in_channels, out_channels, p=1, t=2, r=1):
+        super().__init__()
         #"""The hyper-parameter p denotes the number of pre-processing Residual 
         #Units before splitting into trunk branch and mask branch. t denotes 
         #the number of Residual Units in trunk branch. r denotes the number of 
         #Residual Units between adjacent pooling layer in the mask branch."""
+        assert in_channels == out_channels
 
-        self.pre = self._make_pre(in_channels, out_channels, p)
-        self.trunk = self._make_trunk(out_channels * 4, out_channels, t)
-        self.soft_mask = SoftBranch(out_channels * 4, out_channels, r)
+        self.pre = self._make_residual(in_channels, out_channels, p)
+        self.trunk = TrunkBranch(in_channels, out_channels, t)
+        self.soft_mask = SoftMaskBranch(in_channels, out_channels, r)
+        self.last = self._make_residual(in_channels, out_channels, p)
     
     def forward(self, x):
         x = self.pre(x)
+
         x_t = self.trunk(x)
         x_s = self.soft_mask(x)
 
-        return x_t + x_t * x_s
-    
-    def _make_trunk(self, in_channels, out_channels, t):
+        x = x_s * x_t + x_t
+        x = self.last(x)
 
-        layers = []
+        return x
 
-        for i in range(t):
-            layers.append(ResidualUnit(in_channels, out_channels, 1))
-        
-        return nn.Sequential(*layers)
-
-    def _make_pre(self, in_channels, out_channels, p):
+    def _make_residual(self, in_channels, out_channels, p):
 
 
         layers = []
         for i in range(p):
-            layers.append(ResidualUnit(in_channels, out_channels, 1))
-            in_channels = out_channels * 4
+            layers.append(PreActResidualUnit(in_channels, out_channels, 1))
 
         return nn.Sequential(*layers)
 
 class Attention(nn.Module):
+    """residual attention netowrk
+    Args:
+        block_num: attention module number for each stage
+    """
 
-    def __init__(self, block, block_num, class_num=100):
+    def __init__(self, block_num, class_num=100):
         
-        self.in_channels = 64
-
+        super().__init__()
         self.pre_conv = nn.Sequential(
             nn.Conv2d(3, 64, kernel_size=3, stride=1, padding=1),
             nn.BatchNorm2d(64),
             nn.ReLU(inplace=True)
         )
 
-        self.stage1 = self._make_stage(64, AttentionModule, block_num[0])
-        self.stage2 = self._make_stage(128, AttentionModule, block_num[1])
-        self.stage3 = self._make_stage(256, AttentionModule, block_num[2])
-        self.stage4 = self._make_stage(512, AttentionModule, block_num[3])
+        self.stage1 = self._make_stage(64, 256, block_num[0])
+        self.stage2 = self._make_stage(256, 512, block_num[1])
+        self.stage3 = self._make_stage(512, 1024, block_num[2])
+        self.stage4 = nn.Sequential(
+            PreActResidualUnit(1024, 2048, 2),
+            PreActResidualUnit(2048, 2048, 1),
+            PreActResidualUnit(2048, 2048, 1)
+        )
         self.avg = nn.AdaptiveAvgPool2d(1)
         self.linear = nn.Linear(2048, 100)
     
@@ -167,18 +212,19 @@ class Attention(nn.Module):
         x = self.linear(x)
 
         return x
-        
 
-
-
-
-    def _make_stage(self, out_channels, block, num):
+    def _make_stage(self, in_channels, out_channels, num):
 
         layers = []
-        layers.append(ResidualUnit(self.in_channels, out_channels, 2))
-        self.in_channels = out_channels * 4
+        layers.append(PreActResidualUnit(in_channels, out_channels, 2))
 
         for i in range(num):
-            layers.append(AttentionModule(self.in_channels, out_channels, 1))
+            layers.append(AttentionModule(out_channels, out_channels))
 
         return nn.Sequential(*layers)
+    
+def attention56():
+    return Attention([1, 1, 1])
+
+def attention92():
+    return Attention([1, 2, 3])

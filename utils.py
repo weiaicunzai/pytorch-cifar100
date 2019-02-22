@@ -93,6 +93,12 @@ def get_network(args, use_gpu=True):
     elif args.net == 'nasnet':
         from models.nasnet import nasnet
         net = nasnet()
+    elif args.net == 'attention56':
+        from models.attention import attention56
+        net = attention56()
+    elif args.net == 'attention92':
+        from models.attention import attention92
+        net = attention92()
     else:
         print('the network name you have entered is not supported yet')
         sys.exit()
