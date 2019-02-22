@@ -73,10 +73,10 @@ class SoftMaskBranch(nn.Module):
         self.sigmoid = nn.Sequential(
             nn.BatchNorm2d(out_channels),
             nn.ReLU(inplace=True),
-            nn.Conv2d(out_channels, out_channels, kernel_size=1, bias=False),
+            nn.Conv2d(out_channels, out_channels, kernel_size=1),
             nn.BatchNorm2d(out_channels),
             nn.ReLU(inplace=True),
-            nn.Conv2d(out_channels, out_channels, kernel_size=1, bias=False),
+            nn.Conv2d(out_channels, out_channels, kernel_size=1),
             nn.Sigmoid()
         )
     
@@ -107,7 +107,7 @@ class SoftMaskBranch(nn.Module):
             n: number of residuals we need
         """
         layers = []
-        for i in range(n):
+        for _ in range(n):
             layers.append(PreActResidualUnit(in_channels, out_channels, 1))
 
         return nn.Sequential(*layers)
@@ -134,7 +134,7 @@ class TrunkBranch(nn.Module):
     def _make_trunk(self, in_channels, out_channels, t):
         
         layers = []
-        for i in range(t):
+        for _ in range(t):
             layers.append(PreActResidualUnit(in_channels, out_channels, 1))
         
         return nn.Sequential(*layers)
@@ -168,9 +168,8 @@ class AttentionModule(nn.Module):
 
     def _make_residual(self, in_channels, out_channels, p):
 
-
         layers = []
-        for i in range(p):
+        for _ in range(p):
             layers.append(PreActResidualUnit(in_channels, out_channels, 1))
 
         return nn.Sequential(*layers)
@@ -218,7 +217,7 @@ class Attention(nn.Module):
         layers = []
         layers.append(PreActResidualUnit(in_channels, out_channels, 2))
 
-        for i in range(num):
+        for _ in range(num):
             layers.append(AttentionModule(out_channels, out_channels))
 
         return nn.Sequential(*layers)

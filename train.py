@@ -25,12 +25,14 @@ from torch.autograd import Variable
 from tensorboardX import SummaryWriter
 
 from conf import settings
-from utils import get_network, get_training_dataloader, get_test_dataloader
+from utils import get_network, get_training_dataloader, get_test_dataloader, WarmUpLR
 
 def train(epoch):
 
     net.train()
     for batch_index, (images, labels) in enumerate(cifar100_training_loader):
+        if epoch <= args.warm:
+            warmup_scheduler.step()
 
         images = Variable(images)
         labels = Variable(labels)
@@ -53,8 +55,9 @@ def train(epoch):
             if 'bias' in name:
                 writer.add_scalar('LastLayerGradients/grad_norm2_bias', para.grad.norm(), n_iter)
 
-        print('Training Epoch: {epoch} [{trained_samples}/{total_samples}]\tLoss: {:0.4f}\t'.format(
+        print('Training Epoch: {epoch} [{trained_samples}/{total_samples}]\tLoss: {:0.4f}\tLR: {}'.format(
             loss.item(),
+            optimizer.param_groups[0]['lr'],
             epoch=epoch,
             trained_samples=batch_index * args.b + len(images),
             total_samples=len(cifar100_training_loader.dataset)
@@ -107,6 +110,7 @@ if __name__ == '__main__':
     parser.add_argument('-w', type=int, default=2, help='number of workers for dataloader')
     parser.add_argument('-b', type=int, default=128, help='batch size for dataloader')
     parser.add_argument('-s', type=bool, default=True, help='whether shuffle the dataset')
+    parser.add_argument('-warm', type=int, default=5, help='warm up training phase')
     args = parser.parse_args()
 
     net = get_network(args, use_gpu=args.gpu)
@@ -130,7 +134,9 @@ if __name__ == '__main__':
     
     loss_function = nn.CrossEntropyLoss()
     optimizer = optim.SGD(net.parameters(), lr=settings.INIT_LR, momentum=0.9, weight_decay=5e-4)
-    scheduler = optim.lr_scheduler.MultiStepLR(optimizer, milestones=settings.MILESTONES, gamma=0.2) #learning rate decay
+    train_scheduler = optim.lr_scheduler.MultiStepLR(optimizer, milestones=settings.MILESTONES, gamma=0.2) #learning rate decay
+    iter_per_epoch = len(cifar100_training_loader)
+    warmup_scheduler = WarmUpLR(optimizer, iter_per_epoch * args.warm)
     checkpoint_path = os.path.join(settings.CHECKPOINT_PATH, args.net, settings.TIME_NOW)
 
     #use tensorboard
@@ -148,7 +154,9 @@ if __name__ == '__main__':
 
     best_acc = 0.0
     for epoch in range(1, settings.EPOCH):
-        scheduler.step()
+        if epoch > args.warm:
+            train_scheduler.step(epoch)
+
         train(epoch)
         acc = eval_training(epoch)
 
