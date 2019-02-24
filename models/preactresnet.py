@@ -21,12 +21,12 @@ class PreActBasic(nn.Module):
             nn.Conv2d(in_channels, out_channels, kernel_size=3, stride=stride, padding=1),
             nn.BatchNorm2d(out_channels),
             nn.ReLU(inplace=True),
-            nn.Conv2d(out_channels, out_channels, kernel_size=3, padding=1)
+            nn.Conv2d(out_channels, out_channels * PreActBasic.expansion, kernel_size=3, padding=1)
         )
 
         self.shortcut = nn.Sequential()
         if stride != 1 or in_channels != out_channels * PreActBasic.expansion:
-            self.shortcut = nn.Conv2d(in_channels, out_channels, 1, stride=stride)
+            self.shortcut = nn.Conv2d(in_channels, out_channels * PreActBasic.expansion, 1, stride=stride)
         
     def forward(self, x):
 
@@ -42,7 +42,6 @@ class PreActBottleNeck(nn.Module):
     def __init__(self, in_channels, out_channels, stride):
         super().__init__()
 
-        #bottleneck_channel = int(out_channels / 4)
         self.residual = nn.Sequential(
             nn.BatchNorm2d(in_channels),
             nn.ReLU(inplace=True),
@@ -96,6 +95,7 @@ class PreActResNet(nn.Module):
 
         while block_num - 1:
             layers.append(block(self.input_channels, out_channels, 1))
+            self.input_channels = out_channels * block.expansion
             block_num -= 1
         
         return nn.Sequential(*layers)

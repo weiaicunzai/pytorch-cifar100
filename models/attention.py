@@ -26,21 +26,22 @@ class PreActResidualUnit(nn.Module):
     def __init__(self, in_channels, out_channels, stride):
         super().__init__()
 
+        bottleneck_channels = int(out_channels / 4)
         self.residual_function = nn.Sequential(
             #1x1 conv
             nn.BatchNorm2d(in_channels),
             nn.ReLU(inplace=True),
-            nn.Conv2d(in_channels, int(out_channels / 4), 1, stride),
+            nn.Conv2d(in_channels, bottleneck_channels, 1, stride),
 
             #3x3 conv
-            nn.BatchNorm2d(int(out_channels / 4)),
+            nn.BatchNorm2d(bottleneck_channels),
             nn.ReLU(inplace=True),
-            nn.Conv2d(int(out_channels / 4), int(out_channels / 4), 3, padding=1),
+            nn.Conv2d(bottleneck_channels, bottleneck_channels, 3, padding=1),
 
             #1x1 conv
-            nn.BatchNorm2d(int(out_channels / 4)),
+            nn.BatchNorm2d(bottleneck_channels),
             nn.ReLU(inplace=True),
-            nn.Conv2d(int(out_channels / 4), out_channels, 1)
+            nn.Conv2d(bottleneck_channels, out_channels, 1)
         )
 
         self.shortcut = nn.Sequential()

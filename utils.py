@@ -208,4 +208,4 @@ class WarmUpLR(_LRScheduler):
         """we will use the first m batches, and set the learning
         rate to base_lr * m / total_iters
         """
-        return [base_lr * self.last_epoch / self.total_iters for base_lr in self.base_lrs]
+        return [base_lr * self.last_epoch / (self.total_iters + 1e-8) for base_lr in self.base_lrs]
