@@ -100,12 +100,18 @@ def get_network(args, use_gpu=True):
     elif args.net == 'shufflenet':
         from models.shufflenet import shufflenet
         net = shufflenet()
+    elif args.net == 'shufflenetv2':
+        from models.shufflenetv2 import shufflenetv2
+        net = shufflenetv2()
     elif args.net == 'squeezenet':
         from models.squeezenet import squeezenet
         net = squeezenet()
     elif args.net == 'mobilenet':
         from models.mobilenet import mobilenet
         net = mobilenet()
+    elif args.net == 'mobilenetv2':
+        from models.mobilenetv2 import mobilenetv2
+        net = mobilenetv2()
     elif args.net == 'nasnet':
         from models.nasnet import nasnet
         net = nasnet()
@@ -115,6 +121,22 @@ def get_network(args, use_gpu=True):
     elif args.net == 'attention92':
         from models.attention import attention92
         net = attention92()
+    elif args.net == 'seresnet18':
+        from models.senet import seresnet18
+        net = seresnet18()
+    elif args.net == 'seresnet34':
+        from models.senet import seresnet34 
+        net = seresnet34()
+    elif args.net == 'seresnet50':
+        from models.senet import seresnet50 
+        net = seresnet50()
+    elif args.net == 'seresnet101':
+        from models.senet import seresnet101 
+        net = seresnet101()
+    elif args.net == 'seresnet152':
+        from models.senet import seresnet152
+        net = seresnet152()
+
     else:
         print('the network name you have entered is not supported yet')
         sys.exit()

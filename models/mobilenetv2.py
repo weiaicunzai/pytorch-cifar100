@@ -23,7 +23,7 @@ class LinearBottleNeck(nn.Module):
             nn.BatchNorm2d(in_channels * t),
             nn.ReLU6(inplace=True),
 
-            nn.Conv2d(in_channels * t, in_channels * t, 3, stride=stride, padding=1, groups=in_channels*t),
+            nn.Conv2d(in_channels * t, in_channels * t, 3, stride=stride, padding=1, groups=in_channels * t),
             nn.BatchNorm2d(in_channels * t),
             nn.ReLU6(inplace=True),
 
@@ -52,7 +52,7 @@ class MobileNetV2(nn.Module):
         self.pre = nn.Sequential(
             nn.Conv2d(3, 32, 1, padding=1),
             nn.BatchNorm2d(32),
-            nn.ReLU(inplace=True)
+            nn.ReLU6(inplace=True)
         )
 
         self.stage1 = LinearBottleNeck(32, 16, 1, 1)
@@ -66,7 +66,7 @@ class MobileNetV2(nn.Module):
         self.conv1 = nn.Sequential(
             nn.Conv2d(320, 1280, 1),
             nn.BatchNorm2d(1280),
-            nn.ReLU(inplace=True)
+            nn.ReLU6(inplace=True)
         )
 
         self.conv2 = nn.Conv2d(1280, class_num, 1)

@@ -46,7 +46,9 @@ The supported net args are:
 ```
 squeezenet
 mobilenet
+mobilenetv2
 shufflenet
+shufflenetv2
 vgg11
 vgg13
 vgg16
@@ -64,11 +66,21 @@ resnet34
 resnet50
 resnet101
 resnet152
+preactresnet18
+preactresnet34
+preactresnet50
+preactresnet101
+preactresnet152
 resnext50
 resnext101
 resnext152
 attention56
 attention92
+seresnet18
+seresnet34
+seresnet50
+seresnet101
+seresnet152
 nasnet
 ```
 Normally, the weights file with the best accuracy would be written to the disk with name suffix 'best'(default in checkpoint folder).
@@ -91,11 +103,13 @@ $ python test.py -net vgg16 -weights path_to_vgg16_weights_file
 - resnext [Aggregated Residual Transformations for Deep Neural Networks](https://arxiv.org/abs/1611.05431v2)
 - resnet in resnet [Resnet in Resnet: Generalizing Residual Architectures](https://arxiv.org/abs/1603.08029v1)
 - densenet [Densely Connected Convolutional Networks](https://arxiv.org/abs/1608.06993v5)
-- nasnet [Learning Transferable Architectures for Scalable Image Recognition](https://arxiv.org/abs/1707.07012v4)
 - shufflenet [ShuffleNet: An Extremely Efficient Convolutional Neural Network for Mobile Devices](https://arxiv.org/abs/1707.01083v2)
+- shufflenetv2 [ShuffleNet V2: Practical Guidelines for Efficient CNN Architecture Design](https://arxiv.org/abs/1807.11164v1)
 - mobilenet [MobileNets: Efficient Convolutional Neural Networks for Mobile Vision Applications](https://arxiv.org/abs/1704.04861)
-- squeezenet [SqueezeNet: AlexNet-level accuracy with 50x fewer parameters and <0.5MB model size](https://arxiv.org/abs/1602.07360v4)
+- mobilenetv2 [MobileNetV2: Inverted Residuals and Linear Bottlenecks](https://arxiv.org/abs/1801.04381)
 - residual attention network [Residual Attention Network for Image Classification](https://arxiv.org/abs/1704.06904)
+- squeezenet [SqueezeNet: AlexNet-level accuracy with 50x fewer parameters and <0.5MB model size](https://arxiv.org/abs/1602.07360v4)
+- nasnet [Learning Transferable Architectures for Scalable Image Recognition](https://arxiv.org/abs/1707.07012v4)
 
 ## Training Details
 I didn't use any training tricks to improve accuray, if you want to learn more about training tricks,
@@ -126,6 +140,8 @@ The result I can get from a certain model, you can try yourself by finetuning th
 |cifar100|resnet101|42.7M|22.22|5.61|3.72GB|60|60|40|40|200|
 |cifar100|resnet152|58.3M|22.31|5.81|4.36GB|60|60|40|40|200|
 |cifar100|preactresnet18|11.3M|27.08|8.53|3.09GB|60|60|40|40|200|
+|cifar100|preactresnet34|21.5M|24.79|7.68|3.23GB|60|60|40|40|200|
+|cifar100|preactresnet50|23.9M|25.73|8.15|3.42GB|60|60|40|40|200|
 |cifar100|resnext50|14.8M|22.23|6.00|1.91GB|60|60|40|40|200|
 |cifar100|resnext101|25.3M|22.22|5.99|2.63GB|60|60|40|40|200|
 |cifar100|resnext152|33.3M|22.40|5.58|3.18GB|60|60|40|40|200|
