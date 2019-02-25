@@ -85,18 +85,11 @@ class ShuffleUnit(nn.Module):
     def forward(self, x):
 
         if self.stride == 1 and self.out_channels == self.in_channels:
-            print("in_channels", self.in_channels)
-            print("x.size(1)", x.size(1))
             shortcut, residual = channel_split(x, int(self.in_channels / 2))
         else:
             shortcut = x
             residual = x
         
-        print(type(x))
-        if isinstance(x, int):
-            print(x)
-        print(shortcut.size())
-        print(residual.size())
         shortcut = self.shortcut(shortcut)
         residual = self.residual(residual)
         x = torch.cat([shortcut, residual], dim=1)
@@ -123,8 +116,6 @@ class ShuffleNetV2(nn.Module):
             nn.Conv2d(3, 24, 3, padding=1),
             nn.BatchNorm2d(24)
         )
-
-        print(out_channels)
 
         self.stage2 = self._make_stage(24, out_channels[0], 3)
         self.stage3 = self._make_stage(out_channels[0], out_channels[1], 7)
@@ -158,7 +149,6 @@ class ShuffleNetV2(nn.Module):
             repeat -= 1
         
         return nn.Sequential(*layers)
-
 
 def shufflenetv2():
     return ShuffleNetV2()

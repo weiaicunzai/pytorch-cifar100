@@ -108,6 +108,7 @@ $ python test.py -net vgg16 -weights path_to_vgg16_weights_file
 - mobilenet [MobileNets: Efficient Convolutional Neural Networks for Mobile Vision Applications](https://arxiv.org/abs/1704.04861)
 - mobilenetv2 [MobileNetV2: Inverted Residuals and Linear Bottlenecks](https://arxiv.org/abs/1801.04381)
 - residual attention network [Residual Attention Network for Image Classification](https://arxiv.org/abs/1704.06904)
+- senet [Squeeze-and-Excitation Networks](https://arxiv.org/abs/1709.01507)
 - squeezenet [SqueezeNet: AlexNet-level accuracy with 50x fewer parameters and <0.5MB model size](https://arxiv.org/abs/1602.07360v4)
 - nasnet [Learning Transferable Architectures for Scalable Image Recognition](https://arxiv.org/abs/1707.07012v4)
 
