@@ -53,13 +53,13 @@ if __name__ == '__main__':
     total = 0
 
     for n_iter, (image, label) in enumerate(cifar100_test_loader):
-        print("iteration: {}\ttotal {} iterations".format(n_iter, len(cifar100_test_loader)))
+        print("iteration: {}\ttotal {} iterations".format(n_iter + 1, len(cifar100_test_loader)))
         image = Variable(image).cuda()
         label = Variable(label).cuda()
         output = net(image)
         _, pred = output.topk(5, 1, largest=True, sorted=True)
 
-        label = label.view(16, -1).expand_as(pred)
+        label = label.view(label.size(0), -1).expand_as(pred)
         correct = pred.eq(label).float()
 
         #compute top 5
