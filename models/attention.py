@@ -55,22 +55,31 @@ class PreActResidualUnit(nn.Module):
 
         return res + shortcut
 
-class SoftMaskBranch(nn.Module):
-    """Soft Mask Branch for attention module
-    Args:
-        in_channels: input channels for soft mask branch
-        out_channels: output channels for soft mask branch
-        r: hyperparameters r for soft mask branch, denotes the
-            number of pre act residual units between adjacent
-            pooling layer
-    """
-    def __init__(self, in_channels, out_channels, r):
+class AttentionModule1(nn.Module):
+    
+    def __init__(self, in_channels, out_channels, p=1, t=2, r=1):
         super().__init__()
-        
-        self.pre = self._make_residual(in_channels, out_channels, r)
-        self.mid = self._make_residual(in_channels, out_channels, 2 * r)
-        self.last = self._make_residual(in_channels, out_channels, r)
-        self.shortcut = PreActResidualUnit(in_channels, out_channels, 1)
+        #"""The hyperparameter p denotes the number of preprocessing Residual 
+        #Units before splitting into trunk branch and mask branch. t denotes 
+        #the number of Residual Units in trunk branch. r denotes the number of 
+        #Residual Units between adjacent pooling layer in the mask branch."""
+        assert in_channels == out_channels
+
+        self.pre = self._make_residual(in_channels, out_channels, p)
+        self.trunk = self._make_residual(in_channels, out_channels, t)
+        self.soft_resdown1 = self._make_residual(in_channels, out_channels, r)
+        self.soft_resdown2 = self._make_residual(in_channels, out_channels, r)
+        self.soft_resdown3 = self._make_residual(in_channels, out_channels, r)
+        self.soft_resdown4 = self._make_residual(in_channels, out_channels, r)
+
+        self.soft_resup1 = self._make_residual(in_channels, out_channels, r)
+        self.soft_resup2 = self._make_residual(in_channels, out_channels, r)
+        self.soft_resup3 = self._make_residual(in_channels, out_channels, r)
+        self.soft_resup4 = self._make_residual(in_channels, out_channels, r)
+
+        self.shortcut_short = PreActResidualUnit(in_channels, out_channels, 1)
+        self.shortcut_long = PreActResidualUnit(in_channels, out_channels, 1)
+
         self.sigmoid = nn.Sequential(
             nn.BatchNorm2d(out_channels),
             nn.ReLU(inplace=True),
@@ -79,90 +88,199 @@ class SoftMaskBranch(nn.Module):
             nn.ReLU(inplace=True),
             nn.Conv2d(out_channels, out_channels, kernel_size=1),
             nn.Sigmoid()
-        )
+        ) 
+        
+        self.last = self._make_residual(in_channels, out_channels, p)
     
     def forward(self, x):
-
-        shape1 = (x.size(2), x.size(3))
-        x = F.max_pool2d(x, kernel_size=3, stride=2, padding=1)
+        ###We make the size of the smallest output map in each mask branch 7*7 to be consistent
+        #with the smallest trunk output map size.
+        ###Thus 3,2,1 max-pooling layers are used in mask branch with input size 56 * 56, 28 * 28, 14 * 14 respectively.
         x = self.pre(x)
+        input_size = (x.size(2), x.size(3))
 
-        shape2 = (x.size(2), x.size(3))
-        x_mid = F.max_pool2d(x, kernel_size=3, stride=2, padding=1)
-        x_mid = self.mid(x_mid)
-        x_mid = F.interpolate(x_mid, size=shape2)
-        x_shortcut = self.shortcut(x)
-        x = x_mid + x_shortcut
+        x_t = self.trunk(x)
 
+        #first downsample out 28
+        x_s = F.max_pool2d(x, kernel_size=3, stride=2, padding=1)
+        x_s = self.soft_resdown1(x_s)
+
+        #28 shortcut
+        shape1 = (x_s.size(2), x_s.size(3))
+        shortcut_long = self.shortcut_long(x_s)
+
+        #seccond downsample out 14
+        x_s = F.max_pool2d(x, kernel_size=3, stride=2, padding=1)
+        x_s = self.soft_resdown2(x_s)
+
+        #14 shortcut
+        shape2 = (x_s.size(2), x_s.size(3))
+        shortcut_short = self.soft_resdown3(x_s)
+
+        #third downsample out 7
+        x_s = F.max_pool2d(x, kernel_size=3, stride=2, padding=1)
+        x_s = self.soft_resdown3(x_s)
+
+        #mid
+        x_s = self.soft_resdown4(x_s)
+        x_s = self.soft_resup1(x_s)
+
+        #first upsample out 14
+        x_s = self.soft_resup2(x_s)
+        x_s = F.interpolate(x_s, size=shape2)
+        x_s += shortcut_short
+
+        #second upsample out 28
+        x_s = self.soft_resup3(x_s)
+        x_s = F.interpolate(x_s, size=shape1)
+        x_s += shortcut_long
+
+        #thrid upsample out 54
+        x_s = self.soft_resup4(x_s)
+        x_s = F.interpolate(x_s, size=input_size)
+
+        x_s = self.sigmoid(x_s)
+        x = (1 + x_s) * x_t
         x = self.last(x)
-        x = F.interpolate(x, size=shape1)
-        x = self.sigmoid(x)
 
         return x
 
-    def _make_residual(self, in_channels, out_channels, n):
-        """
-        Args:
-            in_channels: SoftMaskBranch residual unit input channels
-            out_channels: SoftMaskBranch residual unit output channels
-            n: number of residuals we need
-        """
+    def _make_residual(self, in_channels, out_channels, p):
+
         layers = []
-        for _ in range(n):
+        for _ in range(p):
             layers.append(PreActResidualUnit(in_channels, out_channels, 1))
 
         return nn.Sequential(*layers)
 
-class TrunkBranch(nn.Module):
-
-    """trunk branch for attention module
-    Args:
-        in_channels: input channels for trunk branch
-        out_channels: output channels for trunk branch
-        t: hyperparameters t for trunk branch, the number
-            of residual unit for trunk branch
-    """ 
-
-    def __init__(self, in_channels, out_channels, t):
-        super().__init__()
-        self.trunk = self._make_trunk(in_channels, out_channels, t)
-    
-    def forward(self, x):
-        x = self.trunk(x)
-
-        return x
-
-    def _make_trunk(self, in_channels, out_channels, t):
-        
-        layers = []
-        for _ in range(t):
-            layers.append(PreActResidualUnit(in_channels, out_channels, 1))
-        
-        return nn.Sequential(*layers)
-
-
-class AttentionModule(nn.Module):
+class AttentionModule2(nn.Module):
     
     def __init__(self, in_channels, out_channels, p=1, t=2, r=1):
         super().__init__()
-        #"""The hyper-parameter p denotes the number of pre-processing Residual 
+        #"""The hyperparameter p denotes the number of preprocessing Residual 
         #Units before splitting into trunk branch and mask branch. t denotes 
         #the number of Residual Units in trunk branch. r denotes the number of 
         #Residual Units between adjacent pooling layer in the mask branch."""
         assert in_channels == out_channels
 
         self.pre = self._make_residual(in_channels, out_channels, p)
-        self.trunk = TrunkBranch(in_channels, out_channels, t)
-        self.soft_mask = SoftMaskBranch(in_channels, out_channels, r)
+        self.trunk = self._make_residual(in_channels, out_channels, t)
+        self.soft_resdown1 = self._make_residual(in_channels, out_channels, r)
+        self.soft_resdown2 = self._make_residual(in_channels, out_channels, r)
+        self.soft_resdown3 = self._make_residual(in_channels, out_channels, r)
+
+        self.soft_resup1 = self._make_residual(in_channels, out_channels, r)
+        self.soft_resup2 = self._make_residual(in_channels, out_channels, r)
+        self.soft_resup3 = self._make_residual(in_channels, out_channels, r)
+
+        self.shortcut = PreActResidualUnit(in_channels, out_channels, 1)
+
+        self.sigmoid = nn.Sequential(
+            nn.BatchNorm2d(out_channels),
+            nn.ReLU(inplace=True),
+            nn.Conv2d(out_channels, out_channels, kernel_size=1),
+            nn.BatchNorm2d(out_channels),
+            nn.ReLU(inplace=True),
+            nn.Conv2d(out_channels, out_channels, kernel_size=1),
+            nn.Sigmoid()
+        ) 
+        
         self.last = self._make_residual(in_channels, out_channels, p)
     
     def forward(self, x):
         x = self.pre(x)
+        input_size = (x.size(2), x.size(3))
 
         x_t = self.trunk(x)
-        x_s = self.soft_mask(x)
 
-        x = x_s * x_t + x_t
+        #first downsample out 14
+        x_s = F.max_pool2d(x, kernel_size=3, stride=2, padding=1)
+        x_s = self.soft_resdown1(x_s)
+
+        #14 shortcut
+        shape1 = (x_s.size(2), x_s.size(3))
+        shortcut = self.shortcut(x_s)
+
+        #seccond downsample out 7 
+        x_s = F.max_pool2d(x, kernel_size=3, stride=2, padding=1)
+        x_s = self.soft_resdown2(x_s)
+
+        #mid
+        x_s = self.soft_resdown3(x_s)
+        x_s = self.soft_resup1(x_s)
+
+        #first upsample out 14
+        x_s = self.soft_resup2(x_s)
+        x_s = F.interpolate(x_s, size=shape1)
+        x_s += shortcut
+
+        #second upsample out 28
+        x_s = self.soft_resup3(x_s)
+        x_s = F.interpolate(x_s, size=input_size)
+
+        x_s = self.sigmoid(x_s)
+        x = (1 + x_s) * x_t
+        x = self.last(x)
+
+        return x
+
+    def _make_residual(self, in_channels, out_channels, p):
+
+        layers = []
+        for _ in range(p):
+            layers.append(PreActResidualUnit(in_channels, out_channels, 1))
+
+        return nn.Sequential(*layers)
+
+class AttentionModule3(nn.Module):
+    
+    def __init__(self, in_channels, out_channels, p=1, t=2, r=1):
+        super().__init__()
+
+        assert in_channels == out_channels
+
+        self.pre = self._make_residual(in_channels, out_channels, p)
+        self.trunk = self._make_residual(in_channels, out_channels, t)
+        self.soft_resdown1 = self._make_residual(in_channels, out_channels, r)
+        self.soft_resdown2 = self._make_residual(in_channels, out_channels, r)
+
+        self.soft_resup1 = self._make_residual(in_channels, out_channels, r)
+        self.soft_resup2 = self._make_residual(in_channels, out_channels, r)
+
+        self.shortcut = PreActResidualUnit(in_channels, out_channels, 1)
+
+        self.sigmoid = nn.Sequential(
+            nn.BatchNorm2d(out_channels),
+            nn.ReLU(inplace=True),
+            nn.Conv2d(out_channels, out_channels, kernel_size=1),
+            nn.BatchNorm2d(out_channels),
+            nn.ReLU(inplace=True),
+            nn.Conv2d(out_channels, out_channels, kernel_size=1),
+            nn.Sigmoid()
+        ) 
+        
+        self.last = self._make_residual(in_channels, out_channels, p)
+    
+    def forward(self, x):
+        x = self.pre(x)
+        input_size = (x.size(2), x.size(3))
+
+        x_t = self.trunk(x)
+
+        #first downsample out 14
+        x_s = F.max_pool2d(x, kernel_size=3, stride=2, padding=1)
+        x_s = self.soft_resdown1(x_s)
+
+        #mid
+        x_s = self.soft_resdown2(x_s)
+        x_s = self.soft_resup1(x_s)
+
+        #first upsample out 14
+        x_s = self.soft_resup2(x_s)
+        x_s = F.interpolate(x_s, size=input_size)
+
+        x_s = self.sigmoid(x_s)
+        x = (1 + x_s) * x_t
         x = self.last(x)
 
         return x
@@ -190,9 +308,9 @@ class Attention(nn.Module):
             nn.ReLU(inplace=True)
         )
 
-        self.stage1 = self._make_stage(64, 256, block_num[0])
-        self.stage2 = self._make_stage(256, 512, block_num[1])
-        self.stage3 = self._make_stage(512, 1024, block_num[2])
+        self.stage1 = self._make_stage(64, 256, block_num[0], AttentionModule1)
+        self.stage2 = self._make_stage(256, 512, block_num[1], AttentionModule2)
+        self.stage3 = self._make_stage(512, 1024, block_num[2], AttentionModule3)
         self.stage4 = nn.Sequential(
             PreActResidualUnit(1024, 2048, 2),
             PreActResidualUnit(2048, 2048, 1),
@@ -213,13 +331,13 @@ class Attention(nn.Module):
 
         return x
 
-    def _make_stage(self, in_channels, out_channels, num):
+    def _make_stage(self, in_channels, out_channels, num, block):
 
         layers = []
         layers.append(PreActResidualUnit(in_channels, out_channels, 2))
 
         for _ in range(num):
-            layers.append(AttentionModule(out_channels, out_channels))
+            layers.append(block(out_channels, out_channels))
 
         return nn.Sequential(*layers)
     
@@ -228,3 +346,4 @@ def attention56():
 
 def attention92():
     return Attention([1, 2, 3])
+

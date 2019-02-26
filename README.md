@@ -21,8 +21,8 @@ $ cd pytorch-cifar100
 ```
 
 ### 2. dataset 
-I will use cifar100 dataset from torchvision since it's more convient, but I also
-kept the code sample for write your own dataset module in dataset folder, as an
+I will use cifar100 dataset from torchvision since it's more convenient, but I also
+kept the sample code for writing your own dataset module in dataset folder, as an
 example for people don't know how to write it.
 
 ### 3. run tensorbard(optional)
@@ -42,6 +42,10 @@ You need to specify the net you want to train using arg -net
 ```bash
 $ python train.py -net vgg16
 ```
+
+sometimes, you might want to use warmup training by set ```-warm``` to 1 or 2, to prevent network
+diverge during early training phase.
+
 The supported net args are:
 ```
 squeezenet
