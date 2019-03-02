@@ -99,7 +99,7 @@ $ python test.py -net vgg16 -weights path_to_vgg16_weights_file
 ## Implementated NetWork
 
 - vgg [Very Deep Convolutional Networks for Large-Scale Image Recognition](https://arxiv.org/abs/1409.1556v6)
-- google net [Going Deeper with Convolutions](https://arxiv.org/abs/1409.4842v1)
+- googlenet [Going Deeper with Convolutions](https://arxiv.org/abs/1409.4842v1)
 - inceptionv3 [Rethinking the Inception Architecture for Computer Vision](https://arxiv.org/abs/1512.00567v3)
 - inceptionv4, inception_resnet_v2 [Inception-v4, Inception-ResNet and the Impact of Residual Connections on Learning](https://arxiv.org/abs/1602.07261)
 - xception [Xception: Deep Learning with Depthwise Separable Convolutions](https://arxiv.org/abs/1610.02357)
@@ -149,10 +149,12 @@ better result.
 |cifar100|preactresnet18|11.3M|27.08|8.53|3.09GB|60|60|40|40|200|
 |cifar100|preactresnet34|21.5M|24.79|7.68|3.23GB|60|60|40|40|200|
 |cifar100|preactresnet50|23.9M|25.73|8.15|3.42GB|60|60|40|40|200|
+|cifar100|preactresnet101|42.9M|24.84|7.83|3.81GB|60|60|40|40|200|
 |cifar100|preactresnet152|58.6M|22.71|6.62|4.20GB|60|60|40|40|200|
 |cifar100|resnext50|14.8M|22.23|6.00|1.91GB|60|60|40|40|200|
 |cifar100|resnext101|25.3M|22.22|5.99|2.63GB|60|60|40|40|200|
 |cifar100|resnext152|33.3M|22.40|5.58|3.18GB|60|60|40|40|200|
+|cifar100|attention59|55.7M|33.75|12.90|3.47GB|60|60|40|40|200|
 |cifar100|attention92|102.5M|36.52|11.47|3.88GB|60|60|40|40|200|
 |cifar100|densenet121|7.0M|22.99|6.45|1.28GB|60|60|40|40|200|
 |cifar100|densenet161|26M|21.56|6.04|2.10GB|60|60|60|40|200|
@@ -162,6 +164,10 @@ better result.
 |cifar100|inceptionv4|41.3M|24.14|6.90|4.11GB|60|60|40|40|200|
 |cifar100|inceptionresnetv2|65.4M|27.51|9.11|4.14GB|60|60|40|40|200|
 |cifar100|xception|21.0M|25.07|7.32|1.67GB|60|60|40|40|200|
+|cifar100|seresnet18|11.4M|23.56|6.68|3.12GB|60|60|40|40|200|
+|cifar100|seresnet34|21.6M|22.07|6.12|3.29GB|60|60|40|40|200|
+|cifar100|seresnet50|26.5M|21.42|5.58|3.70GB|60|60|40|40|200|
+|cifar100|seresnet101|47.7M|20.98|5.41|4.39GB|60|60|40|40|200|
 |cifar100|nasnet|5.2M|22.71|5.91|3.69GB|60|60|40|40|200|
 
 
