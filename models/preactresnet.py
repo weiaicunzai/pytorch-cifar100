@@ -83,7 +83,7 @@ class PreActResNet(nn.Module):
         self.stage1 = self._make_layers(block, num_block[0], 64,  1)
         self.stage2 = self._make_layers(block, num_block[1], 128, 2)
         self.stage3 = self._make_layers(block, num_block[2], 256, 2)
-        self.stage4 = self._make_layers(block, num_block[3], 516, 2)
+        self.stage4 = self._make_layers(block, num_block[3], 512, 2)
 
         self.linear = nn.Linear(self.input_channels, class_num)
     
