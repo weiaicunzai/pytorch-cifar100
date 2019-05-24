@@ -35,7 +35,7 @@ class CIFAR100Train(Dataset):
 
         if self.transform:
             image = self.transform(image)
-        return label, image
+        return image, label
 
 class CIFAR100Test(Dataset):
     """cifar100 test dataset, derived from
@@ -59,5 +59,5 @@ class CIFAR100Test(Dataset):
 
         if self.transform:
             image = self.transform(image)
-        return label, image
+        return image, label
 
