@@ -38,7 +38,7 @@ class VGG(nn.Module):
         output = self.features(x)
         output = output.view(output.size()[0], -1)
         output = self.classifier(output)
-    
+
         return output
 
 def make_layers(cfg, batch_norm=False):
@@ -54,10 +54,10 @@ def make_layers(cfg, batch_norm=False):
 
         if batch_norm:
             layers += [nn.BatchNorm2d(l)]
-        
+
         layers += [nn.ReLU(inplace=True)]
         input_channel = l
-    
+
     return nn.Sequential(*layers)
 
 def vgg11_bn():

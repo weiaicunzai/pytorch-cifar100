@@ -51,7 +51,7 @@ class SeperableBranch(nn.Module):
             SeperableConv2d(output_channels, output_channels, kernel_size, stride=1, padding=int(kernel_size / 2)),
             nn.BatchNorm2d(output_channels)
         )
-    
+
     def forward(self, x):
         x = self.block1(x)
         x = self.block2(x)
@@ -92,7 +92,7 @@ class Fit(nn.Module):
         )
 
         self.filters = filters
-    
+
     def forward(self, inputs):
         x, prev = inputs
         if prev is None:
@@ -124,7 +124,7 @@ class NormalCell(nn.Module):
         )
 
         self.block1_left = SeperableBranch(
-            output_channels, 
+            output_channels,
             output_channels,
             kernel_size=3,
             padding=1,
@@ -169,13 +169,13 @@ class NormalCell(nn.Module):
         )
 
         self.fit = Fit(prev_in, output_channels)
-    
+
     def forward(self, x):
         x, prev = x
 
-        #return transformed x as new x, and original x as prev 
+        #return transformed x as new x, and original x as prev
         #only prev tensor needs to be modified
-        prev = self.fit((x, prev)) 
+        prev = self.fit((x, prev))
 
         h = self.dem_reduce(x)
 
@@ -217,9 +217,9 @@ class ReductionCell(nn.Module):
         #block4
         self.layer2block2_left = nn.AvgPool2d(3, 1, 1)
         self.layer2block2_right = nn.Sequential()
-    
+
         self.fit = Fit(prev_in, output_channels)
-    
+
     def forward(self, x):
         x, prev = x
         prev = self.fit((x, prev))
@@ -259,8 +259,8 @@ class NasNetA(nn.Module):
         self.relu = nn.ReLU()
         self.avg = nn.AdaptiveAvgPool2d(1)
         self.fc = nn.Linear(self.filters * 6, class_num)
-    
-    
+
+
     def _make_normal(self, block, repeat, output):
         """make normal cell
         Args:
@@ -271,12 +271,12 @@ class NasNetA(nn.Module):
             stacked normal cells
         """
 
-        layers = [] 
+        layers = []
         for r in range(repeat):
             layers.append(block(self.x_filters, self.prev_filters, output))
             self.prev_filters = self.x_filters
             self.x_filters = output * 6 #concatenate 6 branches
-        
+
         return layers
 
     def _make_reduction(self, block, output):
@@ -293,7 +293,7 @@ class NasNetA(nn.Module):
         self.x_filters = output * 4 #stack for 4 branches
 
         return reduction
-    
+
     def _make_layers(self, repeat_cell_num, reduction_num):
 
         layers = []
@@ -302,7 +302,7 @@ class NasNetA(nn.Module):
             layers.extend(self._make_normal(NormalCell, repeat_cell_num, self.filters))
             self.filters *= 2
             layers.append(self._make_reduction(ReductionCell, self.filters))
-        
+
         layers.extend(self._make_normal(NormalCell, repeat_cell_num, self.filters))
 
         return nn.Sequential(*layers)
@@ -319,10 +319,10 @@ class NasNetA(nn.Module):
         x = self.fc(x)
 
         return x
-        
-        
+
+
 def nasnet():
 
     #stem filters must be 44, it's a pytorch workaround, cant change to other number
-    return NasNetA(4, 2, 44, 44)    
+    return NasNetA(4, 2, 44, 44)
 

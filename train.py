@@ -103,7 +103,7 @@ def eval_training(epoch):
     return correct.float() / len(cifar100_test_loader.dataset)
 
 if __name__ == '__main__':
-    
+
     parser = argparse.ArgumentParser()
     parser.add_argument('-net', type=str, required=True, help='net type')
     parser.add_argument('-gpu', action='store_true', default=False, help='use gpu or not')
@@ -115,7 +115,7 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     net = get_network(args, use_gpu=args.gpu)
-        
+
     #data preprocessing:
     cifar100_training_loader = get_training_dataloader(
         settings.CIFAR100_TRAIN_MEAN,
@@ -124,7 +124,7 @@ if __name__ == '__main__':
         batch_size=args.b,
         shuffle=args.s
     )
-    
+
     cifar100_test_loader = get_test_dataloader(
         settings.CIFAR100_TRAIN_MEAN,
         settings.CIFAR100_TRAIN_STD,
@@ -132,7 +132,7 @@ if __name__ == '__main__':
         batch_size=args.b,
         shuffle=args.s
     )
-    
+
     loss_function = nn.CrossEntropyLoss()
     optimizer = optim.SGD(net.parameters(), lr=args.lr, momentum=0.9, weight_decay=5e-4)
     train_scheduler = optim.lr_scheduler.MultiStepLR(optimizer, milestones=settings.MILESTONES, gamma=0.2) #learning rate decay
@@ -161,7 +161,7 @@ if __name__ == '__main__':
         train(epoch)
         acc = eval_training(epoch)
 
-        #start to save best performance model after learning rate decay to 0.01 
+        #start to save best performance model after learning rate decay to 0.01
         if epoch > settings.MILESTONES[1] and best_acc < acc:
             torch.save(net.state_dict(), checkpoint_path.format(net=args.net, epoch=epoch, type='best'))
             best_acc = acc

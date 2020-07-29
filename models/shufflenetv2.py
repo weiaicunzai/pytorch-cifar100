@@ -21,7 +21,7 @@ def channel_split(x, split):
     """
     assert x.size(1) == split * 2
     return torch.split(x, split, dim=1)
-    
+
 def channel_shuffle(x, groups):
     """channel shuffle operation
     Args:
@@ -78,10 +78,10 @@ class ShuffleUnit(nn.Module):
                 nn.BatchNorm2d(in_channels),
                 nn.Conv2d(in_channels, in_channels, 1),
                 nn.BatchNorm2d(in_channels),
-                nn.ReLU(inplace=True) 
+                nn.ReLU(inplace=True)
             )
 
-    
+
     def forward(self, x):
 
         if self.stride == 1 and self.out_channels == self.in_channels:
@@ -89,12 +89,12 @@ class ShuffleUnit(nn.Module):
         else:
             shortcut = x
             residual = x
-        
+
         shortcut = self.shortcut(shortcut)
         residual = self.residual(residual)
         x = torch.cat([shortcut, residual], dim=1)
         x = channel_shuffle(x, 2)
-        
+
         return x
 
 class ShuffleNetV2(nn.Module):
@@ -111,7 +111,7 @@ class ShuffleNetV2(nn.Module):
             out_channels = [244, 488, 976, 2048]
         else:
             ValueError('unsupported ratio number')
-        
+
         self.pre = nn.Sequential(
             nn.Conv2d(3, 24, 3, padding=1),
             nn.BatchNorm2d(24)
@@ -147,7 +147,7 @@ class ShuffleNetV2(nn.Module):
         while repeat:
             layers.append(ShuffleUnit(out_channels, out_channels, 1))
             repeat -= 1
-        
+
         return nn.Sequential(*layers)
 
 def shufflenetv2():

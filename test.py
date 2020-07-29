@@ -65,7 +65,7 @@ if __name__ == '__main__':
         #compute top 5
         correct_5 += correct[:, :5].sum()
 
-        #compute top1 
+        #compute top1
         correct_1 += correct[:, :1].sum()
 
 

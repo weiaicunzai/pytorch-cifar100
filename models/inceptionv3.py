@@ -18,7 +18,7 @@ class BasicConv2d(nn.Module):
         self.conv = nn.Conv2d(input_channels, output_channels, bias=False, **kwargs)
         self.bn = nn.BatchNorm2d(output_channels)
         self.relu = nn.ReLU(inplace=True)
-    
+
     def forward(self, x):
         x = self.conv(x)
         x = self.bn(x)
@@ -48,9 +48,9 @@ class InceptionA(nn.Module):
             nn.AvgPool2d(kernel_size=3, stride=1, padding=1),
             BasicConv2d(input_channels, pool_features, kernel_size=3, padding=1)
         )
-    
+
     def forward(self, x):
-        
+
         #x -> 1x1(same)
         branch1x1 = self.branch1x1(x)
 
@@ -96,14 +96,14 @@ class InceptionB(nn.Module):
         #x -> avgpool(downsample)
         branchpool = self.branchpool(x)
 
-        #"""We can use two parallel stride 2 blocks: P and C. P is a pooling 
-        #layer (either average or maximum pooling) the activation, both of 
-        #them are stride 2 the filter banks of which are concatenated as in 
+        #"""We can use two parallel stride 2 blocks: P and C. P is a pooling
+        #layer (either average or maximum pooling) the activation, both of
+        #them are stride 2 the filter banks of which are concatenated as in
         #figure 10."""
         outputs = [branch3x3, branch3x3stack, branchpool]
 
         return torch.cat(outputs, 1)
-    
+
 #Factorizing Convolutions with Large Filter Size
 class InceptionC(nn.Module):
     def __init__(self, input_channels, channels_7x7):
@@ -112,8 +112,8 @@ class InceptionC(nn.Module):
 
         c7 = channels_7x7
 
-        #In theory, we could go even further and argue that one can replace any n × n 
-        #convolution by a 1 × n convolution followed by a n × 1 convolution and the 
+        #In theory, we could go even further and argue that one can replace any n × n
+        #convolution by a 1 × n convolution followed by a n × 1 convolution and the
         #computational cost saving increases dramatically as n grows (see figure 6).
         self.branch7x7 = nn.Sequential(
             BasicConv2d(input_channels, c7, kernel_size=1),
@@ -170,7 +170,7 @@ class InceptionD(nn.Module):
         )
 
         self.branchpool = nn.AvgPool2d(kernel_size=3, stride=2)
-    
+
     def forward(self, x):
 
         #x -> 1x1 -> 3x3(downsample)
@@ -185,7 +185,7 @@ class InceptionD(nn.Module):
         outputs = [branch3x3, branch7x7, branchpool]
 
         return torch.cat(outputs, 1)
-    
+
 
 #same
 class InceptionE(nn.Module):
@@ -196,7 +196,7 @@ class InceptionE(nn.Module):
         self.branch3x3_1 = BasicConv2d(input_channels, 384, kernel_size=1)
         self.branch3x3_2a = BasicConv2d(384, 384, kernel_size=(1, 3), padding=(0, 1))
         self.branch3x3_2b = BasicConv2d(384, 384, kernel_size=(3, 1), padding=(1, 0))
-            
+
         self.branch3x3stack_1 = BasicConv2d(input_channels, 448, kernel_size=1)
         self.branch3x3stack_2 = BasicConv2d(448, 384, kernel_size=3, padding=1)
         self.branch3x3stack_3a = BasicConv2d(384, 384, kernel_size=(1, 3), padding=(0, 1))
@@ -215,9 +215,9 @@ class InceptionE(nn.Module):
         # x -> 1x1 -> 3x1
         # x -> 1x1 -> 1x3
         # concatenate(3x1, 1x3)
-        #"""7. Inception modules with expanded the filter bank outputs. 
-        #This architecture is used on the coarsest (8 × 8) grids to promote 
-        #high dimensional representations, as suggested by principle 
+        #"""7. Inception modules with expanded the filter bank outputs.
+        #This architecture is used on the coarsest (8 × 8) grids to promote
+        #high dimensional representations, as suggested by principle
         #2 of Section 2."""
         branch3x3 = self.branch3x3_1(x)
         branch3x3 = [
@@ -244,7 +244,7 @@ class InceptionE(nn.Module):
         return torch.cat(outputs, 1)
 
 class InceptionV3(nn.Module):
-    
+
     def __init__(self, num_classes=100):
         super().__init__()
         self.Conv2d_1a_3x3 = BasicConv2d(3, 32, kernel_size=3, padding=1)
@@ -271,7 +271,7 @@ class InceptionV3(nn.Module):
 
         self.Mixed_7b = InceptionE(1280)
         self.Mixed_7c = InceptionE(2048)
-        
+
         #6*6 feature size
         self.avgpool = nn.AdaptiveAvgPool2d((1, 1))
         self.dropout = nn.Dropout2d()
@@ -297,10 +297,10 @@ class InceptionV3(nn.Module):
         x = self.Mixed_6a(x)
 
         #14 -> 14
-        #"""In practice, we have found that employing this factorization does not 
-        #work well on early layers, but it gives very good results on medium 
-        #grid-sizes (On m × m feature maps, where m ranges between 12 and 20). 
-        #On that level, very good results can be achieved by using 1 × 7 convolutions 
+        #"""In practice, we have found that employing this factorization does not
+        #work well on early layers, but it gives very good results on medium
+        #grid-sizes (On m × m feature maps, where m ranges between 12 and 20).
+        #On that level, very good results can be achieved by using 1 × 7 convolutions
         #followed by 7 × 1 convolutions."""
         x = self.Mixed_6b(x)
         x = self.Mixed_6c(x)
@@ -312,10 +312,10 @@ class InceptionV3(nn.Module):
         x = self.Mixed_7a(x)
 
         #6 -> 6
-        #We are using this solution only on the coarsest grid, 
-        #since that is the place where producing high dimensional 
-        #sparse representation is the most critical as the ratio of 
-        #local processing (by 1 × 1 convolutions) is increased compared 
+        #We are using this solution only on the coarsest grid,
+        #since that is the place where producing high dimensional
+        #sparse representation is the most critical as the ratio of
+        #local processing (by 1 × 1 convolutions) is increased compared
         #to the spatial aggregation."""
         x = self.Mixed_7b(x)
         x = self.Mixed_7c(x)

@@ -22,13 +22,13 @@ import torch.nn as nn
 class Bottleneck(nn.Module):
     def __init__(self, in_channels, growth_rate):
         super().__init__()
-        #"""In  our experiments, we let each 1×1 convolution 
+        #"""In  our experiments, we let each 1×1 convolution
         #produce 4k feature-maps."""
         inner_channel = 4 * growth_rate
 
-        #"""We find this design especially effective for DenseNet and 
-        #we refer to our network with such a bottleneck layer, i.e., 
-        #to the BN-ReLU-Conv(1×1)-BN-ReLU-Conv(3×3) version of H ` , 
+        #"""We find this design especially effective for DenseNet and
+        #we refer to our network with such a bottleneck layer, i.e.,
+        #to the BN-ReLU-Conv(1×1)-BN-ReLU-Conv(3×3) version of H ` ,
         #as DenseNet-B."""
         self.bottle_neck = nn.Sequential(
             nn.BatchNorm2d(in_channels),
@@ -47,9 +47,9 @@ class Bottleneck(nn.Module):
 class Transition(nn.Module):
     def __init__(self, in_channels, out_channels):
         super().__init__()
-        #"""The transition layers used in our experiments 
-        #consist of a batch normalization layer and an 1×1 
-        #convolutional layer followed by a 2×2 average pooling 
+        #"""The transition layers used in our experiments
+        #consist of a batch normalization layer and an 1×1
+        #convolutional layer followed by a 2×2 average pooling
         #layer""".
         self.down_sample = nn.Sequential(
             nn.BatchNorm2d(in_channels),
@@ -68,15 +68,15 @@ class DenseNet(nn.Module):
         super().__init__()
         self.growth_rate = growth_rate
 
-        #"""Before entering the first dense block, a convolution 
-        #with 16 (or twice the growth rate for DenseNet-BC) 
+        #"""Before entering the first dense block, a convolution
+        #with 16 (or twice the growth rate for DenseNet-BC)
         #output channels is performed on the input images."""
         inner_channels = 2 * growth_rate
 
-        #For convolutional layers with kernel size 3×3, each 
-        #side of the inputs is zero-padded by one pixel to keep 
+        #For convolutional layers with kernel size 3×3, each
+        #side of the inputs is zero-padded by one pixel to keep
         #the feature-map size fixed.
-        self.conv1 = nn.Conv2d(3, inner_channels, kernel_size=3, padding=1, bias=False) 
+        self.conv1 = nn.Conv2d(3, inner_channels, kernel_size=3, padding=1, bias=False)
 
         self.features = nn.Sequential()
 
@@ -84,9 +84,9 @@ class DenseNet(nn.Module):
             self.features.add_module("dense_block_layer_{}".format(index), self._make_dense_layers(block, inner_channels, nblocks[index]))
             inner_channels += growth_rate * nblocks[index]
 
-            #"""If a dense block contains m feature-maps, we let the 
+            #"""If a dense block contains m feature-maps, we let the
             #following transition layer generate θm output feature-
-            #maps, where 0 < θ ≤ 1 is referred to as the compression 
+            #maps, where 0 < θ ≤ 1 is referred to as the compression
             #fac-tor.
             out_channels = int(reduction * inner_channels) # int() will automatic floor the value
             self.features.add_module("transition_layer_{}".format(index), Transition(inner_channels, out_channels))

@@ -2,7 +2,7 @@
 
 
 
-[1] Christian Szegedy, Wei Liu, Yangqing Jia, Pierre Sermanet, Scott Reed, 
+[1] Christian Szegedy, Wei Liu, Yangqing Jia, Pierre Sermanet, Scott Reed,
     Dragomir Anguelov, Dumitru Erhan, Vincent Vanhoucke, Andrew Rabinovich.
 
     Going Deeper with Convolutions
@@ -57,7 +57,7 @@ class Inception(nn.Module):
             nn.BatchNorm2d(pool_proj),
             nn.ReLU(inplace=True)
         )
-    
+
     def forward(self, x):
         return torch.cat([self.b1(x), self.b2(x), self.b3(x), self.b4(x)], dim=1)
 
@@ -78,8 +78,8 @@ class GoogleNet(nn.Module):
         self.b3 = Inception(256, 128, 128, 192, 32, 96, 64)
 
         #"""In general, an Inception network is a network consisting of
-        #modules of the above type stacked upon each other, with occasional 
-        #max-pooling layers with stride 2 to halve the resolution of the 
+        #modules of the above type stacked upon each other, with occasional
+        #max-pooling layers with stride 2 to halve the resolution of the
         #grid"""
         self.maxpool = nn.MaxPool2d(3, stride=2, padding=1)
 
@@ -96,12 +96,12 @@ class GoogleNet(nn.Module):
         self.avgpool = nn.AdaptiveAvgPool2d((1, 1))
         self.dropout = nn.Dropout2d(p=0.4)
         self.linear = nn.Linear(1024, num_class)
-    
+
     def forward(self, x):
         output = self.prelayer(x)
         output = self.a3(output)
         output = self.b3(output)
-        
+
         output = self.maxpool(output)
 
         output = self.a4(output)
@@ -116,8 +116,8 @@ class GoogleNet(nn.Module):
         output = self.b5(output)
 
         #"""It was found that a move from fully connected layers to
-        #average pooling improved the top-1 accuracy by about 0.6%, 
-        #however the use of dropout remained essential even after 
+        #average pooling improved the top-1 accuracy by about 0.6%,
+        #however the use of dropout remained essential even after
         #removing the fully connected layers."""
         output = self.avgpool(output)
         output = self.dropout(output)

@@ -11,15 +11,15 @@
 import torch
 import torch.nn as nn
 
-#geralized  
+#geralized
 class ResnetInit(nn.Module):
     def __init__(self, in_channel, out_channel, stride):
         super().__init__()
 
-        #"""The modular unit of the generalized residual network architecture is a 
-        #generalized residual block consisting of parallel states for a residual stream, 
-        #r, which contains identity shortcut connections and is similar to the structure 
-        #of a residual block from the original ResNet with a single convolutional layer 
+        #"""The modular unit of the generalized residual network architecture is a
+        #generalized residual block consisting of parallel states for a residual stream,
+        #r, which contains identity shortcut connections and is similar to the structure
+        #of a residual block from the original ResNet with a single convolutional layer
         #(parameters W l,r→r )
         self.residual_stream_conv = nn.Conv2d(in_channel, out_channel, 3, padding=1, stride=stride)
 
@@ -31,8 +31,8 @@ class ResnetInit(nn.Module):
         #also transfer information across streams."""
         self.residual_stream_conv_across = nn.Conv2d(in_channel, out_channel, 3, padding=1, stride=stride)
 
-        #"""We use equal numbers of filters for the residual and transient streams of the 
-        #generalized residual network, but optimizing this hyperparameter could lead to 
+        #"""We use equal numbers of filters for the residual and transient streams of the
+        #generalized residual network, but optimizing this hyperparameter could lead to
         #further potential improvements."""
         self.transient_stream_conv_across = nn.Conv2d(in_channel, out_channel, 3, padding=1, stride=stride)
 
@@ -53,7 +53,7 @@ class ResnetInit(nn.Module):
             self.short_cut = nn.Sequential(
                 nn.Conv2d(in_channel, out_channel, kernel_size=1, stride=stride)
             )
-        
+
 
     def forward(self, x):
         x_residual, x_transient = x
@@ -66,15 +66,15 @@ class ResnetInit(nn.Module):
 
         #transient_t_t = self.transient_stream_conv(x_residual)
         #transient_t_r = self.transient_stream_conv_across(x_residual)
-        #"""Same-stream and cross-stream activations are summed (along with the 
-        #shortcut connection for the residual stream) before applying batch 
-        #normalization and ReLU nonlinearities (together σ) to get the output 
+        #"""Same-stream and cross-stream activations are summed (along with the
+        #shortcut connection for the residual stream) before applying batch
+        #normalization and ReLU nonlinearities (together σ) to get the output
         #states of the block (Equation 1) (Ioffe & Szegedy, 2015)."""
         x_residual = self.residual_bn_relu(residual_r_r + transient_t_r + residual_shortcut)
         x_transient = self.transient_bn_relu(residual_r_t + transient_t_t)
 
         return x_residual, x_transient
-    
+
 
 
 class RiRBlock(nn.Module):
@@ -84,7 +84,7 @@ class RiRBlock(nn.Module):
 
         #self.short_cut = nn.Sequential()
         #if stride != 1 or in_channel != out_channel:
-        #    self.short_cut = nn.Conv2d(in_channel, out_channel, kernel_size=1, stride=stride) 
+        #    self.short_cut = nn.Conv2d(in_channel, out_channel, kernel_size=1, stride=stride)
 
     def forward(self, x):
         x_residual, x_transient = self.resnetinit(x)
@@ -94,8 +94,8 @@ class RiRBlock(nn.Module):
         return (x_residual, x_transient)
 
     #"""Replacing each of the convolutional layers within a residual
-    #block from the original ResNet (Figure 1a) with a generalized residual block 
-    #(Figure 1b) leads us to a new architecture we call ResNet in ResNet (RiR) 
+    #block from the original ResNet (Figure 1a) with a generalized residual block
+    #(Figure 1b) leads us to a new architecture we call ResNet in ResNet (RiR)
     #(Figure 1d)."""
     def _make_layers(self, in_channel, out_channel, layer_num, stride, layer=ResnetInit):
         strides = [stride] + [1] * (layer_num - 1)
@@ -144,7 +144,7 @@ class ResnetInResneet(nn.Module):
         )
 
         self._weight_init()
-    
+
     def forward(self, x):
         x_residual = self.residual_pre_conv(x)
         x_transient = self.transient_pre_conv(x)
@@ -168,8 +168,8 @@ class ResnetInResneet(nn.Module):
         for m in self.modules():
             if isinstance(m, nn.Conv2d):
                 torch.nn.init.kaiming_normal(m.weight)
-                m.bias.data.fill_(0.01)    
-    
+                m.bias.data.fill_(0.01)
+
 
 def resnet_in_resnet():
     return ResnetInResneet()

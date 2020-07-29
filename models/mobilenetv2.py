@@ -34,14 +34,14 @@ class LinearBottleNeck(nn.Module):
         self.stride = stride
         self.in_channels = in_channels
         self.out_channels = out_channels
-    
+
     def forward(self, x):
 
         residual = self.residual(x)
 
         if self.stride == 1 and self.in_channels == self.out_channels:
             residual += x
-        
+
         return residual
 
 class MobileNetV2(nn.Module):
@@ -70,7 +70,7 @@ class MobileNetV2(nn.Module):
         )
 
         self.conv2 = nn.Conv2d(1280, class_num, 1)
-            
+
     def forward(self, x):
         x = self.pre(x)
         x = self.stage1(x)
@@ -86,16 +86,16 @@ class MobileNetV2(nn.Module):
         x = x.view(x.size(0), -1)
 
         return x
-    
+
     def _make_stage(self, repeat, in_channels, out_channels, stride, t):
 
         layers = []
         layers.append(LinearBottleNeck(in_channels, out_channels, stride, t))
-        
+
         while repeat - 1:
             layers.append(LinearBottleNeck(out_channels, out_channels, 1, t))
             repeat -= 1
-        
+
         return nn.Sequential(*layers)
 
 def mobilenetv2():

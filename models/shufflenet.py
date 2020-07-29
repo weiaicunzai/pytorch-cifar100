@@ -21,7 +21,7 @@ class BasicConv2d(nn.Module):
         self.conv = nn.Conv2d(input_channels, output_channels, kernel_size, **kwargs)
         self.bn = nn.BatchNorm2d(output_channels)
         self.relu = nn.ReLU(inplace=True)
-    
+
     def forward(self, x):
         x = self.conv(x)
         x = self.bn(x)
@@ -33,7 +33,7 @@ class ChannelShuffle(nn.Module):
     def __init__(self, groups):
         super().__init__()
         self.groups = groups
-    
+
     def forward(self, x):
         batchsize, channels, height, width = x.data.size()
         channels_per_group = int(channels / self.groups)
@@ -68,7 +68,7 @@ class PointwiseConv2d(nn.Module):
             nn.Conv2d(input_channels, output_channels, 1, **kwargs),
             nn.BatchNorm2d(output_channels)
         )
-    
+
     def forward(self, x):
         return self.pointwise(x)
 
@@ -77,36 +77,36 @@ class ShuffleNetUnit(nn.Module):
     def __init__(self, input_channels, output_channels, stage, stride, groups):
         super().__init__()
 
-        #"""Similar to [9], we set the number of bottleneck channels to 1/4 
+        #"""Similar to [9], we set the number of bottleneck channels to 1/4
         #of the output channels for each ShuffleNet unit."""
         self.bottlneck = nn.Sequential(
             PointwiseConv2d(
-                input_channels, 
-                int(output_channels / 4), 
+                input_channels,
+                int(output_channels / 4),
                 groups=groups
             ),
             nn.ReLU(inplace=True)
         )
 
-        #"""Note that for Stage 2, we do not apply group convolution on the first pointwise 
+        #"""Note that for Stage 2, we do not apply group convolution on the first pointwise
         #layer because the number of input channels is relatively small."""
         if stage == 2:
             self.bottlneck = nn.Sequential(
                 PointwiseConv2d(
-                    input_channels, 
+                    input_channels,
                     int(output_channels / 4),
                     groups=groups
                 ),
                 nn.ReLU(inplace=True)
             )
-        
+
         self.channel_shuffle = ChannelShuffle(groups)
 
         self.depthwise = DepthwiseConv2d(
-            int(output_channels / 4), 
-            int(output_channels / 4), 
-            3, 
-            groups=int(output_channels / 4), 
+            int(output_channels / 4),
+            int(output_channels / 4),
+            3,
+            groups=int(output_channels / 4),
             stride=stride,
             padding=1
         )
@@ -121,11 +121,11 @@ class ShuffleNetUnit(nn.Module):
         self.fusion = self._add
         self.shortcut = nn.Sequential()
 
-        #"""As for the case where ShuffleNet is applied with stride, 
-        #we simply make two modifications (see Fig 2 (c)): 
-        #(i) add a 3 × 3 average pooling on the shortcut path; 
-        #(ii) replace the element-wise addition with channel concatenation, 
-        #which makes it easy to enlarge channel dimension with little extra 
+        #"""As for the case where ShuffleNet is applied with stride,
+        #we simply make two modifications (see Fig 2 (c)):
+        #(i) add a 3 × 3 average pooling on the shortcut path;
+        #(ii) replace the element-wise addition with channel concatenation,
+        #which makes it easy to enlarge channel dimension with little extra
         #computation cost.
         if stride != 1 or input_channels != output_channels:
             self.shortcut = nn.AvgPool2d(3, stride=2, padding=1)
@@ -137,10 +137,10 @@ class ShuffleNetUnit(nn.Module):
             )
 
             self.fusion = self._cat
-    
+
     def _add(self, x, y):
         return torch.add(x, y)
-    
+
     def _cat(self, x, y):
         return torch.cat([x, y], dim=1)
 
@@ -177,20 +177,20 @@ class ShuffleNet(nn.Module):
         self.input_channels = out_channels[0]
 
         self.stage2 = self._make_stage(
-            ShuffleNetUnit, 
-            num_blocks[0], 
-            out_channels[1], 
-            stride=2, 
+            ShuffleNetUnit,
+            num_blocks[0],
+            out_channels[1],
+            stride=2,
             stage=2,
             groups=groups
         )
 
         self.stage3 = self._make_stage(
-            ShuffleNetUnit, 
-            num_blocks[1], 
-            out_channels[2], 
+            ShuffleNetUnit,
+            num_blocks[1],
+            out_channels[2],
             stride=2,
-            stage=3, 
+            stage=3,
             groups=groups
         )
 
@@ -218,7 +218,7 @@ class ShuffleNet(nn.Module):
         return x
 
     def _make_stage(self, block, num_blocks, output_channels, stride, stage, groups):
-        """make shufflenet stage 
+        """make shufflenet stage
 
         Args:
             block: block type, shuffle unit
@@ -226,7 +226,7 @@ class ShuffleNet(nn.Module):
             num_blocks: how many blocks per stage
             stride: the stride of the first block of this stage
             stage: stage index
-            groups: group number of group convolution 
+            groups: group number of group convolution
         Return:
             return a shuffle net stage
         """
@@ -237,10 +237,10 @@ class ShuffleNet(nn.Module):
         for stride in strides:
             stage.append(
                 block(
-                    self.input_channels, 
-                    output_channels, 
-                    stride=stride, 
-                    stage=stage, 
+                    self.input_channels,
+                    output_channels,
+                    stride=stride,
+                    stage=stage,
                     groups=groups
                 )
             )
@@ -250,7 +250,7 @@ class ShuffleNet(nn.Module):
 
 def shufflenet():
     return ShuffleNet([4, 8, 4])
-                              
+
 
 
 

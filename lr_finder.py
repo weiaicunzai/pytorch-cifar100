@@ -11,7 +11,7 @@ from torch.utils.data import DataLoader
 import numpy as np
 
 #from PIL import Image
-#import transforms 
+#import transforms
 from torchvision import transforms
 #from tensorboardX import SummaryWriter
 from conf import settings
@@ -30,11 +30,11 @@ class FindLR(_LRScheduler):
 
     Args:
         optimizer: optimzier(e.g. SGD)
-        num_iter: totoal_iters 
+        num_iter: totoal_iters
         max_lr: maximum  learning rate
     """
     def __init__(self, optimizer, max_lr=10, num_iter=100, last_epoch=-1):
-        
+
         self.total_iters = num_iter
         self.max_lr = max_lr
         super().__init__(optimizer, last_epoch)
@@ -60,7 +60,7 @@ if __name__ == '__main__':
         num_workers=args.w,
         batch_size=args.b,
     )
-    
+
     net = get_network(args)
 
     loss_function = nn.CrossEntropyLoss()
@@ -78,7 +78,7 @@ if __name__ == '__main__':
 
         #training procedure
         net.train()
-        
+
         for batch_index, (images, labels) in enumerate(cifar100_training_loader):
             if n > args.num_iter:
                 break
