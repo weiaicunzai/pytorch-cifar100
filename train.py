@@ -19,7 +19,6 @@ import torchvision
 import torchvision.transforms as transforms
 
 from torch.utils.data import DataLoader
-#from dataset import *
 from torch.autograd import Variable
 
 from tensorboardX import SummaryWriter

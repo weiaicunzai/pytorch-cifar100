@@ -9,9 +9,7 @@ author baiyu
 """
 
 import argparse
-#from dataset import *
 
-#from skimage import io
 from matplotlib import pyplot as plt
 
 import torch

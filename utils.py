@@ -13,7 +13,6 @@ import torchvision
 import torchvision.transforms as transforms
 from torch.utils.data import DataLoader
 
-#from dataset import CIFAR100Train, CIFAR100Test
 
 def get_network(args, use_gpu=True):
     """ return given network

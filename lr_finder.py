@@ -10,10 +10,7 @@ import torch.optim as optim
 from torch.utils.data import DataLoader
 import numpy as np
 
-#from PIL import Image
-#import transforms
 from torchvision import transforms
-#from tensorboardX import SummaryWriter
 from conf import settings
 from utils import *
 
