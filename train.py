@@ -70,6 +70,7 @@ def train(epoch):
         attr = attr[1:]
         writer.add_histogram("{}/{}".format(layer, attr), param, epoch)
 
+@torch.no_grad()
 def eval_training(epoch):
     net.eval()
 
