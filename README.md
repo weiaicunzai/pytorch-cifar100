@@ -7,10 +7,9 @@ practice on cifar100 using pytorch
 This is my experiment eviroument, pytorch0.4 should also be fine
 - python3.5
 - pytorch1.0
-- tensorflow1.5(optional)
 - cuda8.0
 - cudnnv5
-- tensorboardX1.6(optional)
+- tensorboard 2.2.2(optional)
 
 
 ## Usage
@@ -20,22 +19,22 @@ This is my experiment eviroument, pytorch0.4 should also be fine
 $ cd pytorch-cifar100
 ```
 
-### 2. dataset 
+### 2. dataset
 I will use cifar100 dataset from torchvision since it's more convenient, but I also
 kept the sample code for writing your own dataset module in dataset folder, as an
 example for people don't know how to write it.
 
 ### 3. run tensorbard(optional)
-Install tensorboardX (a tensorboard wrapper for pytorch)
+Install tensorboard
 ```bash
-$ pip install tensorboardX
+$ pip install tensorboard
 $ mkdir runs
 Run tensorboard
 $ tensorboard --logdir='runs' --port=6006 --host='localhost'
 ```
 
 ### 4. train the model
-Train all the model on a Tesla P40(22912MB)   
+Train all the model on a Tesla P40(22912MB)
 
 You need to specify the net you want to train using arg -net
 
