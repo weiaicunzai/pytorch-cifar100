@@ -90,11 +90,11 @@ def eval_training(epoch):
         _, preds = outputs.max(1)
         correct += preds.eq(labels).sum()
 
+    print(torch.cuda.memory_summary())
     print('Test set: Average loss: {:.4f}, Accuracy: {:.4f}'.format(
         test_loss / len(cifar100_test_loader.dataset),
         correct.float() / len(cifar100_test_loader.dataset)
     ))
-    print()
 
     #add informations to tensorboard
     writer.add_scalar('Test/Average loss', test_loss / len(cifar100_test_loader.dataset), epoch)
