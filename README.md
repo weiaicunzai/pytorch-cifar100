@@ -4,11 +4,9 @@ practice on cifar100 using pytorch
 
 ## Requirements
 
-This is my experiment eviroument, pytorch0.4 should also be fine
-- python3.5
-- pytorch1.0
-- cuda8.0
-- cudnnv5
+This is my experiment eviroument
+- python3.6
+- pytorch1.6.0+cu101
 - tensorboard 2.2.2(optional)
 
 
@@ -34,8 +32,6 @@ $ tensorboard --logdir='runs' --port=6006 --host='localhost'
 ```
 
 ### 4. train the model
-Train all the model on a Tesla P40(22912MB)
-
 You need to specify the net you want to train using arg -net
 
 ```bash
