@@ -26,7 +26,7 @@ MILESTONES = [60, 120, 160]
 #INIT_LR = 0.1
 
 #time of we run the script
-TIME_NOW = datetime.now().isoformat()
+TIME_NOW = datetime.now().strftime('%A_%d_%B_%Y_%Hh_%Mm_%Ss')
 
 #tensorboard log dir
 LOG_DIR = 'runs'
