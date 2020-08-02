@@ -12,16 +12,16 @@ import torch.nn as nn
 
 class SeperableConv2d(nn.Module):
 
-    #***Figure 4. An “extreme” version of our Inception module, 
-    #with one spatial convolution per output channel of the 1x1 
+    #***Figure 4. An “extreme” version of our Inception module,
+    #with one spatial convolution per output channel of the 1x1
     #convolution."""
     def __init__(self, input_channels, output_channels, kernel_size, **kwargs):
 
         super().__init__()
         self.depthwise = nn.Conv2d(
-            input_channels, 
-            input_channels, 
-            kernel_size, 
+            input_channels,
+            input_channels,
+            kernel_size,
             groups=input_channels,
             bias=False,
             **kwargs
@@ -97,7 +97,7 @@ class EntryFlow(nn.Module):
             nn.Conv2d(256, 728, 1),
             nn.BatchNorm2d(728)
         )
-    
+
     def forward(self, x):
         x = self.conv1(x)
         x = self.conv2(x)
@@ -134,7 +134,7 @@ class MiddleFLowBlock(nn.Module):
             SeperableConv2d(728, 728, 3, padding=1),
             nn.BatchNorm2d(728)
         )
-    
+
     def forward(self, x):
         residual = self.conv1(x)
         residual = self.conv2(residual)
@@ -150,7 +150,7 @@ class MiddleFlow(nn.Module):
 
         #"""then through the middle flow which is repeated eight times"""
         self.middel_block = self._make_flow(block, 8)
-    
+
     def forward(self, x):
         x = self.middel_block(x)
         return x
@@ -159,7 +159,7 @@ class MiddleFlow(nn.Module):
         flows = []
         for i in range(times):
             flows.append(block())
-        
+
         return nn.Sequential(*flows)
 
 
@@ -194,12 +194,12 @@ class ExitFLow(nn.Module):
         self.avgpool = nn.AdaptiveAvgPool2d((1, 1))
 
     def forward(self, x):
-        shortcut = self.shortcut(x) 
+        shortcut = self.shortcut(x)
         residual = self.residual(x)
         output = shortcut + residual
-        output = self.conv(output) 
+        output = self.conv(output)
         output = self.avgpool(output)
-       
+
         return output
 
 class Xception(nn.Module):
@@ -211,7 +211,7 @@ class Xception(nn.Module):
         self.exit_flow = ExitFLow()
 
         self.fc = nn.Linear(2048, num_class)
-    
+
     def forward(self, x):
         x = self.entry_flow(x)
         x = self.middel_flow(x)

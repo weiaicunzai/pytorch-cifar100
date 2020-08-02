@@ -4,13 +4,10 @@ practice on cifar100 using pytorch
 
 ## Requirements
 
-This is my experiment eviroument, pytorch0.4 should also be fine
-- python3.5
-- pytorch1.0
-- tensorflow1.5(optional)
-- cuda8.0
-- cudnnv5
-- tensorboardX1.6(optional)
+This is my experiment eviroument
+- python3.6
+- pytorch1.6.0+cu101
+- tensorboard 2.2.2(optional)
 
 
 ## Usage
@@ -20,23 +17,21 @@ This is my experiment eviroument, pytorch0.4 should also be fine
 $ cd pytorch-cifar100
 ```
 
-### 2. dataset 
+### 2. dataset
 I will use cifar100 dataset from torchvision since it's more convenient, but I also
 kept the sample code for writing your own dataset module in dataset folder, as an
 example for people don't know how to write it.
 
 ### 3. run tensorbard(optional)
-Install tensorboardX (a tensorboard wrapper for pytorch)
+Install tensorboard
 ```bash
-$ pip install tensorboardX
+$ pip install tensorboard
 $ mkdir runs
 Run tensorboard
 $ tensorboard --logdir='runs' --port=6006 --host='localhost'
 ```
 
 ### 4. train the model
-Train all the model on a Tesla P40(22912MB)   
-
 You need to specify the net you want to train using arg -net
 
 ```bash
@@ -122,8 +117,8 @@ please refer to my another [repo](https://github.com/weiaicunzai/Bag_of_Tricks_f
 various common training tricks and their pytorch implementations.
 
 
-I follow the hyperparameter settings in paper [Improved Regularization of Convolutional Neural Networks with Cutout](https://arxiv.org/abs/1701.06548v1), which is init lr = 0.1 divide by 5 at 60th, 120th, 160th epochs, train for 200
-epochs with batchsize 128 and weight decay 5e-4, Nesterov momentum of 0.9. You could also use the hyperparameters from paper [Regularizing Neural Networks by Penalizing Confident Output Distributions](https://arxiv.org/abs/1701.06548) and [Random Erasing Data Augmentation](https://arxiv.org/abs/1701.06548), which is initial lr = 0.1, lr divied by 10 at 150th and 225th epochs, and training for 300 epochs with batchsize 128, this is more commonly used. You could decrese the batchsize to 64 or whatever suits you, if you dont have enough gpu memory.
+I follow the hyperparameter settings in paper [Improved Regularization of Convolutional Neural Networks with Cutout](https://arxiv.org/abs/1708.04552v2), which is init lr = 0.1 divide by 5 at 60th, 120th, 160th epochs, train for 200
+epochs with batchsize 128 and weight decay 5e-4, Nesterov momentum of 0.9. You could also use the hyperparameters from paper [Regularizing Neural Networks by Penalizing Confident Output Distributions](https://arxiv.org/abs/1701.06548v1) and [Random Erasing Data Augmentation](https://arxiv.org/abs/1708.04896v2), which is initial lr = 0.1, lr divied by 10 at 150th and 225th epochs, and training for 300 epochs with batchsize 128, this is more commonly used. You could decrese the batchsize to 64 or whatever suits you, if you dont have enough gpu memory.
 
 You can choose whether to use TensorBoard to visualize your training procedure
 

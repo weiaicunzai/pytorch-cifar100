@@ -34,7 +34,7 @@ class Fire(nn.Module):
             nn.BatchNorm2d(int(out_channel / 2)),
             nn.ReLU(inplace=True)
         )
-    
+
     def forward(self, x):
 
         x = self.squeeze(x)
@@ -70,7 +70,7 @@ class SqueezeNet(nn.Module):
         self.conv10 = nn.Conv2d(512, class_num, 1)
         self.avg = nn.AdaptiveAvgPool2d(1)
         self.maxpool = nn.MaxPool2d(2, 2)
-            
+
     def forward(self, x):
         x = self.stem(x)
 

@@ -9,9 +9,7 @@ author baiyu
 """
 
 import argparse
-#from dataset import *
 
-#from skimage import io
 from matplotlib import pyplot as plt
 
 import torch
@@ -52,21 +50,22 @@ if __name__ == '__main__':
     correct_5 = 0.0
     total = 0
 
-    for n_iter, (image, label) in enumerate(cifar100_test_loader):
-        print("iteration: {}\ttotal {} iterations".format(n_iter + 1, len(cifar100_test_loader)))
-        image = Variable(image).cuda()
-        label = Variable(label).cuda()
-        output = net(image)
-        _, pred = output.topk(5, 1, largest=True, sorted=True)
+    with torch.no_grad():
+        for n_iter, (image, label) in enumerate(cifar100_test_loader):
+            print("iteration: {}\ttotal {} iterations".format(n_iter + 1, len(cifar100_test_loader)))
+            image = Variable(image).cuda()
+            label = Variable(label).cuda()
+            output = net(image)
+            _, pred = output.topk(5, 1, largest=True, sorted=True)
 
-        label = label.view(label.size(0), -1).expand_as(pred)
-        correct = pred.eq(label).float()
+            label = label.view(label.size(0), -1).expand_as(pred)
+            correct = pred.eq(label).float()
 
-        #compute top 5
-        correct_5 += correct[:, :5].sum()
+            #compute top 5
+            correct_5 += correct[:, :5].sum()
 
-        #compute top1 
-        correct_1 += correct[:, :1].sum()
+            #compute top1
+            correct_1 += correct[:, :1].sum()
 
 
     print()

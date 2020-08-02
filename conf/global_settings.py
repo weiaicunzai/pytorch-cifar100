@@ -19,14 +19,14 @@ CIFAR100_TRAIN_STD = (0.2673342858792401, 0.2564384629170883, 0.2761504713256840
 CHECKPOINT_PATH = 'checkpoint'
 
 #total training epoches
-EPOCH = 200 
+EPOCH = 200
 MILESTONES = [60, 120, 160]
 
 #initial learning rate
 #INIT_LR = 0.1
 
 #time of we run the script
-TIME_NOW = datetime.now().isoformat()
+TIME_NOW = datetime.now().strftime('%A_%d_%B_%Y_%Hh_%Mm_%Ss')
 
 #tensorboard log dir
 LOG_DIR = 'runs'

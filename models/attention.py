@@ -12,7 +12,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-#"""The Attention Module is built by pre-activation Residual Unit [11] with the 
+#"""The Attention Module is built by pre-activation Residual Unit [11] with the
 #number of channels in each stage is the same as ResNet [10]."""
 
 class PreActResidualUnit(nn.Module):
@@ -47,7 +47,7 @@ class PreActResidualUnit(nn.Module):
         self.shortcut = nn.Sequential()
         if stride != 2 or (in_channels != out_channels):
             self.shortcut = nn.Conv2d(in_channels, out_channels, 1, stride=stride)
-    
+
     def forward(self, x):
 
         res = self.residual_function(x)
@@ -56,12 +56,12 @@ class PreActResidualUnit(nn.Module):
         return res + shortcut
 
 class AttentionModule1(nn.Module):
-    
+
     def __init__(self, in_channels, out_channels, p=1, t=2, r=1):
         super().__init__()
-        #"""The hyperparameter p denotes the number of preprocessing Residual 
-        #Units before splitting into trunk branch and mask branch. t denotes 
-        #the number of Residual Units in trunk branch. r denotes the number of 
+        #"""The hyperparameter p denotes the number of preprocessing Residual
+        #Units before splitting into trunk branch and mask branch. t denotes
+        #the number of Residual Units in trunk branch. r denotes the number of
         #Residual Units between adjacent pooling layer in the mask branch."""
         assert in_channels == out_channels
 
@@ -88,10 +88,10 @@ class AttentionModule1(nn.Module):
             nn.ReLU(inplace=True),
             nn.Conv2d(out_channels, out_channels, kernel_size=1),
             nn.Sigmoid()
-        ) 
-        
+        )
+
         self.last = self._make_residual(in_channels, out_channels, p)
-    
+
     def forward(self, x):
         ###We make the size of the smallest output map in each mask branch 7*7 to be consistent
         #with the smallest trunk output map size.
@@ -154,12 +154,12 @@ class AttentionModule1(nn.Module):
         return nn.Sequential(*layers)
 
 class AttentionModule2(nn.Module):
-    
+
     def __init__(self, in_channels, out_channels, p=1, t=2, r=1):
         super().__init__()
-        #"""The hyperparameter p denotes the number of preprocessing Residual 
-        #Units before splitting into trunk branch and mask branch. t denotes 
-        #the number of Residual Units in trunk branch. r denotes the number of 
+        #"""The hyperparameter p denotes the number of preprocessing Residual
+        #Units before splitting into trunk branch and mask branch. t denotes
+        #the number of Residual Units in trunk branch. r denotes the number of
         #Residual Units between adjacent pooling layer in the mask branch."""
         assert in_channels == out_channels
 
@@ -183,10 +183,10 @@ class AttentionModule2(nn.Module):
             nn.ReLU(inplace=True),
             nn.Conv2d(out_channels, out_channels, kernel_size=1),
             nn.Sigmoid()
-        ) 
-        
+        )
+
         self.last = self._make_residual(in_channels, out_channels, p)
-    
+
     def forward(self, x):
         x = self.pre(x)
         input_size = (x.size(2), x.size(3))
@@ -201,7 +201,7 @@ class AttentionModule2(nn.Module):
         shape1 = (x_s.size(2), x_s.size(3))
         shortcut = self.shortcut(x_s)
 
-        #seccond downsample out 7 
+        #seccond downsample out 7
         x_s = F.max_pool2d(x, kernel_size=3, stride=2, padding=1)
         x_s = self.soft_resdown2(x_s)
 
@@ -233,7 +233,7 @@ class AttentionModule2(nn.Module):
         return nn.Sequential(*layers)
 
 class AttentionModule3(nn.Module):
-    
+
     def __init__(self, in_channels, out_channels, p=1, t=2, r=1):
         super().__init__()
 
@@ -257,10 +257,10 @@ class AttentionModule3(nn.Module):
             nn.ReLU(inplace=True),
             nn.Conv2d(out_channels, out_channels, kernel_size=1),
             nn.Sigmoid()
-        ) 
-        
+        )
+
         self.last = self._make_residual(in_channels, out_channels, p)
-    
+
     def forward(self, x):
         x = self.pre(x)
         input_size = (x.size(2), x.size(3))
@@ -300,7 +300,7 @@ class Attention(nn.Module):
     """
 
     def __init__(self, block_num, class_num=100):
-        
+
         super().__init__()
         self.pre_conv = nn.Sequential(
             nn.Conv2d(3, 64, kernel_size=3, stride=1, padding=1),
@@ -318,7 +318,7 @@ class Attention(nn.Module):
         )
         self.avg = nn.AdaptiveAvgPool2d(1)
         self.linear = nn.Linear(2048, 100)
-    
+
     def forward(self, x):
         x = self.pre_conv(x)
         x = self.stage1(x)
@@ -340,7 +340,7 @@ class Attention(nn.Module):
             layers.append(block(out_channels, out_channels))
 
         return nn.Sequential(*layers)
-    
+
 def attention56():
     return Attention([1, 1, 1])
 

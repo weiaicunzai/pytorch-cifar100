@@ -13,7 +13,6 @@ import torchvision
 import torchvision.transforms as transforms
 from torch.utils.data import DataLoader
 
-#from dataset import CIFAR100Train, CIFAR100Test
 
 def get_network(args):
     """ return given network
@@ -125,13 +124,13 @@ def get_network(args):
         from models.senet import seresnet18
         net = seresnet18()
     elif args.net == 'seresnet34':
-        from models.senet import seresnet34 
+        from models.senet import seresnet34
         net = seresnet34()
     elif args.net == 'seresnet50':
-        from models.senet import seresnet50 
+        from models.senet import seresnet50
         net = seresnet50()
     elif args.net == 'seresnet101':
-        from models.senet import seresnet101 
+        from models.senet import seresnet101
         net = seresnet101()
     elif args.net == 'seresnet152':
         from models.senet import seresnet152
@@ -140,7 +139,7 @@ def get_network(args):
     else:
         print('the network name you have entered is not supported yet')
         sys.exit()
-    
+
     if args.gpu: #use_gpu
         net = net.cuda()
 
@@ -155,7 +154,7 @@ def get_training_dataloader(mean, std, batch_size=16, num_workers=2, shuffle=Tru
         path: path to cifar100 training python dataset
         batch_size: dataloader batchsize
         num_workers: dataloader num_works
-        shuffle: whether to shuffle 
+        shuffle: whether to shuffle
     Returns: train_data_loader:torch dataloader object
     """
 
@@ -182,7 +181,7 @@ def get_test_dataloader(mean, std, batch_size=16, num_workers=2, shuffle=True):
         path: path to cifar100 test python dataset
         batch_size: dataloader batchsize
         num_workers: dataloader num_works
-        shuffle: whether to shuffle 
+        shuffle: whether to shuffle
     Returns: cifar100_test_loader:torch dataloader object
     """
 
@@ -202,7 +201,7 @@ def compute_mean_std(cifar100_dataset):
     Args:
         cifar100_training_dataset or cifar100_test_dataset
         witch derived from class torch.utils.data
-    
+
     Returns:
         a tuple contains mean, std value of entire dataset
     """
@@ -222,7 +221,7 @@ class WarmUpLR(_LRScheduler):
         total_iters: totoal_iters of warmup phase
     """
     def __init__(self, optimizer, total_iters, last_epoch=-1):
-        
+
         self.total_iters = total_iters
         super().__init__(optimizer, last_epoch)
 

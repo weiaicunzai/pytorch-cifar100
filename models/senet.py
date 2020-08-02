@@ -23,7 +23,7 @@ class BasicResidualSEBlock(nn.Module):
             nn.Conv2d(in_channels, out_channels, 3, stride=stride, padding=1),
             nn.BatchNorm2d(out_channels),
             nn.ReLU(inplace=True),
-            
+
             nn.Conv2d(out_channels, out_channels * self.expansion, 3, padding=1),
             nn.BatchNorm2d(out_channels * self.expansion),
             nn.ReLU(inplace=True)
@@ -35,7 +35,7 @@ class BasicResidualSEBlock(nn.Module):
                 nn.Conv2d(in_channels, out_channels * self.expansion, 1, stride=stride),
                 nn.BatchNorm2d(out_channels * self.expansion)
             )
-        
+
         self.squeeze = nn.AdaptiveAvgPool2d(1)
         self.excitation = nn.Sequential(
             nn.Linear(out_channels * self.expansion, out_channels * self.expansion // r),
@@ -123,10 +123,10 @@ class SEResNet(nn.Module):
         self.stage1 = self._make_stage(block, block_num[0], 64, 1)
         self.stage2 = self._make_stage(block, block_num[1], 128, 2)
         self.stage3 = self._make_stage(block, block_num[2], 256, 2)
-        self.stage4 = self._make_stage(block, block_num[3], 516, 2)
+        self.stage4 = self._make_stage(block, block_num[3], 512, 2)
 
         self.linear = nn.Linear(self.in_channels, class_num)
-    
+
     def forward(self, x):
         x = self.pre(x)
 
@@ -142,7 +142,7 @@ class SEResNet(nn.Module):
 
         return x
 
-    
+
     def _make_stage(self, block, num, out_channels, stride):
 
         layers = []
@@ -152,9 +152,9 @@ class SEResNet(nn.Module):
         while num - 1:
             layers.append(block(self.in_channels, out_channels, 1))
             num -= 1
-        
+
         return nn.Sequential(*layers)
-        
+
 def seresnet18():
     return SEResNet(BasicResidualSEBlock, [2, 2, 2, 2])
 

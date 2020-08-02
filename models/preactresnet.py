@@ -1,6 +1,6 @@
 """preactresnet in pytorch
 
-[1] Kaiming He, Xiangyu Zhang, Shaoqing Ren, Jian Sun 
+[1] Kaiming He, Xiangyu Zhang, Shaoqing Ren, Jian Sun
 
     Identity Mappings in Deep Residual Networks
     https://arxiv.org/abs/1603.05027
@@ -27,7 +27,7 @@ class PreActBasic(nn.Module):
         self.shortcut = nn.Sequential()
         if stride != 1 or in_channels != out_channels * PreActBasic.expansion:
             self.shortcut = nn.Conv2d(in_channels, out_channels * PreActBasic.expansion, 1, stride=stride)
-        
+
     def forward(self, x):
 
         res = self.residual(x)
@@ -60,7 +60,7 @@ class PreActBottleNeck(nn.Module):
 
         if stride != 1 or in_channels != out_channels * PreActBottleNeck.expansion:
             self.shortcut = nn.Conv2d(in_channels, out_channels * PreActBottleNeck.expansion, 1, stride=stride)
-    
+
     def forward(self, x):
 
         res = self.residual(x)
@@ -86,7 +86,7 @@ class PreActResNet(nn.Module):
         self.stage4 = self._make_layers(block, num_block[3], 512, 2)
 
         self.linear = nn.Linear(self.input_channels, class_num)
-    
+
     def _make_layers(self, block, block_num, out_channels, stride):
         layers = []
 
@@ -97,7 +97,7 @@ class PreActResNet(nn.Module):
             layers.append(block(self.input_channels, out_channels, 1))
             self.input_channels = out_channels * block.expansion
             block_num -= 1
-        
+
         return nn.Sequential(*layers)
 
     def forward(self, x):
@@ -116,7 +116,7 @@ class PreActResNet(nn.Module):
 
 def preactresnet18():
     return PreActResNet(PreActBasic, [2, 2, 2, 2])
-    
+
 def preactresnet34():
     return PreActResNet(PreActBasic, [3, 4, 6, 3])
 

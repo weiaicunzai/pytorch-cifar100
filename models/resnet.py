@@ -16,7 +16,7 @@ class BasicBlock(nn.Module):
 
     """
 
-    #BasicBlock and BottleNeck block 
+    #BasicBlock and BottleNeck block
     #have different output size
     #we use class attribute expansion
     #to distinct
@@ -44,7 +44,7 @@ class BasicBlock(nn.Module):
                 nn.Conv2d(in_channels, out_channels * BasicBlock.expansion, kernel_size=1, stride=stride, bias=False),
                 nn.BatchNorm2d(out_channels * BasicBlock.expansion)
             )
-        
+
     def forward(self, x):
         return nn.ReLU(inplace=True)(self.residual_function(x) + self.shortcut(x))
 
@@ -73,10 +73,10 @@ class BottleNeck(nn.Module):
                 nn.Conv2d(in_channels, out_channels * BottleNeck.expansion, stride=stride, kernel_size=1, bias=False),
                 nn.BatchNorm2d(out_channels * BottleNeck.expansion)
             )
-        
+
     def forward(self, x):
         return nn.ReLU(inplace=True)(self.residual_function(x) + self.shortcut(x))
-    
+
 class ResNet(nn.Module):
 
     def __init__(self, block, num_block, num_classes=100):
@@ -98,28 +98,28 @@ class ResNet(nn.Module):
         self.fc = nn.Linear(512 * block.expansion, num_classes)
 
     def _make_layer(self, block, out_channels, num_blocks, stride):
-        """make resnet layers(by layer i didnt mean this 'layer' was the 
-        same as a neuron netowork layer, ex. conv layer), one layer may 
-        contain more than one residual block 
+        """make resnet layers(by layer i didnt mean this 'layer' was the
+        same as a neuron netowork layer, ex. conv layer), one layer may
+        contain more than one residual block
 
         Args:
             block: block type, basic block or bottle neck block
             out_channels: output depth channel number of this layer
             num_blocks: how many blocks per layer
             stride: the stride of the first block of this layer
-        
+
         Return:
             return a resnet layer
         """
 
-        # we have num_block blocks per layer, the first block 
+        # we have num_block blocks per layer, the first block
         # could be 1 or 2, other blocks would always be 1
         strides = [stride] + [1] * (num_blocks - 1)
         layers = []
         for stride in strides:
             layers.append(block(self.in_channels, out_channels, stride))
             self.in_channels = out_channels * block.expansion
-        
+
         return nn.Sequential(*layers)
 
     def forward(self, x):
@@ -132,7 +132,7 @@ class ResNet(nn.Module):
         output = output.view(output.size(0), -1)
         output = self.fc(output)
 
-        return output 
+        return output
 
 def resnet18():
     """ return a ResNet 18 object
