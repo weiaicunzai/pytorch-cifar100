@@ -123,7 +123,7 @@ class SEResNet(nn.Module):
         self.stage1 = self._make_stage(block, block_num[0], 64, 1)
         self.stage2 = self._make_stage(block, block_num[1], 128, 2)
         self.stage3 = self._make_stage(block, block_num[2], 256, 2)
-        self.stage4 = self._make_stage(block, block_num[3], 516, 2)
+        self.stage4 = self._make_stage(block, block_num[3], 512, 2)
 
         self.linear = nn.Linear(self.in_channels, class_num)
 
