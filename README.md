@@ -35,7 +35,8 @@ $ tensorboard --logdir='runs' --port=6006 --host='localhost'
 You need to specify the net you want to train using arg -net
 
 ```bash
-$ python train.py -net vgg16
+# use gpu to train vgg16
+$ python train.py -net vgg16 -gpu
 ```
 
 sometimes, you might want to use warmup training by set ```-warm``` to 1 or 2, to prevent network
