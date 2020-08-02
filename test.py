@@ -28,7 +28,6 @@ if __name__ == '__main__':
     parser.add_argument('-gpu', type=bool, default=True, help='use gpu or not')
     parser.add_argument('-w', type=int, default=2, help='number of workers for dataloader')
     parser.add_argument('-b', type=int, default=16, help='batch size for dataloader')
-    parser.add_argument('-s', type=bool, default=True, help='whether shuffle the dataset')
     args = parser.parse_args()
 
     net = get_network(args)
@@ -39,7 +38,6 @@ if __name__ == '__main__':
         #settings.CIFAR100_PATH,
         num_workers=args.w,
         batch_size=args.b,
-        shuffle=args.s
     )
 
     net.load_state_dict(torch.load(args.weights), args.gpu)
