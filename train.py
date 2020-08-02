@@ -10,6 +10,7 @@ import os
 import sys
 import argparse
 from datetime import datetime
+from time import time
 
 import numpy as np
 import torch
@@ -26,6 +27,7 @@ from utils import get_network, get_training_dataloader, get_test_dataloader, War
 
 def train(epoch):
 
+    start = time.time()
     net.train()
     for batch_index, (images, labels) in enumerate(cifar100_training_loader):
         if epoch <= args.warm:
@@ -65,8 +67,14 @@ def train(epoch):
         attr = attr[1:]
         writer.add_histogram("{}/{}".format(layer, attr), param, epoch)
 
+    finish = time.time()
+
+    print('epoch {} training time consumed: {:.2f}s'.format(epoch, finish - start))
+
 @torch.no_grad()
 def eval_training(epoch):
+
+    start = time.time()
     net.eval()
 
     test_loss = 0.0 # cost function error
@@ -83,13 +91,15 @@ def eval_training(epoch):
         _, preds = outputs.max(1)
         correct += preds.eq(labels).sum()
 
+    finish = time.time()
     if args.gpu:
         print('GPU INFO.....')
         print(torch.cuda.memory_summary(), end='')
     print('Evaluating Network.....')
-    print('Test set: Average loss: {:.4f}, Accuracy: {:.4f}'.format(
+    print('Test set: Average loss: {:.4f}, Accuracy: {:.4f}, Time consumed:{:.2f}'.format(
         test_loss / len(cifar100_test_loader.dataset),
-        correct.float() / len(cifar100_test_loader.dataset)
+        correct.float() / len(cifar100_test_loader.dataset),
+        finish - start
     ))
     print()
 
