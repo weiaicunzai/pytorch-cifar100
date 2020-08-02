@@ -15,7 +15,6 @@ from matplotlib import pyplot as plt
 import torch
 import torchvision.transforms as transforms
 from torch.utils.data import DataLoader
-from torch.autograd import Variable
 
 from conf import settings
 from utils import get_network, get_test_dataloader
@@ -50,8 +49,6 @@ if __name__ == '__main__':
     with torch.no_grad():
         for n_iter, (image, label) in enumerate(cifar100_test_loader):
             print("iteration: {}\ttotal {} iterations".format(n_iter + 1, len(cifar100_test_loader)))
-            image = Variable(image).cuda()
-            label = Variable(label).cuda()
             output = net(image)
             _, pred = output.topk(5, 1, largest=True, sorted=True)
 

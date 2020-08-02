@@ -19,8 +19,6 @@ import torchvision
 import torchvision.transforms as transforms
 
 from torch.utils.data import DataLoader
-from torch.autograd import Variable
-
 from torch.utils.tensorboard import SummaryWriter
 
 from conf import settings
@@ -32,9 +30,6 @@ def train(epoch):
     for batch_index, (images, labels) in enumerate(cifar100_training_loader):
         if epoch <= args.warm:
             warmup_scheduler.step()
-
-        images = Variable(images)
-        labels = Variable(labels)
 
         labels = labels.cuda()
         images = images.cuda()
@@ -78,8 +73,6 @@ def eval_training(epoch):
     correct = 0.0
 
     for (images, labels) in cifar100_test_loader:
-        images = Variable(images)
-        labels = Variable(labels)
 
         images = images.cuda()
         labels = labels.cuda()
@@ -147,8 +140,8 @@ if __name__ == '__main__':
         os.mkdir(settings.LOG_DIR)
     writer = SummaryWriter(log_dir=os.path.join(
             settings.LOG_DIR, args.net, settings.TIME_NOW))
-    input_tensor = torch.Tensor(12, 3, 32, 32).cuda()
-    writer.add_graph(net, Variable(input_tensor, requires_grad=True))
+    input_tensor = torch.Tensor(1, 3, 32, 32).cuda()
+    writer.add_graph(net, input_tensor)
 
     #create checkpoint folder to save model
     if not os.path.exists(checkpoint_path):

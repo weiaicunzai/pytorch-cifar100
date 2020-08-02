@@ -173,8 +173,3 @@ class ResnetInResneet(nn.Module):
 
 def resnet_in_resnet():
     return ResnetInResneet()
-
-#from torch.autograd import Variable
-#
-#net = resnet_in_resnet()
-#print(net(Variable(torch.randn(3, 3, 32, 32))).shape)
