@@ -14,7 +14,7 @@ import torchvision.transforms as transforms
 from torch.utils.data import DataLoader
 
 
-def get_network(args, use_gpu=True):
+def get_network(args):
     """ return given network
     """
 
@@ -140,7 +140,7 @@ def get_network(args, use_gpu=True):
         print('the network name you have entered is not supported yet')
         sys.exit()
 
-    if use_gpu:
+    if args.gpu: #use_gpu
         net = net.cuda()
 
     return net

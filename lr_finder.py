@@ -48,6 +48,7 @@ if __name__ == '__main__':
     parser.add_argument('-base_lr', type=float, default=1e-7, help='min learning rate')
     parser.add_argument('-max_lr', type=float, default=10, help='max learning rate')
     parser.add_argument('-num_iter', type=int, default=100, help='num of iteration')
+    parser.add_argument('-gpu', type=bool, default=True, help='use gpu or not')
     parser.add_argument('-gpus', nargs='+', type=int, default=0, help='gpu device')
     args = parser.parse_args()
 

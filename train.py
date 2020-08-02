@@ -118,8 +118,8 @@ if __name__ == '__main__':
     parser.add_argument('-lr', type=float, default=0.1, help='initial learning rate')
     args = parser.parse_args()
 
-    net = get_network(args, use_gpu=args.gpu)
-
+    net = get_network(args)
+        
     #data preprocessing:
     cifar100_training_loader = get_training_dataloader(
         settings.CIFAR100_TRAIN_MEAN,
