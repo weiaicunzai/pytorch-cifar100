@@ -33,8 +33,9 @@ def train(epoch):
         if epoch <= args.warm:
             warmup_scheduler.step()
 
-        labels = labels.cuda()
-        images = images.cuda()
+        if args.gpu:
+            labels = labels.cuda()
+            images = images.cuda()
 
         optimizer.zero_grad()
         outputs = net(images)
@@ -82,8 +83,9 @@ def eval_training(epoch):
 
     for (images, labels) in cifar100_test_loader:
 
-        images = images.cuda()
-        labels = labels.cuda()
+        if args.gpu:
+            images = images.cuda()
+            labels = labels.cuda()
 
         outputs = net(images)
         loss = loss_function(outputs, labels)

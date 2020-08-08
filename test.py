@@ -38,9 +38,12 @@ if __name__ == '__main__':
         batch_size=args.b,
     )
 
-    net.load_state_dict(torch.load(args.weights), args.gpu)
+    net.load_state_dict(torch.load(args.weights))
     print(net)
     net.eval()
+
+    if args.gpu:
+        net = net.cuda()
 
     correct_1 = 0.0
     correct_5 = 0.0
@@ -49,6 +52,11 @@ if __name__ == '__main__':
     with torch.no_grad():
         for n_iter, (image, label) in enumerate(cifar100_test_loader):
             print("iteration: {}\ttotal {} iterations".format(n_iter + 1, len(cifar100_test_loader)))
+
+            if args.gpu:
+                image = image.cuda()
+                label = label.cuda()
+
             output = net(image)
             _, pred = output.topk(5, 1, largest=True, sorted=True)
 
