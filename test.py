@@ -42,9 +42,6 @@ if __name__ == '__main__':
     print(net)
     net.eval()
 
-    if args.gpu:
-        net = net.cuda()
-
     correct_1 = 0.0
     correct_5 = 0.0
     total = 0
