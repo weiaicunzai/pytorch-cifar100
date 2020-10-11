@@ -55,6 +55,7 @@ class WideResNet(nn.Module):
         self.conv3 = self._make_layer(block, 32 * k, l, 2)
         self.conv4 = self._make_layer(block, 64 * k, l, 2)
         self.bn = nn.BatchNorm2d(64 * k)
+        self.relu = nn.ReLU(inplace=True)
         self.avg_pool = nn.AdaptiveAvgPool2d((1, 1))
         self.linear = nn.Linear(64 * k, num_classes)
 
@@ -64,6 +65,7 @@ class WideResNet(nn.Module):
         x = self.conv3(x)
         x = self.conv4(x)
         x = self.bn(x)
+        x = self.relu(x)
         x = self.avg_pool(x)
         x = x.view(x.size(0), -1)
         x = self.linear(x)
