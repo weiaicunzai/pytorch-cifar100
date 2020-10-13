@@ -18,6 +18,9 @@ class LinearBottleNeck(nn.Module):
     def __init__(self, in_channels, out_channels, stride, t=6, class_num=100):
         super().__init__()
 
+        #We will refer to the ratio between the size of the input
+        #bottleneck and the inner size as the expansion ratio.
+
         self.residual = nn.Sequential(
             nn.Conv2d(in_channels, in_channels * t, 1),
             nn.BatchNorm2d(in_channels * t),
