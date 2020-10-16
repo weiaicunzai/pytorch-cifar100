@@ -137,6 +137,9 @@ def get_network(args):
     elif args.net == 'seresnet152':
         from models.senet import seresnet152
         net = seresnet152()
+    elif args.net == 'wideresnet':
+        from models.wideresidual import wideresnet
+        net = wideresnet()
 
     else:
         print('the network name you have entered is not supported yet')
