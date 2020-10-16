@@ -11,8 +11,18 @@ class Swish(nn.Module):
         return x * torch.sigmoid(x)
 
 
+class
+
 class MBConvBlock(nn.Module):
-    def __init__(self, p, in_channels, out_channels, stride):
+    def __init__(self, in_channels, out_channels, kernel_size, stride, t, p, r, sp, l):
+        """
+        Args:
+            in_channels: input_channels
+            p = dropout ratio
+            sp = stochastic dropout ratio
+            l = number of layer
+
+        """
         self.p = p
         self.residual = nn.Sequential(
 
