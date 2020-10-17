@@ -22,14 +22,18 @@ class LinearBottleNeck(nn.Module):
         #bottleneck and the inner size as the expansion ratio.
 
         self.residual = nn.Sequential(
+
+            # expansion phase
             nn.Conv2d(in_channels, in_channels * t, 1),
             nn.BatchNorm2d(in_channels * t),
             nn.ReLU6(inplace=True),
 
+            # depth wise
             nn.Conv2d(in_channels * t, in_channels * t, 3, stride=stride, padding=1, groups=in_channels * t),
             nn.BatchNorm2d(in_channels * t),
             nn.ReLU6(inplace=True),
 
+            # point wise
             nn.Conv2d(in_channels * t, out_channels, 1),
             nn.BatchNorm2d(out_channels)
         )
