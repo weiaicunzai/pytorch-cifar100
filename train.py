@@ -74,7 +74,7 @@ def train(epoch):
     print('epoch {} training time consumed: {:.2f}s'.format(epoch, finish - start))
 
 @torch.no_grad()
-def eval_training(epoch=epoch, tb=True):
+def eval_training(epoch=0, tb=True):
 
     start = time.time()
     net.eval()
