@@ -25,8 +25,9 @@ MILESTONES = [60, 120, 160]
 #initial learning rate
 #INIT_LR = 0.1
 
+DATE_FORMAT = '%A_%d_%B_%Y_%Hh_%Mm_%Ss'
 #time of we run the script
-TIME_NOW = datetime.now().strftime('%A_%d_%B_%Y_%Hh_%Mm_%Ss')
+TIME_NOW = datetime.now().strftime(DATE_FORMAT)
 
 #tensorboard log dir
 LOG_DIR = 'runs'

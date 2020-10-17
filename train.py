@@ -23,7 +23,8 @@ from torch.utils.data import DataLoader
 from torch.utils.tensorboard import SummaryWriter
 
 from conf import settings
-from utils import get_network, get_training_dataloader, get_test_dataloader, WarmUpLR
+from utils import get_network, get_training_dataloader, get_test_dataloader, WarmUpLR, \
+    most_recent_folder, last_epoch, best_acc_weights
 
 def train(epoch):
 
@@ -73,7 +74,7 @@ def train(epoch):
     print('epoch {} training time consumed: {:.2f}s'.format(epoch, finish - start))
 
 @torch.no_grad()
-def eval_training(epoch):
+def eval_training(epoch=epoch, tb=True):
 
     start = time.time()
     net.eval()
@@ -106,8 +107,9 @@ def eval_training(epoch):
     print()
 
     #add informations to tensorboard
-    writer.add_scalar('Test/Average loss', test_loss / len(cifar100_test_loader.dataset), epoch)
-    writer.add_scalar('Test/Accuracy', correct.float() / len(cifar100_test_loader.dataset), epoch)
+    if tb:
+        writer.add_scalar('Test/Average loss', test_loss / len(cifar100_test_loader.dataset), epoch)
+        writer.add_scalar('Test/Accuracy', correct.float() / len(cifar100_test_loader.dataset), epoch)
 
     return correct.float() / len(cifar100_test_loader.dataset)
 
@@ -119,6 +121,7 @@ if __name__ == '__main__':
     parser.add_argument('-b', type=int, default=128, help='batch size for dataloader')
     parser.add_argument('-warm', type=int, default=1, help='warm up training phase')
     parser.add_argument('-lr', type=float, default=0.1, help='initial learning rate')
+    parser.add_argument('-resume', action='store_true', default=False, help='resume training')
     args = parser.parse_args()
 
     net = get_network(args)
@@ -145,11 +148,23 @@ if __name__ == '__main__':
     train_scheduler = optim.lr_scheduler.MultiStepLR(optimizer, milestones=settings.MILESTONES, gamma=0.2) #learning rate decay
     iter_per_epoch = len(cifar100_training_loader)
     warmup_scheduler = WarmUpLR(optimizer, iter_per_epoch * args.warm)
-    checkpoint_path = os.path.join(settings.CHECKPOINT_PATH, args.net, settings.TIME_NOW)
+
+    if args.resume:
+        recent_folder = most_recent_folder(os.path.join(settings.CHECKPOINT_PATH, args.net), fmt=settings.DATE_FORMAT)
+        if not recent_folder:
+            raise Exception('no recent folder were found')
+
+        checkpoint_path = os.path.join(settings.CHECKPOINT_PATH, args.net, recent_folder)
+
+    else:
+        checkpoint_path = os.path.join(settings.CHECKPOINT_PATH, args.net, settings.TIME_NOW)
 
     #use tensorboard
     if not os.path.exists(settings.LOG_DIR):
         os.mkdir(settings.LOG_DIR)
+
+    #since tensorboard can't overwrite old values
+    #so the only way is to create a new tensorboard log
     writer = SummaryWriter(log_dir=os.path.join(
             settings.LOG_DIR, args.net, settings.TIME_NOW))
     input_tensor = torch.Tensor(1, 3, 32, 32).cuda()
@@ -161,9 +176,23 @@ if __name__ == '__main__':
     checkpoint_path = os.path.join(checkpoint_path, '{net}-{epoch}-{type}.pth')
 
     best_acc = 0.0
+    if args.resume:
+        best_weights = best_acc_weights(os.path.join(settings.CHECKPOINT_PATH, args.net, recent_folder))
+        if best_weights:
+            weights_path = os.path.join(settings.CHECKPOINT_PATH, args.net, recent_folder, best_weights)
+            net.load_state_dict(torch.load(weights_path))
+            best_acc = eval_training(tb=False)
+
+        resume_epoch = last_epoch(os.path.join(settings.CHECKPOINT_PATH, args.net, recent_folder))
+
+
     for epoch in range(1, settings.EPOCH):
         if epoch > args.warm:
             train_scheduler.step(epoch)
+
+        if args.resume:
+            if epoch <= resume_epoch:
+                continue
 
         train(epoch)
         acc = eval_training(epoch)

@@ -2,8 +2,10 @@
 
 author baiyu
 """
-
+import os
 import sys
+import re
+import datetime
 
 import numpy
 
@@ -230,3 +232,102 @@ class WarmUpLR(_LRScheduler):
         rate to base_lr * m / total_iters
         """
         return [base_lr * self.last_epoch / (self.total_iters + 1e-8) for base_lr in self.base_lrs]
+
+
+files = ['/content/drive/My Drive/pytorch-cifar100/checkpoint/wideresnet/Friday_16_October_2020_13h_34m_30s/wideresnet-10-regular.pth',
+'/content/drive/My Drive/pytorch-cifar100/checkpoint/wideresnet/Friday_16_October_2020_13h_34m_30s/wideresnet-20-regular.pth',
+'/content/drive/My Drive/pytorch-cifar100/checkpoint/wideresnet/Friday_16_October_2020_13h_34m_30s/wideresnet-30-regular.pth',
+'/content/drive/My Drive/pytorch-cifar100/checkpoint/wideresnet/Friday_16_October_2020_13h_34m_30s/wideresnet-40-regular.pth',
+'/content/drive/My Drive/pytorch-cifar100/checkpoint/wideresnet/Friday_16_October_2020_13h_34m_30s/wideresnet-50-regular.pth',
+'/content/drive/My Drive/pytorch-cifar100/checkpoint/wideresnet/Friday_16_October_2020_13h_34m_30s/wideresnet-60-regular.pth',
+'/content/drive/My Drive/pytorch-cifar100/checkpoint/wideresnet/Friday_16_October_2020_13h_34m_30s/wideresnet-70-regular.pth',
+'/content/drive/My Drive/pytorch-cifar100/checkpoint/wideresnet/Friday_16_October_2020_13h_34m_30s/wideresnet-80-regular.pth',
+'/content/drive/My Drive/pytorch-cifar100/checkpoint/wideresnet/Friday_16_October_2020_13h_34m_30s/wideresnet-90-regular.pth',
+'/content/drive/My Drive/pytorch-cifar100/checkpoint/wideresnet/Friday_16_October_2020_13h_34m_30s/wideresnet-100-regular.pth',
+'/content/drive/My Drive/pytorch-cifar100/checkpoint/wideresnet/Friday_16_October_2020_13h_34m_30s/wideresnet-110-regular.pth',
+'/content/drive/My Drive/pytorch-cifar100/checkpoint/wideresnet/Friday_16_October_2020_13h_34m_30s/wideresnet-120-regular.pth',
+'/content/drive/My Drive/pytorch-cifar100/checkpoint/wideresnet/Friday_16_October_2020_13h_34m_30s/wideresnet-121-best.pth',
+'/content/drive/My Drive/pytorch-cifar100/checkpoint/wideresnet/Friday_16_October_2020_13h_34m_30s/wideresnet-122-best.pth',
+'/content/drive/My Drive/pytorch-cifar100/checkpoint/wideresnet/Friday_16_October_2020_13h_34m_30s/wideresnet-123-best.pth',
+'/content/drive/My Drive/pytorch-cifar100/checkpoint/wideresnet/Friday_16_October_2020_13h_34m_30s/wideresnet-124-best.pth',
+'/content/drive/My Drive/pytorch-cifar100/checkpoint/wideresnet/Friday_16_October_2020_13h_34m_30s/wideresnet-128-best.pth',
+'/content/drive/My Drive/pytorch-cifar100/checkpoint/wideresnet/Friday_16_October_2020_13h_34m_30s/wideresnet-129-best.pth',
+'/content/drive/My Drive/pytorch-cifar100/checkpoint/wideresnet/Friday_16_October_2020_13h_34m_30s/wideresnet-130-regular.pth',
+'/content/drive/My Drive/pytorch-cifar100/checkpoint/wideresnet/Friday_16_October_2020_13h_34m_30s/wideresnet-131-best.pth',
+'/content/drive/My Drive/pytorch-cifar100/checkpoint/wideresnet/Friday_16_October_2020_13h_34m_30s/wideresnet-140-regular.pth']
+
+
+# test = ['Friday_16_October_2020_13h_34m_30s', 'Friday_16_October_2019_3h_34m_30s', 'Friday_16_October_2020_13h_4m_30s']
+def most_recent_folder(net_weights, fmt):
+    """
+        return most recent created folder under net_weights
+        if no none-empty folder were found, return empty folder
+    """
+    # get subfolders in net_weights
+    folders = os.listdir(net_weights)
+
+    # filter out empty folders
+    folders = [f for f in folders if len(os.listdir(os.path.join(net_weights, f)))]
+    if len(folders) == 0:
+        return ''
+
+    # sort folders by folder created time
+    folders = sorted(folders, key=lambda f: datetime.datetime.strptime(f, fmt))
+    return folders[-1]
+
+#most_recent_folder(test, '%A_%d_%B_%Y_%Hh_%Mm_%Ss')
+
+
+
+def most_recent_weights(weights_folder):
+    """
+        return most recent created weights file
+        if folder is empty return empty string
+    """
+    weight_files = os.listdir(weights_folder)
+    if len(weights_folder) == 0:
+        return ''
+
+    regex_str = r'([A-Za-z0-9]+)-([0-9]+)-(regular|best)'
+
+    # sort files by epoch
+    weight_files = sorted(weight_files, key=lambda w: int(re.search(regex_str, w).groups()[1]))
+
+    return weight_files[-1]
+
+def last_epoch(weights_folder):
+    weight_file = most_recent_weights(weights_folder)
+    if not weight_file:
+       raise Exception('no recent weights were found')
+    resume_epoch = int(weight_file.split('-')[1])
+
+    return resume_epoch
+
+
+
+def best_acc_weights(weights_folder):
+    """
+        return the best acc .pth file in given folder, if no
+        best acc weights file were found, return empty string
+    """
+    files = os.listdir(weights_folder)
+    if len(files) == 0:
+        return ''
+
+    regex_str = r'([A-Za-z0-9]+)-([0-9]+)-(regular|best)'
+    best_files = [w for w in files if re.search(regex_str, w).groups()[2] == 'best']
+    if len(best_files) == 0:
+        return ''
+
+    best_files = sorted(best_files, key=lambda w: int(re.search(regex_str, w).groups()[1]))
+    return best_files[-1]
+    #for f in best_files:
+        #print(f)
+    #for f in best_files:
+    #    print(f)
+    #for weight_file in files:
+    #    if re.search(r'([A-Za-z0-9]+)-([0-9]+)-(regular|best)', weight_file):
+    #        network_name, epoch, weight_type = re.search(r'([A-Za-z0-9]+)-([0-9]+)-(regular|best).pth', weight_file).groups()
+    #        print(weight_type)t
+
+#best_acc_weights(1)
