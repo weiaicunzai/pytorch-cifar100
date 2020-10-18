@@ -135,6 +135,33 @@ def get_network(args):
     elif args.net == 'seresnet152':
         from models.senet import seresnet152
         net = seresnet152()
+    elif args.net == 'efficientnetb0':
+        from models.efficientnet import efficientnetb0
+        net = efficientnetb0()
+    elif args.net == 'efficientnetb1':
+        from models.efficientnet import efficientnetb1
+        net = efficientnetb1()
+    elif args.net == 'efficientnetb2':
+        from models.efficientnet import efficientnetb2
+        net = efficientnetb2()
+    elif args.net == 'efficientnetb3':
+        from models.efficientnet import efficientnetb3
+        net = efficientnetb3()
+    elif args.net == 'efficientnetb4':
+        from models.efficientnet import efficientnetb4
+        net = efficientnetb4()
+    elif args.net == 'efficientnetb5':
+        from models.efficientnet import efficientnetb5
+        net = efficientnetb5()
+    elif args.net == 'efficientnetb6':
+        from models.efficientnet import efficientnetb6
+        net = efficientnetb6()
+    elif args.net == 'efficientnetb7':
+        from models.efficientnet import efficientnetb7
+        net = efficientnetb7()
+    elif args.net == 'efficientnetl2':
+        from models.efficientnet import efficientnetl2
+        net = efficientnetl2()
 
     else:
         print('the network name you have entered is not supported yet')
