@@ -180,11 +180,18 @@ if __name__ == '__main__':
         best_weights = best_acc_weights(os.path.join(settings.CHECKPOINT_PATH, args.net, recent_folder))
         if best_weights:
             weights_path = os.path.join(settings.CHECKPOINT_PATH, args.net, recent_folder, best_weights)
+            print('found best acc weights file:{}',format(weights_path))
+            print('load best training file to test acc...')
             net.load_state_dict(torch.load(weights_path))
             best_acc = eval_training(tb=False)
+            print('best acc is {:0.2f}'.format(best_acc))
 
         recent_weights_file = most_recent_weights(os.path.join(settings.CHECKPOINT_PATH, args.net, recent_folder))
-        net.load_state_dict(torch.load(os.path.join(settings.CHECKPOINT_PATH, args.net, recent_folder, recent_weights_file)))
+        if not recent_weights_file:
+            raise Exception('no recent weights file were found')
+        weights_path = os.path.join(settings.CHECKPOINT_PATH, args.net, recent_folder, recent_weights_file)
+        print('loading weights file {} to resume training.....'.format(weights_path))
+        net.load_state_dict(torch.load(weights_path))
 
         resume_epoch = last_epoch(os.path.join(settings.CHECKPOINT_PATH, args.net, recent_folder))
 
