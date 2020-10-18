@@ -24,7 +24,7 @@ from torch.utils.tensorboard import SummaryWriter
 
 from conf import settings
 from utils import get_network, get_training_dataloader, get_test_dataloader, WarmUpLR, \
-    most_recent_folder, last_epoch, best_acc_weights
+    most_recent_folder, most_recent_weights, last_epoch, best_acc_weights
 
 def train(epoch):
 
@@ -182,6 +182,9 @@ if __name__ == '__main__':
             weights_path = os.path.join(settings.CHECKPOINT_PATH, args.net, recent_folder, best_weights)
             net.load_state_dict(torch.load(weights_path))
             best_acc = eval_training(tb=False)
+
+        recent_weights_file = most_recent_weights(os.path.join(settings.CHECKPOINT_PATH, args.net, recent_folder))
+        net.load_state_dict(torch.load(os.path.join(settings.CHECKPOINT_PATH, args.net, recent_folder, recent_weights_file)))
 
         resume_epoch = last_epoch(os.path.join(settings.CHECKPOINT_PATH, args.net, recent_folder))
 
