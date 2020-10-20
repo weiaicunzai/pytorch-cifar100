@@ -82,6 +82,11 @@ seresnet50
 seresnet101
 seresnet152
 nasnet
+stochasticdepth18
+stochasticdepth34
+stochasticdepth50
+stochasticdepth101
+stochasticdepth152
 ```
 Normally, the weights file with the best accuracy would be written to the disk with name suffix 'best'(default in checkpoint folder).
 

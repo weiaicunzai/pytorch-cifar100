@@ -140,6 +140,18 @@ def get_network(args):
     elif args.net == 'wideresnet':
         from models.wideresidual import wideresnet
         net = wideresnet()
+    elif args.net == 'stochasticdepth18':
+        from models.stochasticdepth import stochastic_depth_resnet18
+        net = stochastic_depth_resnet18()
+    elif args.net == 'stochasticdepth34':
+        from models.stochasticdepth import stochastic_depth_resnet34
+        net = stochastic_depth_resnet34()
+    elif args.net == 'stochasticdepth50':
+        from models.stochasticdepth import stochastic_depth_resnet50
+        net = stochastic_depth_resnet50()
+    elif args.net == 'stochasticdepth101':
+        from models.stochasticdepth import stochastic_depth_resnet101
+        net = stochastic_depth_resnet101()
 
     else:
         print('the network name you have entered is not supported yet')
