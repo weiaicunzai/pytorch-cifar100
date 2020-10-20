@@ -18,8 +18,6 @@ class StochasticDepthBasicBlock(torch.jit.ScriptModule):
 
     def __init__(self, p, in_channels, out_channels, stride=1):
         super().__init__()
-
-        #self.p = torch.tensor(p).float()
         self.p = p
         self.residual = nn.Sequential(
             nn.Conv2d(in_channels, out_channels, kernel_size=3, stride=stride, padding=1),
@@ -176,7 +174,6 @@ class StochasticDepthResNet(nn.Module):
         output = self.fc(output)
 
         return output
-
 
 def stochastic_depth_resnet18():
     """ return a ResNet 18 object
