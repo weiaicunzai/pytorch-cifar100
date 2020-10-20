@@ -151,7 +151,6 @@ class StochasticDepthResNet(nn.Module):
         strides = [stride] + [1] * (num_blocks - 1)
         layers = []
         for stride in strides:
-            print(self.pl)
             layers.append(block(self.pl, self.in_channels, out_channels, stride))
             self.in_channels = out_channels * block.expansion
             self.pl -= self.step
