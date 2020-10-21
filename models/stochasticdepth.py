@@ -37,7 +37,7 @@ class StochasticDepthBasicBlock(torch.jit.ScriptModule):
             )
     def survival(self):
         var = torch.bernoulli(self.p)
-        return torch.equal(var, torch.ones(1).to(var.device))
+        return torch.equal(var, torch.tensor(1).float().to(var.device))
 
     @torch.jit.script_method
     def forward(self, x):
@@ -117,7 +117,7 @@ class StochasticDepthBottleNeck(torch.jit.ScriptModule):
 
     def survival(self):
         var = torch.bernoulli(self.p)
-        return torch.equal(var, torch.ones(1).to(var.device))
+        return torch.equal(var, torch.tensor(1).float().to(var.device))
 
     @torch.jit.script_method
     def forward(self, x):
@@ -202,3 +202,4 @@ def stochastic_depth_resnet152():
     """ return a ResNet 152 object
     """
     return StochasticDepthResNet(StochasticDepthBottleNeck, [3, 8, 36, 3])
+
