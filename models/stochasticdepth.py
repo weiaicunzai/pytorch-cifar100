@@ -35,12 +35,15 @@ class StochasticDepthBasicBlock(torch.jit.ScriptModule):
                 nn.Conv2d(in_channels, out_channels * StochasticDepthBasicBlock.expansion, kernel_size=1, stride=stride),
                 nn.BatchNorm2d(out_channels)
             )
+    def survival(self):
+        var = torch.bernoulli(self.p)
+        return torch.equal(var, torch.ones(1).to(var.device))
 
     @torch.jit.script_method
     def forward(self, x):
 
         if self.training:
-            if torch.equal(torch.bernoulli(self.p), torch.ones(1)):
+            if self.survival():
                 # official torch implementation
                 # function ResidualDrop:updateOutput(input)
                 #    local skip_forward = self.skip:forward(input)
@@ -112,11 +115,15 @@ class StochasticDepthBottleNeck(torch.jit.ScriptModule):
                 nn.BatchNorm2d(out_channels * StochasticDepthBottleNeck.expansion)
             )
 
+    def survival(self):
+        var = torch.bernoulli(self.p)
+        return torch.equal(var, torch.ones(1).to(var.device))
+
     @torch.jit.script_method
     def forward(self, x):
 
         if self.training:
-            if torch.equal(torch.bernoulli(self.p), torch.ones(1)):
+            if self.survival():
                 x = self.residual(x) + self.shortcut(x)
             else:
                 x = self.shortcut(x)
