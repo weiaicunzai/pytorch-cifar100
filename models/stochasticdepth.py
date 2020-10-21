@@ -9,15 +9,17 @@ resnet with stochastic depth
 import torch
 import torch.nn as nn
 from torch.distributions.bernoulli import Bernoulli
+import random
 
 
-class StochasticDepthBasicBlock(nn.Module):
+class StochasticDepthBasicBlock(torch.jit.ScriptModule):
 
     expansion=1
 
     def __init__(self, p, in_channels, out_channels, stride=1):
         super().__init__()
-        self.m = Bernoulli(torch.Tensor([p]))
+
+        self.p = torch.tensor(p).float()
         self.residual = nn.Sequential(
             nn.Conv2d(in_channels, out_channels, kernel_size=3, stride=stride, padding=1),
             nn.BatchNorm2d(out_channels),
@@ -34,10 +36,11 @@ class StochasticDepthBasicBlock(nn.Module):
                 nn.BatchNorm2d(out_channels)
             )
 
+    @torch.jit.script_method
     def forward(self, x):
 
-        if self.train:
-            if torch.equal(self.m.sample(), torch.ones(1)):
+        if self.training:
+            if torch.equal(torch.bernoulli(self.p), torch.ones(1)):
                 # official torch implementation
                 # function ResidualDrop:updateOutput(input)
                 #    local skip_forward = self.skip:forward(input)
@@ -71,11 +74,9 @@ class StochasticDepthBasicBlock(nn.Module):
                 # whether add relu after residual won't effect the network
                 # performance too much
                 x = self.residual(x) + self.shortcut(x)
-                return x
-
             else:
                 # If bl = 0, the ResBlock reduces to the identity function
-                return self.shortcut(x)
+                x = self.shortcut(x)
 
         else:
             x = self.residual(x) * self.p + self.shortcut(x)
@@ -83,7 +84,7 @@ class StochasticDepthBasicBlock(nn.Module):
         return x
 
 
-class StochasticDepthBottleNeck(nn.Module):
+class StochasticDepthBottleNeck(torch.jit.ScriptModule):
     """Residual block for resnet over 50 layers
 
     """
@@ -91,8 +92,7 @@ class StochasticDepthBottleNeck(nn.Module):
     def __init__(self, p, in_channels, out_channels, stride=1):
         super().__init__()
 
-        self.m = Bernoulli(torch.Tensor([p]))
-
+        self.p = torch.tensor(p).float()
         self.residual = nn.Sequential(
             nn.Conv2d(in_channels, out_channels, kernel_size=1, bias=False),
             nn.BatchNorm2d(out_channels),
@@ -112,15 +112,14 @@ class StochasticDepthBottleNeck(nn.Module):
                 nn.BatchNorm2d(out_channels * StochasticDepthBottleNeck.expansion)
             )
 
+    @torch.jit.script_method
     def forward(self, x):
 
-        if self.train:
-            if torch.equal(self.m.sample(), torch.ones(1)):
-
+        if self.training:
+            if torch.equal(torch.bernoulli(self.p), torch.ones(1)):
                 x = self.residual(x) + self.shortcut(x)
-                return x
             else:
-                return self.shortcut(x)
+                x = self.shortcut(x)
         else:
             x = self.residual(x) * self.p + self.shortcut(x)
 
@@ -174,6 +173,7 @@ def stochastic_depth_resnet18():
     """ return a ResNet 18 object
     """
     return StochasticDepthResNet(StochasticDepthBasicBlock, [2, 2, 2, 2])
+
 
 def stochastic_depth_resnet34():
     """ return a ResNet 34 object
