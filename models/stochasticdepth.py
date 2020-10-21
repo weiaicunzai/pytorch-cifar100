@@ -202,3 +202,4 @@ def stochastic_depth_resnet152():
     """ return a ResNet 152 object
     """
     return StochasticDepthResNet(StochasticDepthBottleNeck, [3, 8, 36, 3])
+
