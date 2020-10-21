@@ -169,11 +169,11 @@ class StochasticDepthResNet(nn.Module):
 
         return output
 
+
 def stochastic_depth_resnet18():
     """ return a ResNet 18 object
     """
     return StochasticDepthResNet(StochasticDepthBasicBlock, [2, 2, 2, 2])
-
 
 def stochastic_depth_resnet34():
     """ return a ResNet 34 object
