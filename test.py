@@ -53,6 +53,9 @@ if __name__ == '__main__':
             if args.gpu:
                 image = image.cuda()
                 label = label.cuda()
+                print('GPU INFO.....')
+                print(torch.cuda.memory_summary(), end='')
+
 
             output = net(image)
             _, pred = output.topk(5, 1, largest=True, sorted=True)
