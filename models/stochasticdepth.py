@@ -19,7 +19,8 @@ class StochasticDepthBasicBlock(torch.jit.ScriptModule):
     def __init__(self, p, in_channels, out_channels, stride=1):
         super().__init__()
 
-        self.p = torch.tensor(p).float()
+        #self.p = torch.tensor(p).float()
+        self.p = p
         self.residual = nn.Sequential(
             nn.Conv2d(in_channels, out_channels, kernel_size=3, stride=stride, padding=1),
             nn.BatchNorm2d(out_channels),
@@ -36,7 +37,7 @@ class StochasticDepthBasicBlock(torch.jit.ScriptModule):
                 nn.BatchNorm2d(out_channels)
             )
     def survival(self):
-        var = torch.bernoulli(self.p)
+        var = torch.bernoulli(torch.tensor(self.p).float())
         return torch.equal(var, torch.tensor(1).float().to(var.device))
 
     @torch.jit.script_method
@@ -95,7 +96,7 @@ class StochasticDepthBottleNeck(torch.jit.ScriptModule):
     def __init__(self, p, in_channels, out_channels, stride=1):
         super().__init__()
 
-        self.p = torch.tensor(p).float()
+        self.p = p
         self.residual = nn.Sequential(
             nn.Conv2d(in_channels, out_channels, kernel_size=1, bias=False),
             nn.BatchNorm2d(out_channels),
@@ -116,7 +117,7 @@ class StochasticDepthBottleNeck(torch.jit.ScriptModule):
             )
 
     def survival(self):
-        var = torch.bernoulli(self.p)
+        var = torch.bernoulli(torch.tensor(self.p).float())
         return torch.equal(var, torch.tensor(1).float().to(var.device))
 
     @torch.jit.script_method
