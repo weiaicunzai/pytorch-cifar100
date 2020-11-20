@@ -174,6 +174,7 @@ better result.
 |cifar100|nasnet|5.2M|22.71|5.91|3.69GB|60|60|40|40|200|
 |cifar100|wideresnet-40-10|55.9M|21.25|5.77|0.63GB|60|60|40|40|200|
 |cifar100|stochasticdepth18|11.22M|31.40|8.84|0.63GB|60|60|40|40|200|
+|cifar100|stochasticdepth34|21.36M|27.72|7.32|0.63GB|60|60|40|40|200|
 
 
 
