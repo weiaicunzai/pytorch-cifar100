@@ -30,6 +30,8 @@ def train(epoch):
 
     start = time.time()
     net.train()
+    loss = 0
+    acc_batches = args.acc_b
     for batch_index, (images, labels) in enumerate(cifar100_training_loader):
         if epoch <= args.warm:
             warmup_scheduler.step()
@@ -40,8 +42,15 @@ def train(epoch):
 
         optimizer.zero_grad()
         outputs = net(images)
-        loss = loss_function(outputs, labels)
-        loss.backward()
+        scaled_loss = loss_function(outputs, labels)
+        scaled_loss.backward()
+        loss += scaled_loss
+
+        print(1)
+        if acc_batches > 1:
+            acc_batches -= 1
+            continue
+
         optimizer.step()
 
         n_iter = (epoch - 1) * len(cifar100_training_loader) + batch_index + 1
@@ -63,6 +72,10 @@ def train(epoch):
 
         #update training loss for each iteration
         writer.add_scalar('Train/loss', loss.item(), n_iter)
+
+        if acc_batches == 1:
+            acc_batches = args.acc_b
+            loss = 0
 
     for name, param in net.named_parameters():
         layer, attr = os.path.splitext(name)
@@ -122,6 +135,7 @@ if __name__ == '__main__':
     parser.add_argument('-warm', type=int, default=1, help='warm up training phase')
     parser.add_argument('-lr', type=float, default=0.1, help='initial learning rate')
     parser.add_argument('-resume', action='store_true', default=False, help='resume training')
+    parser.add_argument('-acc_b', type=int, default=1, help='accumulated grad batches number')
     args = parser.parse_args()
 
     net = get_network(args)
