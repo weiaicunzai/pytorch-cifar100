@@ -40,9 +40,8 @@ def train(epoch):
             labels = labels.cuda()
             images = images.cuda()
 
-        optimizer.zero_grad()
         outputs = net(images)
-        scaled_loss = loss_function(outputs, labels)
+        scaled_loss = loss_function(outputs, labels) / args.acc_b
         scaled_loss.backward()
         loss += scaled_loss
 
@@ -52,6 +51,7 @@ def train(epoch):
             continue
 
         optimizer.step()
+        optimizer.zero_grad()
 
         n_iter = (epoch - 1) * len(cifar100_training_loader) + batch_index + 1
 
