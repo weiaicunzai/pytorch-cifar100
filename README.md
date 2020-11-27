@@ -116,6 +116,8 @@ $ python test.py -net vgg16 -weights path_to_vgg16_weights_file
 - senet [Squeeze-and-Excitation Networks](https://arxiv.org/abs/1709.01507)
 - squeezenet [SqueezeNet: AlexNet-level accuracy with 50x fewer parameters and <0.5MB model size](https://arxiv.org/abs/1602.07360v4)
 - nasnet [Learning Transferable Architectures for Scalable Image Recognition](https://arxiv.org/abs/1707.07012v4)
+- wide residual network[Wide Residual Networks](https://arxiv.org/abs/1605.07146)
+- stochastic depth networks[Deep Networks with Stochastic Depth](https://arxiv.org/abs/1603.09382)
 
 ## Training Details
 I didn't use any training tricks to improve accuray, if you want to learn more about training tricks,
@@ -176,6 +178,7 @@ better result.
 |cifar100|stochasticdepth18|11.22M|31.40|8.84|0.63GB|60|60|40|40|200|
 |cifar100|stochasticdepth34|21.36M|27.72|7.32|0.63GB|60|60|40|40|200|
 |cifar100|stochasticdepth50|23.71M|23.35|5.76|0.63GB|60|60|40|40|200|
+|cifar100|stochasticdepth101|42.69M|21.28|5.39|0.63GB|60|60|40|40|200|
 
 
 
