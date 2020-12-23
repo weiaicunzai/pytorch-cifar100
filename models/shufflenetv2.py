@@ -30,7 +30,7 @@ def channel_shuffle(x, groups):
     """
 
     batch_size, channels, height, width = x.size()
-    channels_per_group = int(channels / groups)
+    channels_per_group = int(channels // groups)
 
     x = x.view(batch_size, groups, channels_per_group, height, width)
     x = x.transpose(1, 2).contiguous()
