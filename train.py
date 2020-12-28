@@ -31,8 +31,6 @@ def train(epoch):
     start = time.time()
     net.train()
     for batch_index, (images, labels) in enumerate(cifar100_training_loader):
-        if epoch <= args.warm:
-            warmup_scheduler.step()
 
         if args.gpu:
             labels = labels.cuda()
@@ -64,6 +62,9 @@ def train(epoch):
         #update training loss for each iteration
         writer.add_scalar('Train/loss', loss.item(), n_iter)
 
+        if epoch <= args.warm:
+            warmup_scheduler.step()
+
     for name, param in net.named_parameters():
         layer, attr = os.path.splitext(name)
         attr = attr[1:]
@@ -90,6 +91,7 @@ def eval_training(epoch=0, tb=True):
 
         outputs = net(images)
         loss = loss_function(outputs, labels)
+
         test_loss += loss.item()
         _, preds = outputs.max(1)
         correct += preds.eq(labels).sum()
