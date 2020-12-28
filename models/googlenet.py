@@ -98,33 +98,34 @@ class GoogleNet(nn.Module):
         self.linear = nn.Linear(1024, num_class)
 
     def forward(self, x):
-        output = self.prelayer(x)
-        output = self.a3(output)
-        output = self.b3(output)
+        x = self.prelayer(x)
+        x = self.a3(x)
+        x = self.b3(x)
 
-        output = self.maxpool(output)
+        x = self.maxpool(x)
 
-        output = self.a4(output)
-        output = self.b4(output)
-        output = self.c4(output)
-        output = self.d4(output)
-        output = self.e4(output)
+        x = self.a4(x)
+        x = self.b4(x)
+        x = self.c4(x)
+        x = self.d4(x)
+        x = self.e4(x)
 
-        output = self.maxpool(output)
+        x = self.maxpool(x)
 
-        output = self.a5(output)
-        output = self.b5(output)
+        x = self.a5(x)
+        x = self.b5(x)
 
         #"""It was found that a move from fully connected layers to
         #average pooling improved the top-1 accuracy by about 0.6%,
         #however the use of dropout remained essential even after
         #removing the fully connected layers."""
-        output = self.avgpool(output)
-        output = self.dropout(output)
-        output = output.view(output.size()[0], -1)
-        output = self.linear(output)
+        x = self.avgpool(x)
+        x = self.dropout(x)
+        x = x.view(x.size()[0], -1)
+        #x = torch.flatten(x, 1)
+        x = self.linear(x)
 
-        return output
+        return x
 
 def googlenet():
     return GoogleNet()
