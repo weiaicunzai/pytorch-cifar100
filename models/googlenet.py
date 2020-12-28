@@ -67,9 +67,16 @@ class GoogleNet(nn.Module):
     def __init__(self, num_class=100):
         super().__init__()
         self.prelayer = nn.Sequential(
-            nn.Conv2d(3, 192, kernel_size=3, padding=1),
+            nn.Conv2d(3, 64, kernel_size=3, padding=1, bias=False),
+            nn.BatchNorm2d(64),
+            nn.ReLU(inplace=True),
+            nn.MaxPool2d(3, stride=2, padding=1),
+            nn.Conv2d(64, 64, kernel_size=3, padding=1, bias=False),
+            nn.BatchNorm2d(64),
+            nn.ReLU(inplace=True),
+            nn.Conv2d(64, 192, kernel_size=3, padding=1, bias=False),
             nn.BatchNorm2d(192),
-            nn.ReLU(inplace=True)
+            nn.ReLU(inplace=True),
         )
 
         #although we only use 1 conv layer as prelayer,
@@ -77,10 +84,10 @@ class GoogleNet(nn.Module):
         self.a3 = Inception(192, 64, 96, 128, 16, 32, 32)
         self.b3 = Inception(256, 128, 128, 192, 32, 96, 64)
 
-        #"""In general, an Inception network is a network consisting of
-        #modules of the above type stacked upon each other, with occasional
-        #max-pooling layers with stride 2 to halve the resolution of the
-        #grid"""
+        ##"""In general, an Inception network is a network consisting of
+        ##modules of the above type stacked upon each other, with occasional
+        ##max-pooling layers with stride 2 to halve the resolution of the
+        ##grid"""
         self.maxpool = nn.MaxPool2d(3, stride=2, padding=1)
 
         self.a4 = Inception(480, 192, 96, 208, 16, 48, 64)
@@ -122,7 +129,6 @@ class GoogleNet(nn.Module):
         x = self.avgpool(x)
         x = self.dropout(x)
         x = x.view(x.size()[0], -1)
-        #x = torch.flatten(x, 1)
         x = self.linear(x)
 
         return x
