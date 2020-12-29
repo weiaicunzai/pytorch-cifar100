@@ -25,7 +25,7 @@ class Swish(nn.Module):
         return x * torch.sigmoid(x)
 
 # NAS or manually designed?
-class MBConvBlock(nn.Module):
+class MBConvBlock(torch.jit.ScriptModule):
     def __init__(self, in_channels, out_channels, kernel_size, stride, t, r, sp, m, eps):
         """
         Args:
@@ -38,7 +38,7 @@ class MBConvBlock(nn.Module):
         """
         super().__init__()
 
-        self.sp = sp
+        self.sp = 1 - sp
         # expansion phase (inverted residual block)
         self.expansion = nn.Sequential(
             nn.Conv2d(in_channels, in_channels * t, 1),
@@ -88,6 +88,11 @@ class MBConvBlock(nn.Module):
                 nn.BatchNorm2d(out_channels, momentum=m, eps=eps),
             )
 
+    def survival(self):
+        var = torch.bernoulli(torch.tensor(self.sp).float())
+        return torch.equal(var, torch.tensor(1).float().to(var.device))
+
+    @torch.jit.script_method
     def forward(self, x):
         shortcut = self.shortcut(x)
 
@@ -108,12 +113,11 @@ class MBConvBlock(nn.Module):
         pointwise = self.pointwise(depthwise)
 
         # stochastic depth
-        if self.train:
-            if random.random() < self.sp:
+        if self.training:
+            if self.survival():
                 x = shortcut + pointwise
-
             else:
-                x = pointwise
+                x = shortcut
 
         else:
             x = pointwise * self.sp + shortcut
