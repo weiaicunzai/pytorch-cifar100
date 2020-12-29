@@ -70,7 +70,6 @@ class GoogleNet(nn.Module):
             nn.Conv2d(3, 64, kernel_size=3, padding=1, bias=False),
             nn.BatchNorm2d(64),
             nn.ReLU(inplace=True),
-            nn.MaxPool2d(3, stride=2, padding=1),
             nn.Conv2d(64, 64, kernel_size=3, padding=1, bias=False),
             nn.BatchNorm2d(64),
             nn.ReLU(inplace=True),
@@ -106,6 +105,7 @@ class GoogleNet(nn.Module):
 
     def forward(self, x):
         x = self.prelayer(x)
+        x = self.maxpool(x)
         x = self.a3(x)
         x = self.b3(x)
 
