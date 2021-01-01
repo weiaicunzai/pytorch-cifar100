@@ -119,6 +119,7 @@ if __name__ == '__main__':
     parser.add_argument('-b', type=int, default=128, help='batch size for dataloader')
     parser.add_argument('-warm', type=int, default=1, help='warm up training phase')
     parser.add_argument('-lr', type=float, default=0.1, help='initial learning rate')
+    parser.add_argument('-dataset', type=str, default='cifar100', help='which dataset will be used for training')
     args = parser.parse_args()
 
     net = get_network(args)

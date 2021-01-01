@@ -92,37 +92,96 @@ class MBConvBlock(torch.jit.ScriptModule):
         var = torch.bernoulli(torch.tensor(self.sp).float())
         return torch.equal(var, torch.tensor(1).float().to(var.device))
 
-    @torch.jit.script_method
-    def forward(self, x):
-        shortcut = self.shortcut(x)
-
-        # expansion
-        expansion = self.expansion(x)
-
-        # depthwise
-        depthwise = self.depthwise(expansion)
-
-        # squeeze and excitation
-        squeezed = self.squeeze(depthwise)
+    def se(self, x):
+        squeezed = self.squeeze(x)
         squeezed = squeezed.view(squeezed.size(0), -1)
         excitation = self.excitation(squeezed)
-        excitation = excitation.view(depthwise.size(0), depthwise.size(1), 1, 1)
-        depthwise = depthwise * excitation
+        excitation = excitation.view(x.size(0), x.size(1), 1, 1)
+        x = x * excitation
+        return x
 
-        # pointwise
-        pointwise = self.pointwise(depthwise)
+    def drop_connect(self, x):
+        # this implementation(drop out certain features) is way
+        # more stable than drop out the entire block during training
+        # and gives a better result.
+        # ""since lower earlier layers extract low-level features
+        # that will be used in later layres and should therefore
+        # be more reliably present."" --'Deep Networks with Stochastic
+        # Depth'
+        if not self.training:
+            return x
+
+        random_tensor = self.sp + torch.rand(x.size(0), 1, 1, 1)
+        binary_tensor = torch.floor(random_tensor).to(x.device)
+
+        x = x / self.sp * binary_tensor
+        return x
+
+    def residual(self, x):
+        #print(x.shape)
+        # expansion
+
+        expansion = self.expansion(x)
+        depthwise = self.depthwise(expansion)
+        #print(depthwise.shape)
+        se = self.se(depthwise)
+        #print(se.shape)
+        pointwise = self.pointwise(se)
+
+        x = self.drop_connect(pointwise)
+        return x
+        #print(pointwise.shape)
+        #return pointwise
+
+    @torch.jit.script_method
+    def forward(self, x):
+
+        #if self.training:
+        #    if self.survival():
+        #        x = self.shortcut(x) + self.residual(x)
+        #    else:
+        #        x = self.shortcut(x)
+
+        #else:
+        #    x = self.residual(x) * self.sp + self.shortcut(x)
+        #return x
+        return self.residual(x) + self.shortcut(x)
+
+        # expansion
+        #expansion = self.expansion(x)
+
+        ## depthwise
+        #depthwise = self.depthwise(expansion)
+
+        ## squeeze and excitation
+        #squeezed = self.squeeze(depthwise)
+        #squeezed = squeezed.view(squeezed.size(0), -1)
+        #excitation = self.excitation(squeezed)
+        #excitation = excitation.view(depthwise.size(0), depthwise.size(1), 1, 1)
+        #depthwise = depthwise * excitation
+
+        ## pointwise
+        #pointwise = self.pointwise(depthwise)
 
         # stochastic depth
-        if self.training:
-            if self.survival():
-                x = shortcut + pointwise
-            else:
-                x = shortcut
+        #if self.training:
+        #    if self.survival():
+        #        x = shortcut + pointwise
+        #    else:
+        #        x = shortcut
 
-        else:
-            x = pointwise * self.sp + shortcut
+        #else:
+        #    x = pointwise * self.sp + shortcut
+        #residual = self.residual(x)
+        #print(residual.shape)
+        #print('shortcut', shortcut.shape)
 
-        return x
+        #x = shortcut + residual
+        #print('x', x.shape)
+        #x = shortcut + pointwise
+        #residual = self.residual(x)
+        #x = residual + shortcut
+        #return x
 
 
 class EfficientNet(nn.Module):
@@ -143,6 +202,7 @@ class EfficientNet(nn.Module):
 
         self.in_channels = out_channels
 
+        self.current_block_id = 0
         self.conv1 = self._make_stage(0)
         self.conv2 = self._make_stage(1)
         self.conv3 = self._make_stage(2)
@@ -154,6 +214,14 @@ class EfficientNet(nn.Module):
         self.pool = nn.AdaptiveAvgPool2d(1)
         self.dropout = nn.Dropout(self.net_args.dropout_rate)
         self.fc = nn.Linear(self.in_channels, num_classes)
+
+
+    def total_blocks_num(self):
+        count = 0
+        for stage_arg in self.stage_args:
+            count += stage_arg.num_repeat
+
+        return count
 
 
     def forward(self, x):
@@ -183,7 +251,9 @@ class EfficientNet(nn.Module):
         r = stage_args.se_ratio
         num_repeat = round_repeats(stage_args.num_repeat, self.net_args)
 
-        sp = self.net_args.drop_connect_rate
+        total = self.total_blocks_num()
+        sp = self.net_args.drop_connect_rate * self.current_block_id / (total - 1)
+        self.current_block_id += 1
         m = self.net_args.batch_norm_momentum
         esp = self.net_args.batch_norm_epsilon
 
@@ -407,6 +477,8 @@ def get_model_params(model_name, override_params):
     if override_params:
         # ValueError will be raised here if override_params has fields not included in global_params.
         global_params = global_params._replace(**override_params)
+
+    #print('net:',global_params)
     return blocks_args, global_params
 
 
@@ -445,3 +517,7 @@ def efficientnetb7():
 def efficientnetl2():
     stage_args, net_args = get_model_params('efficientnet-l2', {})
     return EfficientNet(stage_args, net_args)
+
+#efficientnetb0()
+#efficientnetb1()
+#efficientnetb2()
