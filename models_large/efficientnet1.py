@@ -25,7 +25,8 @@ class Swish(nn.Module):
         return x * torch.sigmoid(x)
 
 # NAS or manually designed?
-class MBConvBlock(torch.jit.ScriptModule):
+#class MBConvBlock(torch.jit.ScriptModule):
+class MBConvBlock(nn.Module):
     def __init__(self, in_channels, out_channels, kernel_size, stride, t, r, sp, m, eps):
         """
         Args:
@@ -133,7 +134,7 @@ class MBConvBlock(torch.jit.ScriptModule):
         #print(pointwise.shape)
         #return pointwise
 
-    @torch.jit.script_method
+    #@torch.jit.script_method
     def forward(self, x):
 
         #if self.training:
@@ -196,7 +197,7 @@ class EfficientNet(nn.Module):
 
         # stem
         self.stem = nn.Sequential(
-            nn.Conv2d(self.in_channels, out_channels, 3, padding=1),
+            nn.Conv2d(self.in_channels, out_channels, 3, stride=2),
             nn.BatchNorm2d(out_channels)
         )
 
@@ -521,3 +522,10 @@ def efficientnetl2(num_classes):
 #efficientnetb0()
 #efficientnetb1()
 #efficientnetb2()
+
+
+#net = efficientnetb0(37)
+
+#t = torch.Tensor(256, 3, 224, 224)
+#print(net(t).shape)
+#print(sum([p.numel() for p in net.parameters()]))

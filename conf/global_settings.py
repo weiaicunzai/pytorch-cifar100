@@ -37,6 +37,12 @@ SAVE_EPOCH = 10
 
 
 
+#mean=(0.485, 0.456, 0.406)
+#std=(0.229, 0.224, 0.225)
+PET_TRAIN_MEAN = (0.485, 0.456, 0.406)
+PET_TRAIN_STD = (0.229, 0.224, 0.225)
+
+#DATA_PATH = '/data/by/pytorch-cifar100/tmp1'
 
 
 

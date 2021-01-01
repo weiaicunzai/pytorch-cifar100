@@ -13,6 +13,9 @@ import torchvision
 import torchvision.transforms as transforms
 from torch.utils.data import DataLoader
 
+from conf import settings
+
+
 
 def get_network(args):
     """ return given network
@@ -58,20 +61,42 @@ def get_network(args):
         from models.xception import xception
         net = xception()
     elif args.net == 'resnet18':
-        from models.resnet import resnet18
-        net = resnet18()
+        if args.dataset == 'cifar100':
+            from models.resnet import resnet18
+            net = resnet18(100)
+        elif args.dataset == 'pet':
+            from models_large.resnet import resnet18
+            net = resnet18(37)
     elif args.net == 'resnet34':
-        from models.resnet import resnet34
-        net = resnet34()
+        if args.dataset == 'cifar100':
+            from models.resnet import resnet34
+            net = resnet34(100)
+        elif args.dataset == 'pet':
+            from models_large.resnet import resnet34
+            net = resnet34(37)
     elif args.net == 'resnet50':
-        from models.resnet import resnet50
-        net = resnet50()
+        if args.dataset == 'cifar100':
+            from models.resnet import resnet50
+            net = resnet50(100)
+        elif args.dataset == 'pet':
+            from models_large.resnet import resnet50
+            #from torchvision.models import resnet50
+            net = resnet50(num_classes=37)
     elif args.net == 'resnet101':
-        from models.resnet import resnet101
-        net = resnet101()
+        if args.dataset == 'cifar100':
+            from models.resnet import resnet101
+            net = resnet101(100)
+        elif args.dataset == 'pet':
+            from models_large.resnet import resnet101
+            net = resnet101(37)
     elif args.net == 'resnet152':
-        from models.resnet import resnet152
-        net = resnet152()
+        if args.dataset == 'cifar100':
+            from models.resnet import resnet152
+            net = resnet152(100)
+        elif args.dataset == 'pet':
+            from models_large.resnet import resnet152
+            #net = resnet50(num_classes=37)
+            net = resnet152(37)
     elif args.net == 'preactresnet18':
         from models.preactresnet import preactresnet18
         net = preactresnet18()
@@ -136,8 +161,17 @@ def get_network(args):
         from models.senet import seresnet152
         net = seresnet152()
     elif args.net == 'efficientnetb0':
-        from models.efficientnet import efficientnetb0
-        net = efficientnetb0()
+        if args.dataset == 'cifar100':
+            from models.efficientnet import efficientnetb0
+            net = efficientnetb0(num_classes=100)
+        elif args.dataset == 'pet':
+            from models.resnet import resnet50
+            #net = resnet50()
+            #from torchvision.models import resnet50
+            #net = resnet50(num_classes=37)
+            #from models_large.efficientnet import efficientnetb0
+            from models_large.efficientnet1 import efficientnetb0
+            net = efficientnetb0(num_classes=37)
     elif args.net == 'efficientnetb1':
         from models.efficientnet import efficientnetb1
         net = efficientnetb1()
@@ -173,7 +207,7 @@ def get_network(args):
     return net
 
 
-def get_training_dataloader(mean, std, batch_size=16, num_workers=2, shuffle=True):
+def cifar100_training_dataloader(mean, std, batch_size=16, num_workers=2, shuffle=True):
     """ return training dataloader
     Args:
         mean: mean of cifar100 training dataset
@@ -200,7 +234,7 @@ def get_training_dataloader(mean, std, batch_size=16, num_workers=2, shuffle=Tru
 
     return cifar100_training_loader
 
-def get_test_dataloader(mean, std, batch_size=16, num_workers=2, shuffle=True):
+def cifar100_test_dataloader(mean, std, batch_size=16, num_workers=2, shuffle=True):
     """ return training dataloader
     Args:
         mean: mean of cifar100 test dataset
@@ -222,6 +256,108 @@ def get_test_dataloader(mean, std, batch_size=16, num_workers=2, shuffle=True):
         cifar100_test, shuffle=shuffle, num_workers=num_workers, batch_size=batch_size)
 
     return cifar100_test_loader
+
+def pet_training_dataloader(download, mean, std, batch_size, num_workers, shuffle):
+    transforms_train = transforms.Compose([
+            transforms.RandomResizedCrop(224),
+            transforms.RandomHorizontalFlip(),
+            transforms.RandomRotation(15),
+            #transforms.ColorJitter(),
+            transforms.ToTensor(),
+            transforms.Normalize(mean, std)
+    ])
+
+    from dataset.pet import OxfordPet
+    dataset = OxfordPet(
+        'data',
+        image_set='train',
+        download=download,
+        transforms=transforms_train
+    )
+
+    return DataLoader(
+        dataset,
+        shuffle=shuffle,
+        #num_workers=num_workers,
+        num_workers=0,
+        batch_size=batch_size
+    )
+
+
+def pet_test_dataloader(download, mean, std, batch_size, num_workers, shuffle):
+    transforms_test = transforms.Compose([
+            transforms.Resize(256),
+            transforms.CenterCrop(224),
+            transforms.ToTensor(),
+            transforms.Normalize(mean, std)
+    ])
+
+    from dataset.pet import OxfordPet
+    dataset = OxfordPet(
+        'data',
+        image_set='val',
+        download=download,
+        transforms=transforms_test)
+
+    return DataLoader(
+        dataset,
+        shuffle=shuffle,
+        num_workers=num_workers,
+        batch_size=batch_size
+    )
+
+def dataloader(args, image_set):
+    if args.dataset == 'cifar100':
+        if image_set == 'train':
+            cifar100_training_loader = cifar100_training_dataloader(
+                settings.CIFAR100_TRAIN_MEAN,
+                settings.CIFAR100_TRAIN_STD,
+                num_workers=4,
+                batch_size=args.b,
+                shuffle=True
+            )
+            return cifar100_training_loader
+
+        elif image_set == 'val':
+            cifar100_test_loader = cifar100_test_dataloader(
+                settings.CIFAR100_TRAIN_MEAN,
+                settings.CIFAR100_TRAIN_STD,
+                num_workers=4,
+                batch_size=args.b,
+                shuffle=True
+            )
+            return cifar100_test_loader
+        else:
+            raise ValueError('wrong image_set value')
+
+    elif args.dataset == 'pet':
+        if image_set == 'train':
+            pet_training_loader = pet_training_dataloader(
+                args.download,
+                settings.PET_TRAIN_MEAN,
+                settings.PET_TRAIN_STD,
+                num_workers=4,
+                batch_size=args.b,
+                shuffle=True
+            )
+            return pet_training_loader
+
+        elif image_set == 'val':
+            pet_test_loader = pet_test_dataloader(
+                args.download,
+                settings.PET_TRAIN_MEAN,
+                settings.PET_TRAIN_STD,
+                num_workers=4,
+                batch_size=args.b,
+                shuffle=True
+            )
+            return pet_test_loader
+        else:
+            raise ValueError('wrong image_set value')
+
+    else:
+        raise ValueError('wrong dataset')
+
 
 def compute_mean_std(cifar100_dataset):
     """compute the mean and std of cifar100 dataset
