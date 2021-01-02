@@ -77,6 +77,7 @@ def get_network(args):
     elif args.net == 'resnet50':
         if args.dataset == 'cifar100':
             from models.resnet import resnet50
+            #from models_large.resnet import resnet50
             net = resnet50(100)
         elif args.dataset == 'pet':
             from models_large.resnet import resnet50
@@ -258,11 +259,12 @@ def cifar100_test_dataloader(mean, std, batch_size=16, num_workers=2, shuffle=Tr
     return cifar100_test_loader
 
 def pet_training_dataloader(download, mean, std, batch_size, num_workers, shuffle):
+    print('pet training')
     transforms_train = transforms.Compose([
+            transforms.RandomRotation(15),
             transforms.RandomResizedCrop(224),
             transforms.RandomHorizontalFlip(),
-            transforms.RandomRotation(15),
-            #transforms.ColorJitter(),
+            transforms.ColorJitter(),
             transforms.ToTensor(),
             transforms.Normalize(mean, std)
     ])
@@ -278,8 +280,7 @@ def pet_training_dataloader(download, mean, std, batch_size, num_workers, shuffl
     return DataLoader(
         dataset,
         shuffle=shuffle,
-        #num_workers=num_workers,
-        num_workers=0,
+        num_workers=num_workers,
         batch_size=batch_size
     )
 
