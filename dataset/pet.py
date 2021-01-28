@@ -15,6 +15,8 @@ import torch
 from torch.utils.data import Dataset
 from torchvision.datasets.utils import download_url
 import lmdb
+from tqdm import tqdm
+
 
 class OxfordPet(Dataset):
     def __init__(self, path, download=False, image_set='train', transforms=None):
@@ -32,17 +34,27 @@ class OxfordPet(Dataset):
         anno_filename = 'annotations.tar.gz'
 
         if download:
+            print('Downloading data.....')
             download_url(dataset_url, path, data_filename, md5=data_md5)
             download_url(anno_url, path, anno_filename, md5=anno_md5)
+            print('Finish downloading.....')
 
         lmdb_fp = os.path.join(path, 'pet', image_set)
 
-        if not os.path.exists(lmdb_fp):
-            with tarfile.open(os.path.join(path, data_filename), "r") as tar:
-                tar.extractall(path=path)
+        def track_progress(members):
+            for member in tqdm(members):
+                yield member
 
+        if not os.path.exists(lmdb_fp):
+            print('Extracting file {}'.format(data_filename))
+            with tarfile.open(os.path.join(path, data_filename), "r") as tar:
+                tar.extractall(path=path, members=track_progress(tar))
+            print('Done.')
+
+            print('Extracting file {}'.format(data_filename))
             with tarfile.open(os.path.join(path, anno_filename), "r") as tar:
-                tar.extractall(path=path)
+                tar.extractall(path=path, members=track_progress(tar))
+            print('Done.')
 
             images = []
             labels = []
@@ -64,9 +76,9 @@ class OxfordPet(Dataset):
 
             db_size = 1 << 40
             env = lmdb.open(lmdb_fp, map_size=db_size)
-            print('converting data to lmdb format')
+            print('Converting data to lmdb format')
             with env.begin(write=True) as txn:
-                for image_path, label in zip(images, labels):
+                for image_path, label in tqbm(zip(images, labels)):
                     with open(image_path, 'rb') as f:
                         img_str = base64.encodebytes(f.read()).decode('utf-8')
                         label_str = str(label)
