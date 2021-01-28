@@ -51,7 +51,7 @@ class OxfordPet(Dataset):
                 tar.extractall(path=path, members=track_progress(tar, 7394))
             print('Done.\n')
 
-            print('Extracting file {}'.format(data_filename))
+            print('Extracting file {}'.format(anno_filename))
             with tarfile.open(os.path.join(path, anno_filename), "r") as tar:
                 tar.extractall(path=path, members=track_progress(tar, 18474))
             print('Done.\n')
