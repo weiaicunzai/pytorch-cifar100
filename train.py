@@ -96,7 +96,8 @@ def eval_training(epoch):
     finish = time.time()
     if args.gpu:
         print('GPU INFO.....')
-        print(torch.cuda.memory_summary(), end='')
+        #print(torch.cuda.memory_summary(), end='')
+        print(os.system('nvidia-smi'))
     print('Evaluating Network.....')
     print('Test set: Average loss: {:.4f}, Accuracy: {:.4f}, Time consumed:{:.2f}s'.format(
         test_loss / len(test_loader.dataset),
