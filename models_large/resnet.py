@@ -10,6 +10,7 @@
 
 import torch
 import torch.nn as nn
+import torch.utils.checkpoint as ck
 
 class BasicBlock(nn.Module):
     """Basic Block for resnet 18 and resnet 34
@@ -125,13 +126,31 @@ class ResNet(nn.Module):
 
         return nn.Sequential(*layers)
 
+    def custom(self, module):
+        def custom_forward(*inputs):
+            inputs = module(inputs[0])
+            return inputs
+        return custom_forward
+
     def forward(self, x):
         output = self.conv1(x)
         output = self.max_pool(output)
-        output = self.conv2_x(output)
-        output = self.conv3_x(output)
-        output = self.conv4_x(output)
-        output = self.conv5_x(output)
+        #output = self.conv2_x(output)
+        #output = self.conv3_x(output)
+        #output = self.conv4_x(output)
+        #output = self.conv5_x(output)
+
+        if self.training:
+            output = ck.checkpoint(self.conv2_x, output)
+            output = ck.checkpoint(self.conv3_x, output)
+            output = ck.checkpoint(self.conv4_x, output)
+            output = ck.checkpoint(self.conv5_x, output)
+        else:
+            output = self.conv2_x(output)
+            output = self.conv3_x(output)
+            output = self.conv4_x(output)
+            output = self.conv5_x(output)
+
         output = self.avg_pool(output)
         output = output.view(output.size(0), -1)
         output = self.fc(output)
@@ -163,5 +182,3 @@ def resnet152(num_classes):
     """ return a ResNet 152 instance
     """
     return ResNet(BottleNeck, [3, 8, 36, 3], num_classes=num_classes)
-
-
