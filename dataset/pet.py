@@ -37,24 +37,24 @@ class OxfordPet(Dataset):
             print('Downloading data.....')
             download_url(dataset_url, path, data_filename, md5=data_md5)
             download_url(anno_url, path, anno_filename, md5=anno_md5)
-            print('Finish downloading.....')
+            print('Finish downloading.....\n')
 
         lmdb_fp = os.path.join(path, 'pet', image_set)
 
-        def track_progress(members):
-            for member in tqdm(members):
+        def track_progress(members, total=None):
+            for member in tqdm(members, total=total):
                 yield member
 
         if not os.path.exists(lmdb_fp):
             print('Extracting file {}'.format(data_filename))
             with tarfile.open(os.path.join(path, data_filename), "r") as tar:
-                tar.extractall(path=path, members=track_progress(tar))
-            print('Done.')
+                tar.extractall(path=path, members=track_progress(tar, 7394))
+            print('Done.\n')
 
             print('Extracting file {}'.format(data_filename))
             with tarfile.open(os.path.join(path, anno_filename), "r") as tar:
-                tar.extractall(path=path, members=track_progress(tar))
-            print('Done.')
+                tar.extractall(path=path, members=track_progress(tar, 18474))
+            print('Done.\n')
 
             images = []
             labels = []
@@ -76,9 +76,9 @@ class OxfordPet(Dataset):
 
             db_size = 1 << 40
             env = lmdb.open(lmdb_fp, map_size=db_size)
-            print('Converting data to lmdb format')
+            print('Converting data to lmdb format.....')
             with env.begin(write=True) as txn:
-                for image_path, label in tqbm(zip(images, labels)):
+                for image_path, label in tqdm(zip(images, labels), total=len(images)):
                     with open(image_path, 'rb') as f:
                         img_str = base64.encodebytes(f.read()).decode('utf-8')
                         label_str = str(label)
@@ -88,6 +88,7 @@ class OxfordPet(Dataset):
             env.close()
             shutil.rmtree(os.path.join(path, 'annotations'))
             shutil.rmtree(os.path.join(path, 'images'))
+            print('Done.\n')
 
 
         self.env = lmdb.open(lmdb_fp, map_size=1099511627776, readonly=True, lock=False)
