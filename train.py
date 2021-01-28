@@ -37,6 +37,7 @@ def train(epoch):
             labels = labels.cuda()
             images = images.cuda()
 
+        os.system('nvidia-smi')
         optimizer.zero_grad()
         outputs = net(images)
         loss = loss_function(outputs, labels)
