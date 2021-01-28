@@ -149,8 +149,9 @@ class ResNet(nn.Module):
 
         if self.training:
             #output = self.conv1(x)
-            output = ck.checkpoint_sequential(self.conv1_x, len(self.conv1_x), output)
+            output = ck.checkpoint_sequential(self.conv1, len(self.conv1), output)
             # 7309MiB / 15079MiB
+            # 7153MiB / 15079MiB
             output = ck.checkpoint(self.custom(self.max_pool), output)
             #output = self.max_pool(output)
             #output = ck.checkpoint(self.conv2_x, output)
