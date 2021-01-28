@@ -40,6 +40,7 @@ def train(epoch):
         optimizer.zero_grad()
         outputs = net(images)
         loss = loss_function(outputs, labels)
+        os.system('nvidia-smi')
         loss.backward()
         optimizer.step()
 
