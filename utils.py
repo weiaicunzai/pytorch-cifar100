@@ -304,7 +304,7 @@ def pet_training_dataloader(download, mean, std, batch_size, num_workers, shuffl
             transforms.RandomHorizontalFlip(),
             transforms.RandomApply(torch.nn.ModuleList([
                     transforms.ColorJitter()
-            ]), p=0.3)
+            ]), p=0.3),
             transforms.ToTensor(),
             transforms.Normalize(mean, std)
     ])
