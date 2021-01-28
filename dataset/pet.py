@@ -34,10 +34,10 @@ class OxfordPet(Dataset):
         anno_filename = 'annotations.tar.gz'
 
         if download:
-            print('Downloading data.....')
             download_url(dataset_url, path, data_filename, md5=data_md5)
+            print()
             download_url(anno_url, path, anno_filename, md5=anno_md5)
-            print('Finish downloading.....\n')
+            print()
 
         lmdb_fp = os.path.join(path, 'pet', image_set)
 
@@ -86,7 +86,11 @@ class OxfordPet(Dataset):
                         txn.put(image_name, json.dumps([img_str, label_str]).encode('utf-8'))
 
             env.close()
+            print('Done.\n')
+            print('Removing folder {}'.format(os.path.join(path, 'annotations')))
             shutil.rmtree(os.path.join(path, 'annotations'))
+            print('Done.\n')
+            print('Removing folder {}'.format(os.path.join(path, 'images')))
             shutil.rmtree(os.path.join(path, 'images'))
             print('Done.\n')
 
