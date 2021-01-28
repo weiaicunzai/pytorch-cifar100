@@ -163,7 +163,7 @@ class ResNet(nn.Module):
             output = ck.checkpoint_sequential(self.conv3_x, len(self.conv3_x), output)
             output = ck.checkpoint_sequential(self.conv4_x, len(self.conv4_x), output)
             output = ck.checkpoint_sequential(self.conv5_x, len(self.conv5_x), output)
-            output = ck.checkpoint(self.custom(avg_pool), output))
+            output = ck.checkpoint(self.custom(self.avg_pool), output))
             output = output.view(output.size(0), -1)
             output = self.fc(output)
         else:
