@@ -148,11 +148,10 @@ class ResNet(nn.Module):
         #output = self.conv5_x(output)
 
         if self.training:
-            output = ck.checkpoint(self.whole, output)
-            #output = ck.checkpoint(self.conv2_x, output)
-            #output = ck.checkpoint(self.conv3_x, output)
-            #output = ck.checkpoint(self.conv4_x, output)
-            #output = ck.checkpoint(self.conv5_x, output)
+            output = ck.checkpoint(self.conv2_x, output)
+            output = ck.checkpoint(self.conv3_x, output)
+            output = ck.checkpoint(self.conv4_x, output)
+            output = ck.checkpoint(self.conv5_x, output)
         else:
             output = self.whole(output)
             #output = self.conv2_x(output)
