@@ -42,7 +42,7 @@ class Inception(nn.Module):
             nn.BatchNorm2d(n5x5_reduce),
             nn.ReLU(inplace=True),
             nn.Conv2d(n5x5_reduce, n5x5, kernel_size=3, padding=1),
-            nn.BatchNorm2d(n5x5, n5x5),
+            nn.BatchNorm2d(n5x5),
             nn.ReLU(inplace=True),
             nn.Conv2d(n5x5, n5x5, kernel_size=3, padding=1),
             nn.BatchNorm2d(n5x5),
