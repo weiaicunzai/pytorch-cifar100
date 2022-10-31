@@ -232,17 +232,17 @@ class ResNet(nn.Module):
 
 
 
-def ECA_net_add3_18():
+def ECA_net_add3_06_18():
     return ResNet(ECABottleneck, [2, 2, 2, 2])
 
-def ECA_net_add3_34():
+def ECA_net_add3_06_34():
     return ResNet(ECABottleneck, [3, 4, 6, 3])
 
-def ECA_net_add3_50():
+def ECA_net_add3_06_50():
     return ResNet(ECABottleneck, [3, 4, 6, 3])
 
-def ECA_net_add3_101():
+def ECA_net_add3_06_101():
     return ResNet(ECABottleneck, [3, 4, 23, 3])
 
-def ECA_net_add3_152():
+def ECA_net_add3_06_152():
     return ResNet(ECABottleneck, [3, 8, 36, 3])
