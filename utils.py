@@ -154,6 +154,22 @@ def get_network(args):
         from models.ECA_net_add3 import ECA_net_add3_152
         net = ECA_net_add3_152()    
         
+    elif args.net == 'ECA_net_add3_06_18':
+        from models.ECA_net_add3_06 import ECA_net_add3_06_18
+        net = ECA_net_add3_06_18()
+    elif args.net == 'ECA_net_add3_06_34':
+        from models.ECA_net_add3_06 import ECA_net_add3_06_34
+        net = ECA_net_add3_06_34()
+    elif args.net == 'ECA_net_add3_06_50':
+        from models.ECA_net_add3_06 import ECA_net_add3_06_50
+        net = ECA_net_add3_06_50()
+    elif args.net == 'ECA_net_add3_06_101':
+        from models.ECA_net_add3_06 import ECA_net_add3_06_101
+        net = ECA_net_add3_06_101()
+    elif args.net == 'ECA_net_add3_06_152':
+        from models.ECA_net_add3_06 import ECA_net_add3_06_152
+        net = ECA_net_add3_06_152()        
+        
         
         
     elif args.net == 'wideresnet':
