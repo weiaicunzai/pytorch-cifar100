@@ -11,6 +11,33 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+from torch.nn.parameter import Parameter
+
+from torch import Tensor
+
+
+def relua(input, a, b, inplace=False):
+    zero = torch.tensor([0], device=torch.device("cuda:0")) #TODO: fix device
+    return torch.max(zero, torch.min(a, input)) - torch.max(zero, torch.min(b, -input))
+#     return F.hardtanh(input.data, 0, a, inplace) - F.hardtanh(-input.data, 0, b, inplace)
+
+
+class ReLUA(nn.Module):
+    a: Tensor
+    b: Tensor
+        
+    def __init__(self, inplace: bool = False):
+        super(ReLUA, self).__init__()
+        self.inplace = inplace
+        self.a = Parameter(torch.tensor(6.))
+        self.b = Parameter(torch.tensor(.1))
+
+    def forward(self, input: Tensor) -> Tensor:
+        return relua(input, self.a, self.b, inplace=self.inplace)
+
+    def extra_repr(self) -> str:
+        inplace_str = 'inplace=True' if self.inplace else ''
+        return inplace_str
 
 
 class LinearBottleNeck(nn.Module):
@@ -21,11 +48,13 @@ class LinearBottleNeck(nn.Module):
         self.residual = nn.Sequential(
             nn.Conv2d(in_channels, in_channels * t, 1),
             nn.BatchNorm2d(in_channels * t),
-            nn.ReLU6(inplace=True),
+#             nn.ReLU6(inplace=True),
+            ReLUA(inplace=True),
 
             nn.Conv2d(in_channels * t, in_channels * t, 3, stride=stride, padding=1, groups=in_channels * t),
             nn.BatchNorm2d(in_channels * t),
-            nn.ReLU6(inplace=True),
+#             nn.ReLU6(inplace=True),
+            ReLUA(inplace=True),
 
             nn.Conv2d(in_channels * t, out_channels, 1),
             nn.BatchNorm2d(out_channels)
@@ -52,7 +81,8 @@ class MobileNetV2(nn.Module):
         self.pre = nn.Sequential(
             nn.Conv2d(3, 32, 1, padding=1),
             nn.BatchNorm2d(32),
-            nn.ReLU6(inplace=True)
+#             nn.ReLU6(inplace=True)
+            ReLUA(inplace=True),
         )
 
         self.stage1 = LinearBottleNeck(32, 16, 1, 1)
@@ -66,7 +96,8 @@ class MobileNetV2(nn.Module):
         self.conv1 = nn.Sequential(
             nn.Conv2d(320, 1280, 1),
             nn.BatchNorm2d(1280),
-            nn.ReLU6(inplace=True)
+#             nn.ReLU6(inplace=True)
+            ReLUA(inplace=True),
         )
 
         self.conv2 = nn.Conv2d(1280, class_num, 1)
