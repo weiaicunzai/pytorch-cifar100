@@ -115,7 +115,7 @@ class ECABottleneck(nn.Module):
         self.stride = stride
 
         self.a = torch.rand(1)
-        self.e = torch.tensor([0.8])
+        self.e = torch.tensor([0.45])
 
     def forward(self, x):
         residual = x
