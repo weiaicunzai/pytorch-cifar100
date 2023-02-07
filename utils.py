@@ -2,17 +2,15 @@
 
 author baiyu
 """
-import os
-import sys
-import re
 import datetime
+import os
+import re
+import sys
 
 import numpy
-
-import torch
-from torch.optim.lr_scheduler import _LRScheduler
 import torchvision
 import torchvision.transforms as transforms
+from torch.optim.lr_scheduler import _LRScheduler
 from torch.utils.data import DataLoader
 
 
@@ -157,7 +155,7 @@ def get_network(args):
         print('the network name you have entered is not supported yet')
         sys.exit()
 
-    if args.gpu: #use_gpu
+    if args.gpu:  # use_gpu
         net = net.cuda()
 
     return net
@@ -176,19 +174,21 @@ def get_training_dataloader(mean, std, batch_size=16, num_workers=2, shuffle=Tru
     """
 
     transform_train = transforms.Compose([
-        #transforms.ToPILImage(),
+        # transforms.ToPILImage(),
         transforms.RandomCrop(32, padding=4),
         transforms.RandomHorizontalFlip(),
         transforms.RandomRotation(15),
         transforms.ToTensor(),
         transforms.Normalize(mean, std)
     ])
-    #cifar100_training = CIFAR100Train(path, transform=transform_train)
-    cifar100_training = torchvision.datasets.CIFAR100(root='./data', train=True, download=True, transform=transform_train)
+    # cifar100_training = CIFAR100Train(path, transform=transform_train)
+    cifar100_training = torchvision.datasets.CIFAR100(root='./data', train=True, download=True,
+                                                      transform=transform_train)
     cifar100_training_loader = DataLoader(
         cifar100_training, shuffle=shuffle, num_workers=num_workers, batch_size=batch_size)
 
     return cifar100_training_loader
+
 
 def get_test_dataloader(mean, std, batch_size=16, num_workers=2, shuffle=True):
     """ return training dataloader
@@ -206,12 +206,13 @@ def get_test_dataloader(mean, std, batch_size=16, num_workers=2, shuffle=True):
         transforms.ToTensor(),
         transforms.Normalize(mean, std)
     ])
-    #cifar100_test = CIFAR100Test(path, transform=transform_test)
+    # cifar100_test = CIFAR100Test(path, transform=transform_test)
     cifar100_test = torchvision.datasets.CIFAR100(root='./data', train=False, download=True, transform=transform_test)
     cifar100_test_loader = DataLoader(
         cifar100_test, shuffle=shuffle, num_workers=num_workers, batch_size=batch_size)
 
     return cifar100_test_loader
+
 
 def compute_mean_std(cifar100_dataset):
     """compute the mean and std of cifar100 dataset
@@ -231,14 +232,15 @@ def compute_mean_std(cifar100_dataset):
 
     return mean, std
 
+
 class WarmUpLR(_LRScheduler):
     """warmup_training learning rate scheduler
     Args:
         optimizer: optimzier(e.g. SGD)
         total_iters: totoal_iters of warmup phase
     """
-    def __init__(self, optimizer, total_iters, last_epoch=-1):
 
+    def __init__(self, optimizer, total_iters, last_epoch=-1):
         self.total_iters = total_iters
         super().__init__(optimizer, last_epoch)
 
@@ -266,6 +268,7 @@ def most_recent_folder(net_weights, fmt):
     folders = sorted(folders, key=lambda f: datetime.datetime.strptime(f, fmt))
     return folders[-1]
 
+
 def most_recent_weights(weights_folder):
     """
         return most recent created weights file
@@ -282,13 +285,15 @@ def most_recent_weights(weights_folder):
 
     return weight_files[-1]
 
+
 def last_epoch(weights_folder):
     weight_file = most_recent_weights(weights_folder)
     if not weight_file:
-       raise Exception('no recent weights were found')
+        raise Exception('no recent weights were found')
     resume_epoch = int(weight_file.split('-')[1])
 
     return resume_epoch
+
 
 def best_acc_weights(weights_folder):
     """

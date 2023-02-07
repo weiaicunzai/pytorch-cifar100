@@ -11,6 +11,7 @@
 import torch
 import torch.nn as nn
 
+
 class BasicConv2d(nn.Module):
 
     def __init__(self, input_channels, output_channels, **kwargs):
@@ -26,11 +27,12 @@ class BasicConv2d(nn.Module):
 
         return x
 
+
 class Inception_Stem(nn.Module):
 
-    #"""Figure 3. The schema for stem of the pure Inception-v4 and
-    #Inception-ResNet-v2 networks. This is the input part of those
-    #networks."""
+    # """Figure 3. The schema for stem of the pure Inception-v4 and
+    # Inception-ResNet-v2 networks. This is the input part of those
+    # networks."""
     def __init__(self, input_channels):
         super().__init__()
         self.conv1 = nn.Sequential(
@@ -58,7 +60,6 @@ class Inception_Stem(nn.Module):
         self.branchpoolb = BasicConv2d(192, 192, kernel_size=3, stride=1, padding=1)
 
     def forward(self, x):
-
         x = self.conv1(x)
 
         x = [
@@ -82,10 +83,11 @@ class Inception_Stem(nn.Module):
 
         return x
 
+
 class InceptionA(nn.Module):
 
-    #"""Figure 4. The schema for 35 × 35 grid modules of the pure
-    #Inception-v4 network. This is the Inception-A block of Figure 9."""
+    # """Figure 4. The schema for 35 × 35 grid modules of the pure
+    # Inception-v4 network. This is the Inception-A block of Figure 9."""
     def __init__(self, input_channels):
         super().__init__()
 
@@ -108,7 +110,6 @@ class InceptionA(nn.Module):
         )
 
     def forward(self, x):
-
         x = [
             self.branch3x3stack(x),
             self.branch3x3(x),
@@ -118,15 +119,15 @@ class InceptionA(nn.Module):
 
         return torch.cat(x, 1)
 
+
 class ReductionA(nn.Module):
 
-    #"""Figure 7. The schema for 35 × 35 to 17 × 17 reduction module.
-    #Different variants of this blocks (with various number of filters)
-    #are used in Figure 9, and 15 in each of the new Inception(-v4, - ResNet-v1,
-    #-ResNet-v2) variants presented in this paper. The k, l, m, n numbers
-    #represent filter bank sizes which can be looked up in Table 1.
+    # """Figure 7. The schema for 35 × 35 to 17 × 17 reduction module.
+    # Different variants of this blocks (with various number of filters)
+    # are used in Figure 9, and 15 in each of the new Inception(-v4, - ResNet-v1,
+    # -ResNet-v2) variants presented in this paper. The k, l, m, n numbers
+    # represent filter bank sizes which can be looked up in Table 1.
     def __init__(self, input_channels, k, l, m, n):
-
         super().__init__()
         self.branch3x3stack = nn.Sequential(
             BasicConv2d(input_channels, k, kernel_size=1),
@@ -139,7 +140,6 @@ class ReductionA(nn.Module):
         self.output_channels = input_channels + n + m
 
     def forward(self, x):
-
         x = [
             self.branch3x3stack(x),
             self.branch3x3(x),
@@ -148,10 +148,11 @@ class ReductionA(nn.Module):
 
         return torch.cat(x, 1)
 
+
 class InceptionB(nn.Module):
 
-    #"""Figure 5. The schema for 17 × 17 grid modules of the pure Inception-v4 network.
-    #This is the Inception-B block of Figure 9."""
+    # """Figure 5. The schema for 17 × 17 grid modules of the pure Inception-v4 network.
+    # This is the Inception-B block of Figure 9."""
     def __init__(self, input_channels):
         super().__init__()
 
@@ -186,13 +187,13 @@ class InceptionB(nn.Module):
 
         return torch.cat(x, 1)
 
+
 class ReductionB(nn.Module):
 
-    #"""Figure 8. The schema for 17 × 17 to 8 × 8 grid-reduction mod- ule.
-    #This is the reduction module used by the pure Inception-v4 network in
-    #Figure 9."""
+    # """Figure 8. The schema for 17 × 17 to 8 × 8 grid-reduction mod- ule.
+    # This is the reduction module used by the pure Inception-v4 network in
+    # Figure 9."""
     def __init__(self, input_channels):
-
         super().__init__()
         self.branch7x7 = nn.Sequential(
             BasicConv2d(input_channels, 256, kernel_size=1),
@@ -209,7 +210,6 @@ class ReductionB(nn.Module):
         self.branchpool = nn.MaxPool2d(kernel_size=3, stride=2, padding=1)
 
     def forward(self, x):
-
         x = [
             self.branch3x3(x),
             self.branch7x7(x),
@@ -218,11 +218,12 @@ class ReductionB(nn.Module):
 
         return torch.cat(x, 1)
 
+
 class InceptionC(nn.Module):
 
     def __init__(self, input_channels):
-        #"""Figure 6. The schema for 8×8 grid modules of the pure
-        #Inceptionv4 network. This is the Inception-C block of Figure 9."""
+        # """Figure 6. The schema for 8×8 grid modules of the pure
+        # Inceptionv4 network. This is the Inception-C block of Figure 9."""
 
         super().__init__()
 
@@ -273,10 +274,10 @@ class InceptionC(nn.Module):
 
         return torch.cat(output, 1)
 
+
 class InceptionV4(nn.Module):
 
     def __init__(self, A, B, C, k=192, l=224, m=256, n=384, class_nums=100):
-
         super().__init__()
         self.stem = Inception_Stem(3)
         self.inception_a = self._generate_inception_module(384, 384, A, InceptionA)
@@ -287,7 +288,7 @@ class InceptionV4(nn.Module):
         self.inception_c = self._generate_inception_module(1536, 1536, C, InceptionC)
         self.avgpool = nn.AvgPool2d(7)
 
-        #"""Dropout (keep 0.8)"""
+        # """Dropout (keep 0.8)"""
         self.dropout = nn.Dropout2d(1 - 0.8)
         self.linear = nn.Linear(1536, class_nums)
 
@@ -307,7 +308,6 @@ class InceptionV4(nn.Module):
 
     @staticmethod
     def _generate_inception_module(input_channels, output_channels, block_num, block):
-
         layers = nn.Sequential()
         for l in range(block_num):
             layers.add_module("{}_{}".format(block.__name__, l), block(input_channels))
@@ -315,12 +315,12 @@ class InceptionV4(nn.Module):
 
         return layers
 
+
 class InceptionResNetA(nn.Module):
 
-    #"""Figure 16. The schema for 35 × 35 grid (Inception-ResNet-A)
-    #module of the Inception-ResNet-v2 network."""
+    # """Figure 16. The schema for 35 × 35 grid (Inception-ResNet-A)
+    # module of the Inception-ResNet-v2 network."""
     def __init__(self, input_channels):
-
         super().__init__()
         self.branch3x3stack = nn.Sequential(
             BasicConv2d(input_channels, 32, kernel_size=1),
@@ -341,7 +341,6 @@ class InceptionResNetA(nn.Module):
         self.relu = nn.ReLU(inplace=True)
 
     def forward(self, x):
-
         residual = [
             self.branch1x1(x),
             self.branch3x3(x),
@@ -357,12 +356,12 @@ class InceptionResNetA(nn.Module):
 
         return output
 
+
 class InceptionResNetB(nn.Module):
 
-    #"""Figure 17. The schema for 17 × 17 grid (Inception-ResNet-B) module of
-    #the Inception-ResNet-v2 network."""
+    # """Figure 17. The schema for 17 × 17 grid (Inception-ResNet-B) module of
+    # the Inception-ResNet-v2 network."""
     def __init__(self, input_channels):
-
         super().__init__()
         self.branch7x7 = nn.Sequential(
             BasicConv2d(input_channels, 128, kernel_size=1),
@@ -386,8 +385,8 @@ class InceptionResNetB(nn.Module):
 
         residual = torch.cat(residual, 1)
 
-        #"""In general we picked some scaling factors between 0.1 and 0.3 to scale the residuals
-        #before their being added to the accumulated layer activations (cf. Figure 20)."""
+        # """In general we picked some scaling factors between 0.1 and 0.3 to scale the residuals
+        # before their being added to the accumulated layer activations (cf. Figure 20)."""
         residual = self.reduction1x1(residual) * 0.1
 
         shortcut = self.shortcut(x)
@@ -401,9 +400,8 @@ class InceptionResNetB(nn.Module):
 class InceptionResNetC(nn.Module):
 
     def __init__(self, input_channels):
-
-        #Figure 19. The schema for 8×8 grid (Inception-ResNet-C)
-        #module of the Inception-ResNet-v2 network."""
+        # Figure 19. The schema for 8×8 grid (Inception-ResNet-C)
+        # module of the Inception-ResNet-v2 network."""
         super().__init__()
         self.branch3x3 = nn.Sequential(
             BasicConv2d(input_channels, 192, kernel_size=1),
@@ -433,15 +431,15 @@ class InceptionResNetC(nn.Module):
 
         return output
 
+
 class InceptionResNetReductionA(nn.Module):
 
-    #"""Figure 7. The schema for 35 × 35 to 17 × 17 reduction module.
-    #Different variants of this blocks (with various number of filters)
-    #are used in Figure 9, and 15 in each of the new Inception(-v4, - ResNet-v1,
-    #-ResNet-v2) variants presented in this paper. The k, l, m, n numbers
-    #represent filter bank sizes which can be looked up in Table 1.
+    # """Figure 7. The schema for 35 × 35 to 17 × 17 reduction module.
+    # Different variants of this blocks (with various number of filters)
+    # are used in Figure 9, and 15 in each of the new Inception(-v4, - ResNet-v1,
+    # -ResNet-v2) variants presented in this paper. The k, l, m, n numbers
+    # represent filter bank sizes which can be looked up in Table 1.
     def __init__(self, input_channels, k, l, m, n):
-
         super().__init__()
         self.branch3x3stack = nn.Sequential(
             BasicConv2d(input_channels, k, kernel_size=1),
@@ -454,7 +452,6 @@ class InceptionResNetReductionA(nn.Module):
         self.output_channels = input_channels + n + m
 
     def forward(self, x):
-
         x = [
             self.branch3x3stack(x),
             self.branch3x3(x),
@@ -463,14 +460,14 @@ class InceptionResNetReductionA(nn.Module):
 
         return torch.cat(x, 1)
 
+
 class InceptionResNetReductionB(nn.Module):
 
-    #"""Figure 18. The schema for 17 × 17 to 8 × 8 grid-reduction module.
-    #Reduction-B module used by the wider Inception-ResNet-v1 network in
-    #Figure 15."""
-    #I believe it was a typo(Inception-ResNet-v1 should be Inception-ResNet-v2)
+    # """Figure 18. The schema for 17 × 17 to 8 × 8 grid-reduction module.
+    # Reduction-B module used by the wider Inception-ResNet-v1 network in
+    # Figure 15."""
+    # I believe it was a typo(Inception-ResNet-v1 should be Inception-ResNet-v2)
     def __init__(self, input_channels):
-
         super().__init__()
         self.branchpool = nn.MaxPool2d(3, stride=2)
 
@@ -501,6 +498,7 @@ class InceptionResNetReductionB(nn.Module):
         x = torch.cat(x, 1)
         return x
 
+
 class InceptionResNetV2(nn.Module):
 
     def __init__(self, A, B, C, k=256, l=256, m=384, n=384, class_nums=100):
@@ -513,9 +511,9 @@ class InceptionResNetV2(nn.Module):
         self.reduction_b = InceptionResNetReductionB(1154)
         self.inception_resnet_c = self._generate_inception_module(2146, 2048, C, InceptionResNetC)
 
-        #6x6 featuresize
+        # 6x6 featuresize
         self.avgpool = nn.AdaptiveAvgPool2d((1, 1))
-        #"""Dropout (keep 0.8)"""
+        # """Dropout (keep 0.8)"""
         self.dropout = nn.Dropout2d(1 - 0.8)
         self.linear = nn.Linear(2048, class_nums)
 
@@ -535,7 +533,6 @@ class InceptionResNetV2(nn.Module):
 
     @staticmethod
     def _generate_inception_module(input_channels, output_channels, block_num, block):
-
         layers = nn.Sequential()
         for l in range(block_num):
             layers.add_module("{}_{}".format(block.__name__, l), block(input_channels))
@@ -543,8 +540,10 @@ class InceptionResNetV2(nn.Module):
 
         return layers
 
+
 def inceptionv4():
     return InceptionV4(4, 7, 3)
+
 
 def inception_resnet_v2():
     return InceptionResNetV2(5, 10, 5)

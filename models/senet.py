@@ -8,12 +8,11 @@
     https://arxiv.org/abs/1709.01507
 """
 
-import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-class BasicResidualSEBlock(nn.Module):
 
+class BasicResidualSEBlock(nn.Module):
     expansion = 1
 
     def __init__(self, in_channels, out_channels, stride, r=16):
@@ -57,8 +56,8 @@ class BasicResidualSEBlock(nn.Module):
 
         return F.relu(x)
 
-class BottleneckResidualSEBlock(nn.Module):
 
+class BottleneckResidualSEBlock(nn.Module):
     expansion = 4
 
     def __init__(self, in_channels, out_channels, stride, r=16):
@@ -94,7 +93,6 @@ class BottleneckResidualSEBlock(nn.Module):
             )
 
     def forward(self, x):
-
         shortcut = self.shortcut(x)
 
         residual = self.residual(x)
@@ -106,6 +104,7 @@ class BottleneckResidualSEBlock(nn.Module):
         x = residual * excitation.expand_as(residual) + shortcut
 
         return F.relu(x)
+
 
 class SEResNet(nn.Module):
 
@@ -142,9 +141,7 @@ class SEResNet(nn.Module):
 
         return x
 
-
     def _make_stage(self, block, num, out_channels, stride):
-
         layers = []
         layers.append(block(self.in_channels, out_channels, stride))
         self.in_channels = out_channels * block.expansion
@@ -155,17 +152,22 @@ class SEResNet(nn.Module):
 
         return nn.Sequential(*layers)
 
+
 def seresnet18():
     return SEResNet(BasicResidualSEBlock, [2, 2, 2, 2])
+
 
 def seresnet34():
     return SEResNet(BasicResidualSEBlock, [3, 4, 6, 3])
 
+
 def seresnet50():
     return SEResNet(BottleneckResidualSEBlock, [3, 4, 6, 3])
 
+
 def seresnet101():
     return SEResNet(BottleneckResidualSEBlock, [3, 4, 23, 3])
+
 
 def seresnet152():
     return SEResNet(BottleneckResidualSEBlock, [3, 8, 36, 3])

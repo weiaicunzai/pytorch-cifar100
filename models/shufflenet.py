@@ -8,8 +8,6 @@
     https://arxiv.org/abs/1707.01083v2
 """
 
-from functools import partial
-
 import torch
 import torch.nn as nn
 
@@ -28,6 +26,7 @@ class BasicConv2d(nn.Module):
         x = self.relu(x)
         return x
 
+
 class ChannelShuffle(nn.Module):
 
     def __init__(self, groups):
@@ -38,16 +37,17 @@ class ChannelShuffle(nn.Module):
         batchsize, channels, height, width = x.data.size()
         channels_per_group = int(channels / self.groups)
 
-        #"""suppose a convolutional layer with g groups whose output has
-        #g x n channels; we first reshape the output channel dimension
-        #into (g, n)"""
+        # """suppose a convolutional layer with g groups whose output has
+        # g x n channels; we first reshape the output channel dimension
+        # into (g, n)"""
         x = x.view(batchsize, self.groups, channels_per_group, height, width)
 
-        #"""transposing and then flattening it back as the input of next layer."""
+        # """transposing and then flattening it back as the input of next layer."""
         x = x.transpose(1, 2).contiguous()
         x = x.view(batchsize, -1, height, width)
 
         return x
+
 
 class DepthwiseConv2d(nn.Module):
 
@@ -61,6 +61,7 @@ class DepthwiseConv2d(nn.Module):
     def forward(self, x):
         return self.depthwise(x)
 
+
 class PointwiseConv2d(nn.Module):
     def __init__(self, input_channels, output_channels, **kwargs):
         super().__init__()
@@ -72,13 +73,14 @@ class PointwiseConv2d(nn.Module):
     def forward(self, x):
         return self.pointwise(x)
 
+
 class ShuffleNetUnit(nn.Module):
 
     def __init__(self, input_channels, output_channels, stage, stride, groups):
         super().__init__()
 
-        #"""Similar to [9], we set the number of bottleneck channels to 1/4
-        #of the output channels for each ShuffleNet unit."""
+        # """Similar to [9], we set the number of bottleneck channels to 1/4
+        # of the output channels for each ShuffleNet unit."""
         self.bottlneck = nn.Sequential(
             PointwiseConv2d(
                 input_channels,
@@ -88,8 +90,8 @@ class ShuffleNetUnit(nn.Module):
             nn.ReLU(inplace=True)
         )
 
-        #"""Note that for Stage 2, we do not apply group convolution on the first pointwise
-        #layer because the number of input channels is relatively small."""
+        # """Note that for Stage 2, we do not apply group convolution on the first pointwise
+        # layer because the number of input channels is relatively small."""
         if stage == 2:
             self.bottlneck = nn.Sequential(
                 PointwiseConv2d(
@@ -121,12 +123,12 @@ class ShuffleNetUnit(nn.Module):
         self.fusion = self._add
         self.shortcut = nn.Sequential()
 
-        #"""As for the case where ShuffleNet is applied with stride,
-        #we simply make two modifications (see Fig 2 (c)):
-        #(i) add a 3 × 3 average pooling on the shortcut path;
-        #(ii) replace the element-wise addition with channel concatenation,
-        #which makes it easy to enlarge channel dimension with little extra
-        #computation cost.
+        # """As for the case where ShuffleNet is applied with stride,
+        # we simply make two modifications (see Fig 2 (c)):
+        # (i) add a 3 × 3 average pooling on the shortcut path;
+        # (ii) replace the element-wise addition with channel concatenation,
+        # which makes it easy to enlarge channel dimension with little extra
+        # computation cost.
         if stride != 1 or input_channels != output_channels:
             self.shortcut = nn.AvgPool2d(3, stride=2, padding=1)
 
@@ -156,6 +158,7 @@ class ShuffleNetUnit(nn.Module):
         output = self.relu(output)
 
         return output
+
 
 class ShuffleNet(nn.Module):
 
@@ -248,9 +251,6 @@ class ShuffleNet(nn.Module):
 
         return nn.Sequential(*stage)
 
+
 def shufflenet():
     return ShuffleNet([4, 8, 4])
-
-
-
-

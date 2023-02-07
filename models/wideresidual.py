@@ -1,4 +1,3 @@
-import torch
 import torch.nn as nn
 
 
@@ -36,11 +35,11 @@ class WideBasic(nn.Module):
             )
 
     def forward(self, x):
-
         residual = self.residual(x)
         shortcut = self.shortcut(x)
 
         return residual + shortcut
+
 
 class WideResNet(nn.Module):
     def __init__(self, num_classes, block, depth=50, widen_factor=1):

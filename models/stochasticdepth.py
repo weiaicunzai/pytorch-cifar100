@@ -8,18 +8,15 @@ resnet with stochastic depth
 """
 import torch
 import torch.nn as nn
-from torch.distributions.bernoulli import Bernoulli
-import random
 
 
 class StochasticDepthBasicBlock(torch.jit.ScriptModule):
-
-    expansion=1
+    expansion = 1
 
     def __init__(self, p, in_channels, out_channels, stride=1):
         super().__init__()
 
-        #self.p = torch.tensor(p).float()
+        # self.p = torch.tensor(p).float()
         self.p = p
         self.residual = nn.Sequential(
             nn.Conv2d(in_channels, out_channels, kernel_size=3, stride=stride, padding=1),
@@ -33,9 +30,11 @@ class StochasticDepthBasicBlock(torch.jit.ScriptModule):
 
         if stride != 1 or in_channels != out_channels * StochasticDepthBasicBlock.expansion:
             self.shortcut = nn.Sequential(
-                nn.Conv2d(in_channels, out_channels * StochasticDepthBasicBlock.expansion, kernel_size=1, stride=stride),
+                nn.Conv2d(in_channels, out_channels * StochasticDepthBasicBlock.expansion, kernel_size=1,
+                          stride=stride),
                 nn.BatchNorm2d(out_channels)
             )
+
     def survival(self):
         var = torch.bernoulli(torch.tensor(self.p).float())
         return torch.equal(var, torch.tensor(1).float().to(var.device))
@@ -93,6 +92,7 @@ class StochasticDepthBottleNeck(torch.jit.ScriptModule):
 
     """
     expansion = 4
+
     def __init__(self, p, in_channels, out_channels, stride=1):
         super().__init__()
 
@@ -112,7 +112,8 @@ class StochasticDepthBottleNeck(torch.jit.ScriptModule):
 
         if stride != 1 or in_channels != out_channels * StochasticDepthBottleNeck.expansion:
             self.shortcut = nn.Sequential(
-                nn.Conv2d(in_channels, out_channels * StochasticDepthBottleNeck.expansion, stride=stride, kernel_size=1, bias=False),
+                nn.Conv2d(in_channels, out_channels * StochasticDepthBottleNeck.expansion, stride=stride, kernel_size=1,
+                          bias=False),
                 nn.BatchNorm2d(out_channels * StochasticDepthBottleNeck.expansion)
             )
 
@@ -132,6 +133,7 @@ class StochasticDepthBottleNeck(torch.jit.ScriptModule):
             x = self.residual(x) * self.p + self.shortcut(x)
 
         return x
+
 
 class StochasticDepthResNet(nn.Module):
 
@@ -155,7 +157,6 @@ class StochasticDepthResNet(nn.Module):
         self.fc = nn.Linear(512 * block.expansion, num_classes)
 
     def _make_layer(self, block, out_channels, num_blocks, stride):
-
         strides = [stride] + [1] * (num_blocks - 1)
         layers = []
         for stride in strides:
@@ -183,24 +184,26 @@ def stochastic_depth_resnet18():
     """
     return StochasticDepthResNet(StochasticDepthBasicBlock, [2, 2, 2, 2])
 
+
 def stochastic_depth_resnet34():
     """ return a ResNet 34 object
     """
     return StochasticDepthResNet(StochasticDepthBasicBlock, [3, 4, 6, 3])
 
-def stochastic_depth_resnet50():
 
+def stochastic_depth_resnet50():
     """ return a ResNet 50 object
     """
     return StochasticDepthResNet(StochasticDepthBottleNeck, [3, 4, 6, 3])
+
 
 def stochastic_depth_resnet101():
     """ return a ResNet 101 object
     """
     return StochasticDepthResNet(StochasticDepthBottleNeck, [3, 4, 23, 3])
 
+
 def stochastic_depth_resnet152():
     """ return a ResNet 152 object
     """
     return StochasticDepthResNet(StochasticDepthBottleNeck, [3, 8, 36, 3])
-

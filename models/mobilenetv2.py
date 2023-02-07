@@ -8,7 +8,6 @@
     https://arxiv.org/abs/1801.04381
 """
 
-import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
@@ -36,13 +35,13 @@ class LinearBottleNeck(nn.Module):
         self.out_channels = out_channels
 
     def forward(self, x):
-
         residual = self.residual(x)
 
         if self.stride == 1 and self.in_channels == self.out_channels:
             residual += x
 
         return residual
+
 
 class MobileNetV2(nn.Module):
 
@@ -88,7 +87,6 @@ class MobileNetV2(nn.Module):
         return x
 
     def _make_stage(self, repeat, in_channels, out_channels, stride, t):
-
         layers = []
         layers.append(LinearBottleNeck(in_channels, out_channels, stride, t))
 
@@ -97,6 +95,7 @@ class MobileNetV2(nn.Module):
             repeat -= 1
 
         return nn.Sequential(*layers)
+
 
 def mobilenetv2():
     return MobileNetV2()

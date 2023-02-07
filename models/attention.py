@@ -8,12 +8,12 @@
     https://arxiv.org/abs/1704.06904
 """
 
-import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-#"""The Attention Module is built by pre-activation Residual Unit [11] with the
-#number of channels in each stage is the same as ResNet [10]."""
+
+# """The Attention Module is built by pre-activation Residual Unit [11] with the
+# number of channels in each stage is the same as ResNet [10]."""
 
 class PreActResidualUnit(nn.Module):
     """PreAct Residual Unit
@@ -28,17 +28,17 @@ class PreActResidualUnit(nn.Module):
 
         bottleneck_channels = int(out_channels / 4)
         self.residual_function = nn.Sequential(
-            #1x1 conv
+            # 1x1 conv
             nn.BatchNorm2d(in_channels),
             nn.ReLU(inplace=True),
             nn.Conv2d(in_channels, bottleneck_channels, 1, stride),
 
-            #3x3 conv
+            # 3x3 conv
             nn.BatchNorm2d(bottleneck_channels),
             nn.ReLU(inplace=True),
             nn.Conv2d(bottleneck_channels, bottleneck_channels, 3, padding=1),
 
-            #1x1 conv
+            # 1x1 conv
             nn.BatchNorm2d(bottleneck_channels),
             nn.ReLU(inplace=True),
             nn.Conv2d(bottleneck_channels, out_channels, 1)
@@ -49,20 +49,20 @@ class PreActResidualUnit(nn.Module):
             self.shortcut = nn.Conv2d(in_channels, out_channels, 1, stride=stride)
 
     def forward(self, x):
-
         res = self.residual_function(x)
         shortcut = self.shortcut(x)
 
         return res + shortcut
 
+
 class AttentionModule1(nn.Module):
 
     def __init__(self, in_channels, out_channels, p=1, t=2, r=1):
         super().__init__()
-        #"""The hyperparameter p denotes the number of preprocessing Residual
-        #Units before splitting into trunk branch and mask branch. t denotes
-        #the number of Residual Units in trunk branch. r denotes the number of
-        #Residual Units between adjacent pooling layer in the mask branch."""
+        # """The hyperparameter p denotes the number of preprocessing Residual
+        # Units before splitting into trunk branch and mask branch. t denotes
+        # the number of Residual Units in trunk branch. r denotes the number of
+        # Residual Units between adjacent pooling layer in the mask branch."""
         assert in_channels == out_channels
 
         self.pre = self._make_residual(in_channels, out_channels, p)
@@ -94,48 +94,48 @@ class AttentionModule1(nn.Module):
 
     def forward(self, x):
         ###We make the size of the smallest output map in each mask branch 7*7 to be consistent
-        #with the smallest trunk output map size.
+        # with the smallest trunk output map size.
         ###Thus 3,2,1 max-pooling layers are used in mask branch with input size 56 * 56, 28 * 28, 14 * 14 respectively.
         x = self.pre(x)
         input_size = (x.size(2), x.size(3))
 
         x_t = self.trunk(x)
 
-        #first downsample out 28
+        # first downsample out 28
         x_s = F.max_pool2d(x, kernel_size=3, stride=2, padding=1)
         x_s = self.soft_resdown1(x_s)
 
-        #28 shortcut
+        # 28 shortcut
         shape1 = (x_s.size(2), x_s.size(3))
         shortcut_long = self.shortcut_long(x_s)
 
-        #seccond downsample out 14
+        # seccond downsample out 14
         x_s = F.max_pool2d(x, kernel_size=3, stride=2, padding=1)
         x_s = self.soft_resdown2(x_s)
 
-        #14 shortcut
+        # 14 shortcut
         shape2 = (x_s.size(2), x_s.size(3))
         shortcut_short = self.soft_resdown3(x_s)
 
-        #third downsample out 7
+        # third downsample out 7
         x_s = F.max_pool2d(x, kernel_size=3, stride=2, padding=1)
         x_s = self.soft_resdown3(x_s)
 
-        #mid
+        # mid
         x_s = self.soft_resdown4(x_s)
         x_s = self.soft_resup1(x_s)
 
-        #first upsample out 14
+        # first upsample out 14
         x_s = self.soft_resup2(x_s)
         x_s = F.interpolate(x_s, size=shape2)
         x_s += shortcut_short
 
-        #second upsample out 28
+        # second upsample out 28
         x_s = self.soft_resup3(x_s)
         x_s = F.interpolate(x_s, size=shape1)
         x_s += shortcut_long
 
-        #thrid upsample out 54
+        # thrid upsample out 54
         x_s = self.soft_resup4(x_s)
         x_s = F.interpolate(x_s, size=input_size)
 
@@ -146,21 +146,21 @@ class AttentionModule1(nn.Module):
         return x
 
     def _make_residual(self, in_channels, out_channels, p):
-
         layers = []
         for _ in range(p):
             layers.append(PreActResidualUnit(in_channels, out_channels, 1))
 
         return nn.Sequential(*layers)
 
+
 class AttentionModule2(nn.Module):
 
     def __init__(self, in_channels, out_channels, p=1, t=2, r=1):
         super().__init__()
-        #"""The hyperparameter p denotes the number of preprocessing Residual
-        #Units before splitting into trunk branch and mask branch. t denotes
-        #the number of Residual Units in trunk branch. r denotes the number of
-        #Residual Units between adjacent pooling layer in the mask branch."""
+        # """The hyperparameter p denotes the number of preprocessing Residual
+        # Units before splitting into trunk branch and mask branch. t denotes
+        # the number of Residual Units in trunk branch. r denotes the number of
+        # Residual Units between adjacent pooling layer in the mask branch."""
         assert in_channels == out_channels
 
         self.pre = self._make_residual(in_channels, out_channels, p)
@@ -193,28 +193,28 @@ class AttentionModule2(nn.Module):
 
         x_t = self.trunk(x)
 
-        #first downsample out 14
+        # first downsample out 14
         x_s = F.max_pool2d(x, kernel_size=3, stride=2, padding=1)
         x_s = self.soft_resdown1(x_s)
 
-        #14 shortcut
+        # 14 shortcut
         shape1 = (x_s.size(2), x_s.size(3))
         shortcut = self.shortcut(x_s)
 
-        #seccond downsample out 7
+        # seccond downsample out 7
         x_s = F.max_pool2d(x, kernel_size=3, stride=2, padding=1)
         x_s = self.soft_resdown2(x_s)
 
-        #mid
+        # mid
         x_s = self.soft_resdown3(x_s)
         x_s = self.soft_resup1(x_s)
 
-        #first upsample out 14
+        # first upsample out 14
         x_s = self.soft_resup2(x_s)
         x_s = F.interpolate(x_s, size=shape1)
         x_s += shortcut
 
-        #second upsample out 28
+        # second upsample out 28
         x_s = self.soft_resup3(x_s)
         x_s = F.interpolate(x_s, size=input_size)
 
@@ -225,12 +225,12 @@ class AttentionModule2(nn.Module):
         return x
 
     def _make_residual(self, in_channels, out_channels, p):
-
         layers = []
         for _ in range(p):
             layers.append(PreActResidualUnit(in_channels, out_channels, 1))
 
         return nn.Sequential(*layers)
+
 
 class AttentionModule3(nn.Module):
 
@@ -267,15 +267,15 @@ class AttentionModule3(nn.Module):
 
         x_t = self.trunk(x)
 
-        #first downsample out 14
+        # first downsample out 14
         x_s = F.max_pool2d(x, kernel_size=3, stride=2, padding=1)
         x_s = self.soft_resdown1(x_s)
 
-        #mid
+        # mid
         x_s = self.soft_resdown2(x_s)
         x_s = self.soft_resup1(x_s)
 
-        #first upsample out 14
+        # first upsample out 14
         x_s = self.soft_resup2(x_s)
         x_s = F.interpolate(x_s, size=input_size)
 
@@ -286,12 +286,12 @@ class AttentionModule3(nn.Module):
         return x
 
     def _make_residual(self, in_channels, out_channels, p):
-
         layers = []
         for _ in range(p):
             layers.append(PreActResidualUnit(in_channels, out_channels, 1))
 
         return nn.Sequential(*layers)
+
 
 class Attention(nn.Module):
     """residual attention netowrk
@@ -300,7 +300,6 @@ class Attention(nn.Module):
     """
 
     def __init__(self, block_num, class_num=100):
-
         super().__init__()
         self.pre_conv = nn.Sequential(
             nn.Conv2d(3, 64, kernel_size=3, stride=1, padding=1),
@@ -332,7 +331,6 @@ class Attention(nn.Module):
         return x
 
     def _make_stage(self, in_channels, out_channels, num, block):
-
         layers = []
         layers.append(PreActResidualUnit(in_channels, out_channels, 2))
 
@@ -341,9 +339,10 @@ class Attention(nn.Module):
 
         return nn.Sequential(*layers)
 
+
 def attention56():
     return Attention([1, 1, 1])
 
+
 def attention92():
     return Attention([1, 2, 3])
-

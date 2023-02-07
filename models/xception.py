@@ -7,16 +7,15 @@
     https://arxiv.org/abs/1610.02357
 """
 
-import torch
 import torch.nn as nn
+
 
 class SeperableConv2d(nn.Module):
 
-    #***Figure 4. An “extreme” version of our Inception module,
-    #with one spatial convolution per output channel of the 1x1
-    #convolution."""
+    # ***Figure 4. An “extreme” version of our Inception module,
+    # with one spatial convolution per output channel of the 1x1
+    # convolution."""
     def __init__(self, input_channels, output_channels, kernel_size, **kwargs):
-
         super().__init__()
         self.depthwise = nn.Conv2d(
             input_channels,
@@ -35,10 +34,10 @@ class SeperableConv2d(nn.Module):
 
         return x
 
+
 class EntryFlow(nn.Module):
 
     def __init__(self):
-
         super().__init__()
         self.conv1 = nn.Sequential(
             nn.Conv2d(3, 32, 3, padding=1, bias=False),
@@ -81,7 +80,7 @@ class EntryFlow(nn.Module):
             nn.BatchNorm2d(256),
         )
 
-        #no downsampling
+        # no downsampling
         self.conv5_residual = nn.Sequential(
             nn.ReLU(inplace=True),
             SeperableConv2d(256, 728, 3, padding=1),
@@ -92,7 +91,7 @@ class EntryFlow(nn.Module):
             nn.MaxPool2d(3, 1, padding=1)
         )
 
-        #no downsampling
+        # no downsampling
         self.conv5_shortcut = nn.Sequential(
             nn.Conv2d(256, 728, 1),
             nn.BatchNorm2d(728)
@@ -112,6 +111,7 @@ class EntryFlow(nn.Module):
         x = residual + shortcut
 
         return x
+
 
 class MiddleFLowBlock(nn.Module):
 
@@ -144,11 +144,12 @@ class MiddleFLowBlock(nn.Module):
 
         return shortcut + residual
 
+
 class MiddleFlow(nn.Module):
     def __init__(self, block):
         super().__init__()
 
-        #"""then through the middle flow which is repeated eight times"""
+        # """then through the middle flow which is repeated eight times"""
         self.middel_block = self._make_flow(block, 8)
 
     def forward(self, x):
@@ -202,6 +203,7 @@ class ExitFLow(nn.Module):
 
         return output
 
+
 class Xception(nn.Module):
 
     def __init__(self, block, num_class=100):
@@ -221,7 +223,6 @@ class Xception(nn.Module):
 
         return x
 
+
 def xception():
     return Xception(MiddleFLowBlock)
-
-

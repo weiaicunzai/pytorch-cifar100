@@ -22,6 +22,7 @@ def channel_split(x, split):
     assert x.size(1) == split * 2
     return torch.split(x, split, dim=1)
 
+
 def channel_shuffle(x, groups):
     """channel shuffle operation
     Args:
@@ -37,6 +38,7 @@ def channel_shuffle(x, groups):
     x = x.view(batch_size, -1, height, width)
 
     return x
+
 
 class ShuffleUnit(nn.Module):
 
@@ -81,7 +83,6 @@ class ShuffleUnit(nn.Module):
                 nn.ReLU(inplace=True)
             )
 
-
     def forward(self, x):
 
         if self.stride == 1 and self.out_channels == self.in_channels:
@@ -96,6 +97,7 @@ class ShuffleUnit(nn.Module):
         x = channel_shuffle(x, 2)
 
         return x
+
 
 class ShuffleNetV2(nn.Module):
 
@@ -150,10 +152,6 @@ class ShuffleNetV2(nn.Module):
 
         return nn.Sequential(*layers)
 
+
 def shufflenetv2():
     return ShuffleNetV2()
-
-
-
-
-

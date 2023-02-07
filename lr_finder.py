@@ -1,23 +1,15 @@
-
 import argparse
-import glob
-import os
 
-import cv2
+import matplotlib
 import torch
 import torch.nn as nn
 import torch.optim as optim
-from torch.utils.data import DataLoader
-import numpy as np
 
-from torchvision import transforms
 from conf import settings
 from utils import *
 
-import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
-
 
 from torch.optim.lr_scheduler import _LRScheduler
 
@@ -30,15 +22,16 @@ class FindLR(_LRScheduler):
         num_iter: totoal_iters
         max_lr: maximum  learning rate
     """
-    def __init__(self, optimizer, max_lr=10, num_iter=100, last_epoch=-1):
 
+    def __init__(self, optimizer, max_lr=10, num_iter=100, last_epoch=-1):
         self.total_iters = num_iter
         self.max_lr = max_lr
         super().__init__(optimizer, last_epoch)
 
     def get_lr(self):
+        return [base_lr * (self.max_lr / base_lr) ** (self.last_epoch / (self.total_iters + 1e-32)) for base_lr in
+                self.base_lrs]
 
-        return [base_lr * (self.max_lr / base_lr) ** (self.last_epoch / (self.total_iters + 1e-32)) for base_lr in self.base_lrs]
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
@@ -63,7 +56,7 @@ if __name__ == '__main__':
     loss_function = nn.CrossEntropyLoss()
     optimizer = optim.SGD(net.parameters(), lr=args.base_lr, momentum=0.9, weight_decay=1e-4, nesterov=True)
 
-    #set up warmup phase learning rate scheduler
+    # set up warmup phase learning rate scheduler
     lr_scheduler = FindLR(optimizer, max_lr=args.max_lr, num_iter=args.num_iter)
     epoches = int(args.num_iter / len(cifar100_training_loader)) + 1
 
@@ -73,7 +66,7 @@ if __name__ == '__main__':
     losses = []
     for epoch in range(epoches):
 
-        #training procedure
+        # training procedure
         net.train()
 
         for batch_index, (images, labels) in enumerate(cifar100_training_loader):
@@ -109,7 +102,7 @@ if __name__ == '__main__':
     learning_rate = learning_rate[10:-5]
     losses = losses[10:-5]
 
-    fig, ax = plt.subplots(1,1)
+    fig, ax = plt.subplots(1, 1)
     ax.plot(learning_rate, losses)
     ax.set_xlabel('learning rate')
     ax.set_ylabel('losses')

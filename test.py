@@ -1,5 +1,5 @@
-#test.py
-#!/usr/bin/env python3
+# test.py
+# !/usr/bin/env python3
 
 """ test neuron network performace
 print top1 and top5 err on test dataset
@@ -10,11 +10,7 @@ author baiyu
 
 import argparse
 
-from matplotlib import pyplot as plt
-
 import torch
-import torchvision.transforms as transforms
-from torch.utils.data import DataLoader
 
 from conf import settings
 from utils import get_network, get_test_dataloader
@@ -33,7 +29,7 @@ if __name__ == '__main__':
     cifar100_test_loader = get_test_dataloader(
         settings.CIFAR100_TRAIN_MEAN,
         settings.CIFAR100_TRAIN_STD,
-        #settings.CIFAR100_PATH,
+        # settings.CIFAR100_PATH,
         num_workers=4,
         batch_size=args.b,
     )
@@ -56,17 +52,16 @@ if __name__ == '__main__':
                 print('GPU INFO.....')
                 print(torch.cuda.memory_summary(), end='')
 
-
             output = net(image)
             _, pred = output.topk(5, 1, largest=True, sorted=True)
 
             label = label.view(label.size(0), -1).expand_as(pred)
             correct = pred.eq(label).float()
 
-            #compute top 5
+            # compute top 5
             correct_5 += correct[:, :5].sum()
 
-            #compute top1
+            # compute top1
             correct_1 += correct[:, :1].sum()
 
     if args.gpu:

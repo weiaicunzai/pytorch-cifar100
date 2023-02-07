@@ -8,7 +8,6 @@
     https://arxiv.org/abs/1704.04861
 """
 
-import torch
 import torch.nn as nn
 
 
@@ -43,7 +42,6 @@ class DepthSeperabelConv2d(nn.Module):
 class BasicConv2d(nn.Module):
 
     def __init__(self, input_channels, output_channels, kernel_size, **kwargs):
-
         super().__init__()
         self.conv = nn.Conv2d(
             input_channels, output_channels, kernel_size, **kwargs)
@@ -59,7 +57,6 @@ class BasicConv2d(nn.Module):
 
 
 class MobileNet(nn.Module):
-
     """
     Args:
         width multipler: The role of the width multiplier α is to thin
@@ -70,127 +67,127 @@ class MobileNet(nn.Module):
     """
 
     def __init__(self, width_multiplier=1, class_num=100):
-       super().__init__()
+        super().__init__()
 
-       alpha = width_multiplier
-       self.stem = nn.Sequential(
-           BasicConv2d(3, int(32 * alpha), 3, padding=1, bias=False),
-           DepthSeperabelConv2d(
-               int(32 * alpha),
-               int(64 * alpha),
-               3,
-               padding=1,
-               bias=False
-           )
-       )
+        alpha = width_multiplier
+        self.stem = nn.Sequential(
+            BasicConv2d(3, int(32 * alpha), 3, padding=1, bias=False),
+            DepthSeperabelConv2d(
+                int(32 * alpha),
+                int(64 * alpha),
+                3,
+                padding=1,
+                bias=False
+            )
+        )
 
-       #downsample
-       self.conv1 = nn.Sequential(
-           DepthSeperabelConv2d(
-               int(64 * alpha),
-               int(128 * alpha),
-               3,
-               stride=2,
-               padding=1,
-               bias=False
-           ),
-           DepthSeperabelConv2d(
-               int(128 * alpha),
-               int(128 * alpha),
-               3,
-               padding=1,
-               bias=False
-           )
-       )
+        # downsample
+        self.conv1 = nn.Sequential(
+            DepthSeperabelConv2d(
+                int(64 * alpha),
+                int(128 * alpha),
+                3,
+                stride=2,
+                padding=1,
+                bias=False
+            ),
+            DepthSeperabelConv2d(
+                int(128 * alpha),
+                int(128 * alpha),
+                3,
+                padding=1,
+                bias=False
+            )
+        )
 
-       #downsample
-       self.conv2 = nn.Sequential(
-           DepthSeperabelConv2d(
-               int(128 * alpha),
-               int(256 * alpha),
-               3,
-               stride=2,
-               padding=1,
-               bias=False
-           ),
-           DepthSeperabelConv2d(
-               int(256 * alpha),
-               int(256 * alpha),
-               3,
-               padding=1,
-               bias=False
-           )
-       )
+        # downsample
+        self.conv2 = nn.Sequential(
+            DepthSeperabelConv2d(
+                int(128 * alpha),
+                int(256 * alpha),
+                3,
+                stride=2,
+                padding=1,
+                bias=False
+            ),
+            DepthSeperabelConv2d(
+                int(256 * alpha),
+                int(256 * alpha),
+                3,
+                padding=1,
+                bias=False
+            )
+        )
 
-       #downsample
-       self.conv3 = nn.Sequential(
-           DepthSeperabelConv2d(
-               int(256 * alpha),
-               int(512 * alpha),
-               3,
-               stride=2,
-               padding=1,
-               bias=False
-           ),
+        # downsample
+        self.conv3 = nn.Sequential(
+            DepthSeperabelConv2d(
+                int(256 * alpha),
+                int(512 * alpha),
+                3,
+                stride=2,
+                padding=1,
+                bias=False
+            ),
 
-           DepthSeperabelConv2d(
-               int(512 * alpha),
-               int(512 * alpha),
-               3,
-               padding=1,
-               bias=False
-           ),
-           DepthSeperabelConv2d(
-               int(512 * alpha),
-               int(512 * alpha),
-               3,
-               padding=1,
-               bias=False
-           ),
-           DepthSeperabelConv2d(
-               int(512 * alpha),
-               int(512 * alpha),
-               3,
-               padding=1,
-               bias=False
-           ),
-           DepthSeperabelConv2d(
-               int(512 * alpha),
-               int(512 * alpha),
-               3,
-               padding=1,
-               bias=False
-           ),
-           DepthSeperabelConv2d(
-               int(512 * alpha),
-               int(512 * alpha),
-               3,
-               padding=1,
-               bias=False
-           )
-       )
+            DepthSeperabelConv2d(
+                int(512 * alpha),
+                int(512 * alpha),
+                3,
+                padding=1,
+                bias=False
+            ),
+            DepthSeperabelConv2d(
+                int(512 * alpha),
+                int(512 * alpha),
+                3,
+                padding=1,
+                bias=False
+            ),
+            DepthSeperabelConv2d(
+                int(512 * alpha),
+                int(512 * alpha),
+                3,
+                padding=1,
+                bias=False
+            ),
+            DepthSeperabelConv2d(
+                int(512 * alpha),
+                int(512 * alpha),
+                3,
+                padding=1,
+                bias=False
+            ),
+            DepthSeperabelConv2d(
+                int(512 * alpha),
+                int(512 * alpha),
+                3,
+                padding=1,
+                bias=False
+            )
+        )
 
-       #downsample
-       self.conv4 = nn.Sequential(
-           DepthSeperabelConv2d(
-               int(512 * alpha),
-               int(1024 * alpha),
-               3,
-               stride=2,
-               padding=1,
-               bias=False
-           ),
-           DepthSeperabelConv2d(
-               int(1024 * alpha),
-               int(1024 * alpha),
-               3,
-               padding=1,
-               bias=False
-           )
-       )
+        # downsample
+        self.conv4 = nn.Sequential(
+            DepthSeperabelConv2d(
+                int(512 * alpha),
+                int(1024 * alpha),
+                3,
+                stride=2,
+                padding=1,
+                bias=False
+            ),
+            DepthSeperabelConv2d(
+                int(1024 * alpha),
+                int(1024 * alpha),
+                3,
+                padding=1,
+                bias=False
+            )
+        )
 
-       self.fc = nn.Linear(int(1024 * alpha), class_num)
-       self.avg = nn.AdaptiveAvgPool2d(1)
+        self.fc = nn.Linear(int(1024 * alpha), class_num)
+        self.avg = nn.AdaptiveAvgPool2d(1)
 
     def forward(self, x):
         x = self.stem(x)
@@ -208,4 +205,3 @@ class MobileNet(nn.Module):
 
 def mobilenet(alpha=1, class_num=100):
     return MobileNet(alpha, class_num)
-

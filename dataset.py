@@ -3,14 +3,11 @@
 author baiyu
 """
 import os
-import sys
 import pickle
 
-from skimage import io
-import matplotlib.pyplot as plt
 import numpy
-import torch
 from torch.utils.data import Dataset
+
 
 class CIFAR100Train(Dataset):
     """cifar100 test dataset, derived from
@@ -18,7 +15,7 @@ class CIFAR100Train(Dataset):
     """
 
     def __init__(self, path, transform=None):
-        #if transform is given, we transoform data using
+        # if transform is given, we transoform data using
         with open(os.path.join(path, 'train'), 'rb') as cifar100:
             self.data = pickle.load(cifar100, encoding='bytes')
         self.transform = transform
@@ -36,6 +33,7 @@ class CIFAR100Train(Dataset):
         if self.transform:
             image = self.transform(image)
         return label, image
+
 
 class CIFAR100Test(Dataset):
     """cifar100 test dataset, derived from
@@ -60,4 +58,3 @@ class CIFAR100Test(Dataset):
         if self.transform:
             image = self.transform(image)
         return label, image
-
