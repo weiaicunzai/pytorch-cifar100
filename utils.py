@@ -8,10 +8,10 @@ import re
 import sys
 
 import numpy
-import torchvision
 import torchvision.transforms as transforms
 from torch.optim.lr_scheduler import _LRScheduler
 from torch.utils.data import DataLoader
+from torchvision.datasets import CIFAR100
 
 
 def get_network(args):
@@ -174,18 +174,26 @@ def get_training_dataloader(mean, std, batch_size=16, num_workers=2, shuffle=Tru
     """
 
     transform_train = transforms.Compose([
-        # transforms.ToPILImage(),
         transforms.RandomCrop(32, padding=4),
         transforms.RandomHorizontalFlip(),
         transforms.RandomRotation(15),
         transforms.ToTensor(),
         transforms.Normalize(mean, std)
     ])
-    # cifar100_training = CIFAR100Train(path, transform=transform_train)
-    cifar100_training = torchvision.datasets.CIFAR100(root='./data', train=True, download=True,
-                                                      transform=transform_train)
+
+    cifar100_training = CIFAR100(
+        root='./data',
+        train=True,
+        download=True,
+        transform=transform_train
+    )
+
     cifar100_training_loader = DataLoader(
-        cifar100_training, shuffle=shuffle, num_workers=num_workers, batch_size=batch_size)
+        cifar100_training,
+        shuffle=shuffle,
+        num_workers=num_workers,
+        batch_size=batch_size
+    )
 
     return cifar100_training_loader
 
@@ -206,10 +214,19 @@ def get_test_dataloader(mean, std, batch_size=16, num_workers=2, shuffle=True):
         transforms.ToTensor(),
         transforms.Normalize(mean, std)
     ])
-    # cifar100_test = CIFAR100Test(path, transform=transform_test)
-    cifar100_test = torchvision.datasets.CIFAR100(root='./data', train=False, download=True, transform=transform_test)
+
+    cifar100_test = CIFAR100(
+        root='./data',
+        train=False,
+        download=True,
+        transform=transform_test
+    )
     cifar100_test_loader = DataLoader(
-        cifar100_test, shuffle=shuffle, num_workers=num_workers, batch_size=batch_size)
+        cifar100_test,
+        shuffle=shuffle,
+        num_workers=num_workers,
+        batch_size=batch_size
+    )
 
     return cifar100_test_loader
 
@@ -258,16 +275,17 @@ def most_recent_folder(net_weights, fmt):
     """
     # get subfolders in net_weights
     folders = os.listdir(net_weights)
+    if len(folders) == 0:
+        raise Exception('no recent folder were found')
 
     # filter out empty folders
     folders = [f for f in folders if len(os.listdir(os.path.join(net_weights, f)))]
     if len(folders) == 0:
-        return ''
+        raise Exception('no saved chekpoints were found')
 
     # sort folders by folder created time
     folders = sorted(folders, key=lambda f: datetime.datetime.strptime(f, fmt))
     return folders[-1]
-
 
 def most_recent_weights(weights_folder):
     """
