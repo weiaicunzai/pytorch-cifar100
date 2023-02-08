@@ -40,6 +40,10 @@ def train(net, epoch):
 
     for batch_index, (images, labels) in enumerate(cifar100_training_loader):
 
+        labels = torch.cat(labels, 0)
+        images = torch.cat(images, 0)
+        # print(torch.norm(images[:images.shape[0] // 2] - images[images.shape[0] // 2:]))
+
         if args.gpu:
             labels = labels.cuda()
             images = images.cuda()
@@ -64,7 +68,7 @@ def train(net, epoch):
 
         print(
             f'Training Epoch: {epoch} '
-            f'[{batch_index * args.b + len(images)}/{len(cifar100_training_loader.dataset)}]\t'
+            f'[{batch_index * args.b + len(images)}/{len(cifar100_training_loader) * args.b}]\t'
             f'LR: {optimizer.param_groups[0]["lr"]:0.6f}\n'
         )
 

@@ -13,7 +13,7 @@ from torch.optim.lr_scheduler import _LRScheduler
 from torch.utils.data import DataLoader
 from torchvision.datasets import CIFAR100
 
-from batch_shift_utils import InterleaveDataset
+from batch_shift_utils import ZipDataset
 
 
 def get_network(args):
@@ -180,20 +180,18 @@ def get_training_dataloader(
     Returns: train_data_loader:torch dataloader object
     """
 
-    transform_train = transforms.Compose([
-        transforms.RandomCrop(img_size, padding=4),
-        transforms.RandomHorizontalFlip(),
-        transforms.RandomRotation(15),
-        transforms.ToTensor(),
-        transforms.Normalize(mean, std)
-    ])
-
     datasets = [
         CIFAR100(
             root='./data',
             train=True,
             download=True,
-            transform=transform_train
+            transform=transforms.Compose([
+                transforms.RandomCrop(img_size, padding=4),
+                transforms.RandomHorizontalFlip(),
+                transforms.RandomRotation(15),
+                transforms.ToTensor(),
+                transforms.Normalize(mean, std)
+            ])
         )
     ]
 
@@ -203,18 +201,21 @@ def get_training_dataloader(
                 root='./data',
                 train=True,
                 download=False,
-                transform=transform_train
+                transform=transforms.Compose([
+                    transforms.RandomCrop(img_size, padding=4),
+                    transforms.RandomHorizontalFlip(),
+                    transforms.RandomRotation(15),
+                    transforms.ToTensor(),
+                    transforms.Normalize(mean, std)
+                ])
             )
         )
 
     cifar100_training_loader = DataLoader(
-        dataset=InterleaveDataset(
-            datasets=datasets,
-            shuffle=shuffle
-        ),
-        shuffle=False,
+        dataset=ZipDataset(datasets),
+        shuffle=shuffle,
         num_workers=num_workers,
-        batch_size=batch_size
+        batch_size=batch_size // len(datasets)
     )
 
     return cifar100_training_loader
