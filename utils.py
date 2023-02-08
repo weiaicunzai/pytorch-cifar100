@@ -13,6 +13,8 @@ from torch.optim.lr_scheduler import _LRScheduler
 from torch.utils.data import DataLoader
 from torchvision.datasets import CIFAR100
 
+from batch_shift_utils import InterleaveDataset
+
 
 def get_network(args):
     """ return given network
@@ -161,7 +163,11 @@ def get_network(args):
     return net
 
 
-def get_training_dataloader(mean, std, batch_size=16, num_workers=2, shuffle=True):
+def get_training_dataloader(
+        mean, std, img_size=32,
+        batch_size=128, num_workers=2,
+        shuffle=True, multiply_ds=1,
+):
     """ return training dataloader
     Args:
         mean: mean of cifar100 training dataset
@@ -170,27 +176,45 @@ def get_training_dataloader(mean, std, batch_size=16, num_workers=2, shuffle=Tru
         batch_size: dataloader batchsize
         num_workers: dataloader num_works
         shuffle: whether to shuffle
+        multiply_ds: multiply dataset in any times
     Returns: train_data_loader:torch dataloader object
     """
+    if multiply_ds not in {1, 2}:
+        raise ValueError("batch_shift should be in {1, 2}")
 
     transform_train = transforms.Compose([
-        transforms.RandomCrop(32, padding=4),
+        transforms.RandomCrop(img_size, padding=4),
         transforms.RandomHorizontalFlip(),
         transforms.RandomRotation(15),
         transforms.ToTensor(),
         transforms.Normalize(mean, std)
     ])
 
-    cifar100_training = CIFAR100(
-        root='./data',
-        train=True,
-        download=True,
-        transform=transform_train
-    )
+    datasets = [
+        CIFAR100(
+            root='./data',
+            train=True,
+            download=True,
+            transform=transform_train
+        )
+    ]
+
+    if multiply_ds == 2:
+        datasets.append(
+            CIFAR100(
+                root='./data',
+                train=True,
+                download=False,
+                transform=transform_train
+            )
+        )
 
     cifar100_training_loader = DataLoader(
-        cifar100_training,
-        shuffle=shuffle,
+        dataset=InterleaveDataset(
+            datasets=datasets,
+            shuffle=shuffle
+        ),
+        shuffle=False,
         num_workers=num_workers,
         batch_size=batch_size
     )
@@ -286,6 +310,7 @@ def most_recent_folder(net_weights, fmt):
     # sort folders by folder created time
     folders = sorted(folders, key=lambda f: datetime.datetime.strptime(f, fmt))
     return folders[-1]
+
 
 def most_recent_weights(weights_folder):
     """
