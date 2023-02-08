@@ -68,7 +68,7 @@ def train(net, epoch):
 
         print(
             f'Training Epoch: {epoch} '
-            f'[{batch_index * args.b + len(images)}/{(len(cifar100_training_loader) - 1) * args.b}]\t'
+            f'[{batch_index * args.b + len(images)}/{len(cifar100_training_loader) * args.b}]\t'
             f'LR: {optimizer.param_groups[0]["lr"]:0.6f}\n'
         )
 
