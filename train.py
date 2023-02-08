@@ -137,14 +137,14 @@ if __name__ == '__main__':
     parser.add_argument('-b', type=int, default=128, help='batch size for dataloader')
     parser.add_argument('-warm', type=int, default=1, help='warm up training phase')
     parser.add_argument('-lr', type=float, default=0.1, help='initial learning rate')
-    parser.add_argument('-seed', type=int, default=None, help='random seed')
+    parser.add_argument('-seed', type=int, default=0, help='random seed')
     parser.add_argument('-resume', action='store_true', default=False, help='resume training')
 
     parser.add_argument('-orig-augs', action='store_true', help='is use orig augs')
 
     parser.add_argument('-x2-data', action='store_true', help='double the number of datasets')
     parser.add_argument('-x2-epoch', action='store_true', help='double the number of epochs')
-    
+
     parser.add_argument('-use-distil-aug', action='store_true', help='is use distil augmentation loss')
     parser.add_argument('-distil-aug-weight', default=1.0, type=float, help='cross loss weight')
     parser.add_argument('-prob-aug', default=1.0, type=float, help='')
@@ -180,15 +180,14 @@ if __name__ == '__main__':
         print("New settings")
         pprint(vars(settings))
 
-    if args.seed is not None:
-        random.seed(args.seed)
-        torch.manual_seed(args.seed)
-        cudnn.deterministic = True
-        warnings.warn('You have chosen to seed training. '
-                      'This will turn on the CUDNN deterministic setting, '
-                      'which can slow down your training considerably! '
-                      'You may see unexpected behavior when restarting '
-                      'from checkpoints.')
+    random.seed(args.seed)
+    torch.manual_seed(args.seed)
+    cudnn.deterministic = True
+    warnings.warn('You have chosen to seed training. '
+                  'This will turn on the CUDNN deterministic setting, '
+                  'which can slow down your training considerably! '
+                  'You may see unexpected behavior when restarting '
+                  'from checkpoints.')
 
     exp_name = args.net
 
