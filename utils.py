@@ -166,7 +166,7 @@ def get_network(args):
 def get_training_dataloader(
         mean, std, img_size=32,
         batch_size=128, num_workers=2,
-        shuffle=True, multiply_ds=1,
+        shuffle=True, x2_data=False,
 ):
     """ return training dataloader
     Args:
@@ -176,11 +176,9 @@ def get_training_dataloader(
         batch_size: dataloader batchsize
         num_workers: dataloader num_works
         shuffle: whether to shuffle
-        multiply_ds: multiply dataset in any times
+        x2_data: multiply dataset in 2 times
     Returns: train_data_loader:torch dataloader object
     """
-    if multiply_ds not in {1, 2}:
-        raise ValueError("batch_shift should be in {1, 2}")
 
     transform_train = transforms.Compose([
         transforms.RandomCrop(img_size, padding=4),
@@ -199,7 +197,7 @@ def get_training_dataloader(
         )
     ]
 
-    if multiply_ds == 2:
+    if x2_data:
         datasets.append(
             CIFAR100(
                 root='./data',

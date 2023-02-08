@@ -142,7 +142,9 @@ if __name__ == '__main__':
 
     parser.add_argument('-orig-augs', action='store_true', help='is use orig augs')
 
-    parser.add_argument('-batch-shift', default=1, type=int, help='shift scale for batch augment')
+    parser.add_argument('-x2-data', action='store_true', help='double the number of datasets')
+    parser.add_argument('-x2-epoch', action='store_true', help='double the number of epochs')
+    
     parser.add_argument('-use-distil-aug', action='store_true', help='is use distil augmentation loss')
     parser.add_argument('-distil-aug-weight', default=1.0, type=float, help='cross loss weight')
     parser.add_argument('-prob-aug', default=1.0, type=float, help='')
@@ -158,7 +160,6 @@ if __name__ == '__main__':
                         help='milestone for start to use cross samples loss')
     parser.add_argument('-avg-cross-loss-weight', default=1.0, type=float, help='avg cross loss weight')
 
-    parser.add_argument('-x2-epoch', action='store_true', help='double the number of epochs')
     parser.add_argument('-bp-filt-size', type=int, default=None, help='')
 
     parser.add_argument('-teacher', type=str, default='', help='name of folder with model')
@@ -194,7 +195,7 @@ if __name__ == '__main__':
     if args.bp_filt_size:
         exp_name += f"_lpf{args.bp_filt_size}"
 
-    exp_name += f"_bss{args.batch_shift}"
+    exp_name += f"_bss{2 if args.x2_data else 1}"
 
     if args.orig_augs:
         exp_name += "_orig_augs"
@@ -224,7 +225,8 @@ if __name__ == '__main__':
         settings.CIFAR100_TRAIN_STD,
         num_workers=4,
         batch_size=args.b,
-        shuffle=True
+        shuffle=True,
+        x2_data=args.x2_data
     )
 
     cifar100_test_loader = get_test_dataloader(
