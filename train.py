@@ -146,7 +146,7 @@ if __name__ == '__main__':
     parser.add_argument('-use-distil-aug', action='store_true', help='is use distil augmentation loss')
     parser.add_argument('-distil-aug-weight', default=1.0, type=float, help='cross loss weight')
     parser.add_argument('-prob-aug', default=1.0, type=float, help='')
-    parser.add_argument('-mode-aug', default="resize", type=str, help='')
+    parser.add_argument('-mode-aug', default="pad", type=str, help='')
 
     parser.add_argument('-use-cross-loss', action='store_true', help='is use cross samples loss')
     parser.add_argument('-cross-loss-start-epoch', default=0, type=int,
