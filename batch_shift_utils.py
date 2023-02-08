@@ -155,3 +155,33 @@ class InterleaveDataset(Dataset):
     def __len__(self):
 
         return self.ds_num * self.n_samples
+
+
+class ZipDataset(Dataset):
+
+    def __init__(self, datasets):
+
+        self.datasets = datasets
+        self.ds_num = len(datasets)
+        if self.ds_num <= 0:
+            raise ValueError('datasets should not be an empty')
+
+        # check datasets length
+        self.n_samples = len(datasets[0])
+        for dataset in datasets[1:]:
+            if not self.n_samples == len(dataset):
+                raise ValueError(f"Dataset '{dataset}' has wrong length")
+
+    def __getitem__(self, idx):
+
+        images, labels = [], []
+
+        for dataset in self.datasets:
+            img, label = dataset[idx]
+            images.append(img)
+            labels.append(label)
+
+        return images, labels
+
+    def __len__(self):
+        return self.n_samples
