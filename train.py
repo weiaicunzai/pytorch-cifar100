@@ -18,6 +18,7 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 from torch.backends import cudnn
+from torch.nn.functional import kl_div
 from torch.utils.tensorboard import SummaryWriter
 
 from conf import settings
@@ -32,17 +33,36 @@ from utils import most_recent_weights
 from validate_utils import AverageMeter
 
 
+def cross_loss(
+    output1: torch.Tensor, output2: torch.Tensor,
+    reduction: str = 'mean', T: int = 1
+):
+
+    p = (output1 / T).softmax(dim=1)
+    q = (output2 / T).softmax(dim=1)
+
+    # loss = (p - q) * (p.log() - q.log())
+    loss = kl_div(p.log(), q, reduction=reduction)
+    loss += kl_div(q.log(), p, reduction=reduction)
+
+    loss *= T**2
+
+    return loss.sum()
+
+
 def train(net, epoch):
     start = time.time()
     net.train()
 
     total_losses = AverageMeter()
+    student_losses = AverageMeter()
+    cross_losses = AverageMeter()
 
     for batch_index, (images, labels) in enumerate(cifar100_training_loader):
 
         labels = torch.cat(labels, 0)
         images = torch.cat(images, 0)
-        # print(torch.norm(images[:images.shape[0] // 2] - images[images.shape[0] // 2:]))
+        # print(torch.norm(images[:len(images) // 2] - images[len(images) // 2:]))
 
         if args.gpu:
             labels = labels.cuda()
@@ -51,6 +71,15 @@ def train(net, epoch):
         optimizer.zero_grad()
         outputs = net(images)
         loss = loss_function(outputs, labels)
+
+        student_losses.update(loss.item(), images.size(0))
+
+        if args.use_cross_loss and args.x2_data and epoch > args.cross_loss_start_epoch:
+            cross_l = cross_loss(outputs[:len(outputs) // 2], outputs[len(outputs) // 2:])
+
+            cross_losses.update(cross_l.item(), images.size(0))
+            cross_l *= args.cross_loss_weight
+            loss += cross_l
 
         total_losses.update(loss.item(), images.size(0))
 
@@ -72,11 +101,21 @@ def train(net, epoch):
             f'LR: {optimizer.param_groups[0]["lr"]:0.6f}\n'
         )
 
-        print(
-            f'CE Loss {total_losses.val:.4f} ({total_losses.avg:.4f})\t'
-        )
+        if args.use_cross_loss and args.x2_data:
+            print(
+                f'Total Loss {total_losses.val:.4f} ({total_losses.avg:.4f})\t'
+                f'CE Loss {student_losses.val:.4f} ({student_losses.avg:.4f})\t'
+                f'Cross loss {cross_losses.val:.4f} ({cross_losses.avg:.4f})\t'
+            )
 
-        writer.add_scalar('Train/loss', total_losses.val, n_iter)
+            writer.add_scalar('Train/loss', total_losses.val, n_iter)
+            writer.add_scalar('Train/CE_loss', student_losses.val, n_iter)
+            writer.add_scalar('Train/cross_loss', cross_losses.val, n_iter)
+        else:
+            print(
+                f'CE Loss {student_losses.val:.4f} ({student_losses.avg:.4f})\t'
+            )
+            writer.add_scalar('Train/CE_loss', student_losses.val, n_iter)
 
         if epoch <= args.warm:
             warmup_scheduler.step()
