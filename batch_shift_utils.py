@@ -63,7 +63,7 @@ class Identity(object):
 
 
 class RandomShift(Callable):
-    def __init__(self, size: int, padding, p_apply=0.35, mode="resize"):
+    def __init__(self, size: int, padding, p_apply=0.35, mode="pad"):
         super().__init__()
 
         if mode == "pad":
