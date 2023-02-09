@@ -271,7 +271,8 @@ if __name__ == '__main__':
         num_workers=4,
         batch_size=args.b,
         shuffle=True,
-        x2_data=args.x2_data
+        x2_data=args.x2_data,
+        prob_aug=args.prob_aug
     )
 
     cifar100_test_loader = get_test_dataloader(

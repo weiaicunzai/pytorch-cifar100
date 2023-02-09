@@ -13,7 +13,7 @@ from torch.optim.lr_scheduler import _LRScheduler
 from torch.utils.data import DataLoader
 from torchvision.datasets import CIFAR100
 
-from batch_shift_utils import ZipDataset
+from batch_shift_utils import RandomShift, ZipDataset
 
 
 def get_network(args):
@@ -167,6 +167,7 @@ def get_training_dataloader(
         mean, std, img_size=32,
         batch_size=128, num_workers=2,
         shuffle=True, x2_data=False,
+        prob_aug=1.,
 ):
     """ return training dataloader
     Args:
@@ -186,7 +187,7 @@ def get_training_dataloader(
             train=True,
             download=True,
             transform=transforms.Compose([
-                transforms.RandomCrop(img_size, padding=4),
+                RandomShift(img_size, padding=4, p_apply=prob_aug),
                 transforms.RandomHorizontalFlip(),
                 transforms.RandomRotation(15),
                 transforms.ToTensor(),
@@ -202,7 +203,7 @@ def get_training_dataloader(
                 train=True,
                 download=False,
                 transform=transforms.Compose([
-                    transforms.RandomCrop(img_size, padding=4),
+                    RandomShift(img_size, padding=4, p_apply=prob_aug),
                     transforms.RandomHorizontalFlip(),
                     transforms.RandomRotation(15),
                     transforms.ToTensor(),
