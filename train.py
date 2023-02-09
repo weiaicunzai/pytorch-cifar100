@@ -34,10 +34,9 @@ from validate_utils import AverageMeter
 
 
 def cross_loss(
-    output1: torch.Tensor, output2: torch.Tensor,
-    reduction: str = 'mean', T: int = 1
+        output1: torch.Tensor, output2: torch.Tensor,
+        reduction: str = 'mean', T: int = 1
 ):
-
     p = (output1 / T).softmax(dim=1)
     q = (output2 / T).softmax(dim=1)
 
@@ -45,9 +44,18 @@ def cross_loss(
     loss = kl_div(p.log(), q, reduction=reduction)
     loss += kl_div(q.log(), p, reduction=reduction)
 
-    loss *= T**2
+    loss *= T ** 2
 
     return loss.sum()
+
+
+def grad_logging(net, n_iter):
+    last_layer = list(net.children())[-1]
+    for name, param in last_layer.named_parameters():
+        if 'weight' in name:
+            writer.add_scalar('LastLayerGradients/grad_norm2_weights', param.grad.norm(), n_iter)
+        if 'bias' in name:
+            writer.add_scalar('LastLayerGradients/grad_norm2_bias', param.grad.norm(), n_iter)
 
 
 def train(net, epoch):
@@ -88,18 +96,13 @@ def train(net, epoch):
 
         n_iter = (epoch - 1) * len(cifar100_training_loader) + batch_index + 1
 
-        last_layer = list(net.children())[-1]
-        for name, param in last_layer.named_parameters():
-            if 'weight' in name:
-                writer.add_scalar('LastLayerGradients/grad_norm2_weights', param.grad.norm(), n_iter)
-            if 'bias' in name:
-                writer.add_scalar('LastLayerGradients/grad_norm2_bias', param.grad.norm(), n_iter)
-
         print(
             f'Training Epoch: {epoch} '
             f'[{batch_index * args.b + len(images)}/{len(cifar100_training_loader) * args.b}]\t'
             f'LR: {optimizer.param_groups[0]["lr"]:0.6f}\n'
         )
+
+        grad_logging(net, n_iter)
 
         if args.use_cross_loss and args.x2_data:
             print(
