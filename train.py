@@ -83,7 +83,11 @@ def train(net, epoch):
         student_losses.update(loss.item(), images.size(0))
 
         if args.use_cross_loss and args.x2_data and epoch > args.cross_loss_start_epoch:
-            cross_l = cross_loss(outputs[:len(outputs) // 2], outputs[len(outputs) // 2:])
+            cross_l = cross_loss(
+                outputs[:len(outputs) // 2], 
+                outputs[len(outputs) // 2:],
+                T=args.soft_temper
+            )
 
             cross_losses.update(cross_l.item(), images.size(0))
             cross_l *= args.cross_loss_weight
@@ -211,7 +215,7 @@ if __name__ == '__main__':
     parser.add_argument('-teacher', type=str, default='', help='name of folder with model')
     parser.add_argument('-distil-function', default='l2', type=str, help='distillation function')
     parser.add_argument('-distil-weight', default=0.0, type=float, help='distillation loss weight')
-    parser.add_argument('-temperature', default=30, type=int, help='soft logits temperature')
+    parser.add_argument('-soft-temper', default=1, type=int, help='soft logits temperature')
 
     args = parser.parse_args()
 
@@ -249,8 +253,12 @@ if __name__ == '__main__':
 
     if args.use_cross_loss:
         exp_name += f"_log_cross_loss_{args.cross_loss_weight}w"
+        
         if args.cross_loss_start_epoch > 0:
             exp_name += f"_start{args.cross_loss_start_epoch}"
+
+        if args.soft_temper > 1:
+            exp_name += f"_temp{args.soft_temper}"     
 
     if args.use_avg_cross_loss:
         exp_name += f"_log_avg_cross_loss_{args.avg_cross_loss_weight}w"
