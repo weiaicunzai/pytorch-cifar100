@@ -128,13 +128,13 @@ def validate_shift(val_loader, model, epochs_shift=5, gpu=0, print_log=False, pr
                 if gpu is not None:
                     input = input.cuda(gpu, non_blocking=True)
 
-                smal_size = input.shape[-1] - D
+                orig_size = input.shape[-1] - D
 
-                off0 = np.random.randint(smal_size, size=2)
-                off1 = np.random.randint(smal_size, size=2)
+                off0 = np.random.randint(D, size=2)
+                off1 = np.random.randint(D, size=2)
 
-                output0 = model(input[:, :, off0[0]:off0[0] + smal_size, off0[1]:off0[1] + smal_size])
-                output1 = model(input[:, :, off1[0]:off1[0] + smal_size, off1[1]:off1[1] + smal_size])
+                output0 = model(input[:, :, off0[0]:off0[0] + orig_size, off0[1]:off0[1] + orig_size])
+                output1 = model(input[:, :, off1[0]:off1[0] + orig_size, off1[1]:off1[1] + orig_size])
 
                 cur_agree = agreement(output0, output1).type(torch.FloatTensor).to(output0.device)
 
@@ -181,10 +181,11 @@ def validate_diagonal(val_loader, model, out_dir: Path, D=32, name='', gpu=0, pr
             if gpu is not None:
                 input = input.cuda(gpu, non_blocking=True)
                 target = target.cuda(gpu, non_blocking=True)
-
+            
+            orig_size = input.shape[-1] - D
             inputs = []
             for off in range(D):
-                inputs.append(input[:, :, off:off + input.shape[-1] - D, off:off + input.shape[-1] - D])
+                inputs.append(input[:, :, off:off + orig_size, off:off + orig_size])
 
             inputs = torch.cat(inputs, dim=0)
             probs = torch.nn.Softmax(dim=1)(model(inputs))
