@@ -10,13 +10,12 @@ import argparse
 import os
 import random
 import time
-import warnings
-from pathlib import Path
-from pprint import pprint
-
 import torch
 import torch.nn as nn
 import torch.optim as optim
+import warnings
+from pathlib import Path
+from pprint import pprint
 from torch.backends import cudnn
 from torch.nn.functional import kl_div
 from torch.utils.tensorboard import SummaryWriter
@@ -35,18 +34,29 @@ from validate_utils import AverageMeter
 
 def cross_loss(
         output1: torch.Tensor, output2: torch.Tensor,
-        reduction: str = 'mean', T: int = 1
+        T: int = 1, labels=None
 ):
     p = (output1 / T).softmax(dim=1)
     q = (output2 / T).softmax(dim=1)
 
     # loss = (p - q) * (p.log() - q.log())
-    loss = kl_div(p.log(), q, reduction=reduction)
-    loss += kl_div(q.log(), p, reduction=reduction)
+    loss_pq = kl_div(p.log(), q, reduction='none')
+    loss_qp = kl_div(q.log(), p, reduction='none')
 
-    loss *= T ** 2
+    # get only correct predictions by labels 
+    if labels is not None:
+        label1 = labels[:len(labels) // 2]
+        label2 = labels[len(labels) // 2:]
+        
+        correct_pred1 = output1.argmax(1).eq(label1)
+        correct_pred2 = output2.argmax(1).eq(label2)
+        
+        correct_pred = correct_pred1 * correct_pred2
+        
+        loss_pq *= correct_pred[:, None]
+        loss_qp *= correct_pred[:, None]
 
-    return loss.sum()
+    return (loss_pq.mean() + loss_qp.mean()) * T ** 2
 
 
 def grad_logging(net, n_iter):
@@ -83,10 +93,15 @@ def train(net, epoch):
         student_losses.update(loss.item(), images.size(0))
 
         if args.use_cross_loss and args.x2_data and epoch > args.cross_loss_start_epoch:
+            cl_labels = None
+            if args.only_correct_cross_loss:
+                cl_labels = labels
+            
             cross_l = cross_loss(
                 outputs[:len(outputs) // 2], 
                 outputs[len(outputs) // 2:],
-                T=args.soft_temper
+                T=args.soft_temper,
+                labels=cl_labels
             )
 
             cross_losses.update(cross_l.item(), images.size(0))
@@ -203,6 +218,7 @@ if __name__ == '__main__':
     parser.add_argument('-use-cross-loss', action='store_true', help='is use cross samples loss')
     parser.add_argument('-cross-loss-start-epoch', default=0, type=int,
                         help='milestone for start to use cross samples loss')
+    parser.add_argument('-only-correct-cross-loss', action='store_true', help='is use cross samples loss')
     parser.add_argument('-cross-loss-weight', default=1.0, type=float, help='cross loss weight')
 
     parser.add_argument('-use-avg-cross-loss', action='store_true', help='is use cross samples loss')
@@ -256,6 +272,9 @@ if __name__ == '__main__':
         
         if args.cross_loss_start_epoch > 0:
             exp_name += f"_start{args.cross_loss_start_epoch}"
+        
+        if args.only_correct_cross_loss:
+            exp_name += f"_only_correct"    
 
         if args.soft_temper > 1:
             exp_name += f"_temp{args.soft_temper}"     
