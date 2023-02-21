@@ -3,17 +3,17 @@
 author baiyu
 """
 import datetime
+import numpy
 import os
 import re
 import sys
-
-import numpy
 import torchvision.transforms as transforms
 from torch.optim.lr_scheduler import _LRScheduler
 from torch.utils.data import DataLoader
 from torchvision.datasets import CIFAR100
 
-from batch_shift_utils import RandomShift, ZipDataset
+from batch_shift_utils import RandomShift
+from batch_shift_utils import ZipDataset
 
 
 def get_network(args):
@@ -60,8 +60,8 @@ def get_network(args):
         from models.xception import xception
         net = xception()
     elif args.net == 'resnet18':
-        from models.resnet import resnet18
-        net = resnet18()
+        from models.resnet import resnet18 
+        net = resnet18(args.bp_filt_size) 
     elif args.net == 'resnet34':
         from models.resnet import resnet34
         net = resnet34()
