@@ -10,12 +10,14 @@ import argparse
 import os
 import random
 import time
-import torch
-import torch.nn as nn
-import torch.optim as optim
 import warnings
 from pathlib import Path
 from pprint import pprint
+from itertools import combinations
+
+import torch
+import torch.nn as nn
+import torch.optim as optim
 from torch.backends import cudnn
 from torch.nn.functional import kl_div
 from torch.utils.tensorboard import SummaryWriter
@@ -47,12 +49,12 @@ def cross_loss(
     if labels is not None:
         label1 = labels[:len(labels) // 2]
         label2 = labels[len(labels) // 2:]
-        
+
         correct_pred1 = output1.argmax(1).eq(label1)
         correct_pred2 = output2.argmax(1).eq(label2)
-        
+
         correct_pred = correct_pred1 * correct_pred2
-        
+
         loss_pq *= correct_pred[:, None]
         loss_qp *= correct_pred[:, None]
 
@@ -92,17 +94,24 @@ def train(net, epoch):
 
         student_losses.update(loss.item(), images.size(0))
 
-        if args.use_cross_loss and args.x2_data and epoch > args.cross_loss_start_epoch:
+        if args.use_cross_loss and args.multiply_data > 1 and epoch > args.cross_loss_start_epoch:
             cl_labels = None
             if args.only_correct_cross_loss:
                 cl_labels = labels
-            
-            cross_l = cross_loss(
-                outputs[:len(outputs) // 2], 
-                outputs[len(outputs) // 2:],
-                T=args.soft_temper,
-                labels=cl_labels
+
+            num_elem_in_split = round(args.b / args.multiply_data)
+            out_split_comb = combinations(
+                torch.split(outputs, num_elem_in_split),
+                args.multiply_data
             )
+
+            cross_l = torch.zeros_like(loss)
+            for out_pair in out_split_comb:
+                cross_l += cross_loss(
+                    out_pair[0], out_pair[1],
+                    T=args.soft_temper,
+                    labels=cl_labels
+                )
 
             cross_losses.update(cross_l.item(), images.size(0))
             cross_l *= args.cross_loss_weight
@@ -123,7 +132,7 @@ def train(net, epoch):
 
         grad_logging(net, n_iter)
 
-        if args.use_cross_loss and args.x2_data:
+        if args.use_cross_loss and args.multiply_data > 1:
             print(
                 f'Total Loss {total_losses.val:.4f} ({total_losses.avg:.4f})\t'
                 f'CE Loss {student_losses.val:.4f} ({student_losses.avg:.4f})\t'
@@ -207,7 +216,7 @@ if __name__ == '__main__':
 
     parser.add_argument('-orig-augs', action='store_true', help='is use orig augs')
 
-    parser.add_argument('-x2-data', action='store_true', help='double the number of datasets')
+    parser.add_argument('-multiply-data', type=int, default=1, help='multiply the number of datasets')
     parser.add_argument('-x2-epoch', action='store_true', help='double the number of epochs')
 
     parser.add_argument('-use-distil-aug', action='store_true', help='is use distil augmentation loss')
@@ -260,7 +269,7 @@ if __name__ == '__main__':
     if args.bp_filt_size:
         exp_name += f"_lpf{args.bp_filt_size}"
 
-    exp_name += f"_bss{2 if args.x2_data else 1}"
+    exp_name += f"_x{args.multiply_data}_data"
 
     if args.orig_augs:
         exp_name += "_orig_augs"
@@ -269,15 +278,15 @@ if __name__ == '__main__':
 
     if args.use_cross_loss:
         exp_name += f"_log_cross_loss_{args.cross_loss_weight}w"
-        
+
         if args.cross_loss_start_epoch > 0:
             exp_name += f"_start{args.cross_loss_start_epoch}"
-        
+
         if args.only_correct_cross_loss:
-            exp_name += f"_only_correct"    
+            exp_name += f"_only_correct"
 
         if args.soft_temper > 1:
-            exp_name += f"_temp{args.soft_temper}"     
+            exp_name += f"_temp{args.soft_temper}"
 
     if args.use_avg_cross_loss:
         exp_name += f"_log_avg_cross_loss_{args.avg_cross_loss_weight}w"
@@ -298,7 +307,7 @@ if __name__ == '__main__':
         num_workers=4,
         batch_size=args.b,
         shuffle=True,
-        x2_data=args.x2_data,
+        multiply_data=args.multiply_data,
         prob_aug=args.prob_aug
     )
 

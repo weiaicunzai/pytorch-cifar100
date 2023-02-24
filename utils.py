@@ -163,10 +163,26 @@ def get_network(args):
     return net
 
 
+def get_train_cifar100_with_augs(img_size, mean, std, p_apply=0.35):
+
+    return CIFAR100(
+            root='./data',
+            train=True,
+            download=True,
+            transform=transforms.Compose([
+                RandomShift(img_size, padding=4, p_apply=p_apply),
+                transforms.RandomHorizontalFlip(),
+                transforms.RandomRotation(15),
+                transforms.ToTensor(),
+                transforms.Normalize(mean, std)
+            ])
+        )
+
+
 def get_training_dataloader(
         mean, std, img_size=32,
         batch_size=128, num_workers=2,
-        shuffle=True, x2_data=False,
+        shuffle=True, multiply_data=1,
         prob_aug=1.,
 ):
     """ return training dataloader
@@ -177,46 +193,20 @@ def get_training_dataloader(
         batch_size: dataloader batchsize
         num_workers: dataloader num_works
         shuffle: whether to shuffle
-        x2_data: multiply dataset in 2 times
+        multiply_data: multiply dataset in several times
     Returns: train_data_loader:torch dataloader object
     """
 
     datasets = [
-        CIFAR100(
-            root='./data',
-            train=True,
-            download=True,
-            transform=transforms.Compose([
-                RandomShift(img_size, padding=4, p_apply=prob_aug),
-                transforms.RandomHorizontalFlip(),
-                transforms.RandomRotation(15),
-                transforms.ToTensor(),
-                transforms.Normalize(mean, std)
-            ])
-        )
+        get_train_cifar100_with_augs(img_size, mean, std, p_apply=prob_aug)
+        for _ in range(multiply_data)
     ]
-
-    if x2_data:
-        datasets.append(
-            CIFAR100(
-                root='./data',
-                train=True,
-                download=False,
-                transform=transforms.Compose([
-                    RandomShift(img_size, padding=4, p_apply=prob_aug),
-                    transforms.RandomHorizontalFlip(),
-                    transforms.RandomRotation(15),
-                    transforms.ToTensor(),
-                    transforms.Normalize(mean, std)
-                ])
-            )
-        )
 
     cifar100_training_loader = DataLoader(
         dataset=ZipDataset(datasets),
         shuffle=shuffle,
         num_workers=num_workers,
-        batch_size=batch_size // len(datasets)
+        batch_size=round(batch_size / multiply_data) * multiply_data
     )
 
     return cifar100_training_loader
