@@ -3,11 +3,10 @@
 author baiyu
 """
 import datetime
+import numpy
 import os
 import re
 import sys
-
-import numpy
 import torchvision.transforms as transforms
 from torch.optim.lr_scheduler import _LRScheduler
 from torch.utils.data import DataLoader
