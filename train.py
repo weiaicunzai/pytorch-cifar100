@@ -102,10 +102,6 @@ def train(net, epoch):
             num_elem_in_split = round(args.b / args.multiply_data)
             out_split = torch.split(outputs, num_elem_in_split)
 
-            print(num_elem_in_split)
-            print(outputs.shape)
-            print(list(map(len, out_split)))
-
             cross_l = torch.zeros_like(loss)
             for out1, out2 in combinations(range(args.multiply_data), 2):
                 cross_l += cross_loss(
