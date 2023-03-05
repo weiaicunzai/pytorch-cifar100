@@ -69,16 +69,16 @@ class BottleNeck(nn.Module):
             nn.Conv2d(out_channels, out_channels, stride=stride, kernel_size=3, padding=1, bias=False),
             nn.BatchNorm2d(out_channels),
             nn.ReLU(inplace=True),
-            nn.Conv2d(out_channels, out_channels * BottleNeck_BP.expansion, kernel_size=1, bias=False),
-            nn.BatchNorm2d(out_channels * BottleNeck_BP.expansion),
+            nn.Conv2d(out_channels, out_channels * BottleNeck.expansion, kernel_size=1, bias=False),
+            nn.BatchNorm2d(out_channels * BottleNeck.expansion),
         )
 
         self.shortcut = nn.Sequential()
 
-        if stride != 1 or in_channels != out_channels * BottleNeck_BP.expansion:
+        if stride != 1 or in_channels != out_channels * BottleNeck.expansion:
             self.shortcut = nn.Sequential(
-                nn.Conv2d(in_channels, out_channels * BottleNeck_BP.expansion, stride=stride, kernel_size=1, bias=False),
-                nn.BatchNorm2d(out_channels * BottleNeck_BP.expansion)
+                nn.Conv2d(in_channels, out_channels * BottleNeck.expansion, stride=stride, kernel_size=1, bias=False),
+                nn.BatchNorm2d(out_channels * BottleNeck.expansion)
             )
 
     def forward(self, x):
