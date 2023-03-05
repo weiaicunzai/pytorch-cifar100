@@ -101,12 +101,12 @@ def train(net, epoch):
 
             num_elem_in_split = round(args.b / args.multiply_data)
             out_split = torch.split(outputs, num_elem_in_split)
+            out_split = [out for out in out_split if len(out) == num_elem_in_split]
 
             cross_l = torch.zeros_like(loss)
-            for out1, out2 in combinations(range(args.multiply_data), 2):
+            for out1, out2 in combinations(out_split, 2):
                 cross_l += cross_loss(
-                    out_split[out1],
-                    out_split[out2],
+                    out1, out2,
                     T=args.soft_temper,
                     labels=cl_labels
                 )
