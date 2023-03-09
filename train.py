@@ -20,10 +20,9 @@ from torch.backends import cudnn
 from torch.nn.functional import kl_div
 from torch.utils.tensorboard import SummaryWriter
 
-from conf import settings, get_checkpoint_path
 from conf import get_args
 from conf import get_experiment_name
-
+from conf import settings, get_checkpoint_path
 from utils import WarmUpLR
 from utils import best_acc_weights
 from utils import get_network
@@ -202,7 +201,7 @@ def eval_training(net, dataloader, epoch=0, tb=True):
     return correct.float() / n_sampels
 
 
-def train_val_loop(net, training_loader, test_loader, checkpoint_path, best_acc):
+def train_val_loop(net, training_loader, test_loader, checkpoint_path, best_acc, resume_epoch):
     
     for epoch in range(1, settings.EPOCH + 1):
         if epoch > args.warm:
@@ -227,6 +226,31 @@ def train_val_loop(net, training_loader, test_loader, checkpoint_path, best_acc)
             weights_path = checkpoint_path / f'{args.net}-{epoch}-regular.pth'
             print(f'saving weights file to {weights_path}')
             torch.save(net.state_dict(), weights_path)
+
+def resume_network(net, checkpoint_path):
+
+    best_acc = 0.0
+    resume_epoch = -1
+    if args.resume:
+        best_weights = best_acc_weights(str(checkpoint_path))
+        if best_weights:
+            weights_path = checkpoint_path / best_weights
+            print(f'found best acc weights file: {weights_path}')
+            print('load best training file to test acc...')
+            net.load_state_dict(torch.load(weights_path))
+            best_acc = eval_training(net, tb=False)
+            print(f'best acc is {best_acc:0.2f}')
+
+        recent_weights_file = most_recent_weights(str(checkpoint_path))
+        if not recent_weights_file:
+            raise Exception('no recent weights file were found')
+        weights_path = checkpoint_path / recent_weights_file
+        print(f'loading weights file {weights_path} to resume training.....')
+        net.load_state_dict(torch.load(weights_path))
+
+        resume_epoch = last_epoch(str(checkpoint_path))
+
+    return net, best_acc, resume_epoch
 
 
 if __name__ == '__main__':
@@ -310,27 +334,8 @@ if __name__ == '__main__':
     # create checkpoint folder to save model
     checkpoint_path.mkdir(exist_ok=True, parents=True)
 
-    best_acc = 0.0
-    resume_epoch = -1
-    if args.resume:
-        best_weights = best_acc_weights(str(checkpoint_path))
-        if best_weights:
-            weights_path = checkpoint_path / best_weights
-            print(f'found best acc weights file: {weights_path}')
-            print('load best training file to test acc...')
-            net.load_state_dict(torch.load(weights_path))
-            best_acc = eval_training(net, tb=False)
-            print(f'best acc is {best_acc:0.2f}')
+    net, best_acc, resume_epoch = resume_network(net, checkpoint_path)
 
-        recent_weights_file = most_recent_weights(str(checkpoint_path))
-        if not recent_weights_file:
-            raise Exception('no recent weights file were found')
-        weights_path = checkpoint_path / recent_weights_file
-        print(f'loading weights file {weights_path} to resume training.....')
-        net.load_state_dict(torch.load(weights_path))
-
-        resume_epoch = last_epoch(str(checkpoint_path))
-
-    train_val_loop(net, training_loader, test_loader, checkpoint_path, best_acc)
+    train_val_loop(net, training_loader, test_loader, checkpoint_path, best_acc, resume_epoch)
 
     writer.close()
