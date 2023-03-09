@@ -2,8 +2,9 @@
 
 author baiyu
 """
-import os
+
 import pickle
+from pathlib import Path
 
 import numpy
 from torch.utils.data import Dataset
@@ -16,7 +17,7 @@ class CIFAR100Train(Dataset):
 
     def __init__(self, path, transform=None):
         # if transform is given, we transoform data using
-        with open(os.path.join(path, 'train'), 'rb') as cifar100:
+        with (Path(path) / 'train').open('rb') as cifar100:
             self.data = pickle.load(cifar100, encoding='bytes')
         self.transform = transform
 
@@ -41,7 +42,7 @@ class CIFAR100Test(Dataset):
     """
 
     def __init__(self, path, transform=None):
-        with open(os.path.join(path, 'test'), 'rb') as cifar100:
+        with (Path(path) / 'test').open('rb') as cifar100:
             self.data = pickle.load(cifar100, encoding='bytes')
         self.transform = transform
 

@@ -70,7 +70,7 @@ def grad_logging(net, n_iter):
             writer.add_scalar('LastLayerGradients/grad_norm2_bias', param.grad.norm(), n_iter)
 
 
-def train(net, epoch):
+def train(net, dataloader, epoch):
     start = time.time()
     net.train()
 
@@ -78,7 +78,7 @@ def train(net, epoch):
     student_losses = AverageMeter()
     cross_losses = AverageMeter()
 
-    for batch_index, (images, labels) in enumerate(cifar100_training_loader):
+    for batch_index, (images, labels) in enumerate(dataloader):
 
         labels = torch.cat(labels, 0)
         images = torch.cat(images, 0)
@@ -120,11 +120,11 @@ def train(net, epoch):
         loss.backward()
         optimizer.step()
 
-        n_iter = (epoch - 1) * len(cifar100_training_loader) + batch_index + 1
+        n_iter = (epoch - 1) * len(dataloader) + batch_index + 1
 
         print(
             f'Training Epoch: {epoch} '
-            f'[{batch_index * args.b + len(images)}/{len(cifar100_training_loader) * args.b}]\t'
+            f'[{batch_index * args.b + len(images)}/{len(dataloader) * args.b}]\t'
             f'LR: {optimizer.param_groups[0]["lr"]:0.6f}\n'
         )
 
@@ -160,14 +160,15 @@ def train(net, epoch):
 
 
 @torch.no_grad()
-def eval_training(net, epoch=0, tb=True):
+def eval_training(net, dataloader, epoch=0, tb=True):
     start = time.time()
     net.eval()
 
+    n_sampels = len(dataloader.dataset)
     test_losses = AverageMeter()
     correct = 0.0
 
-    for (images, labels) in cifar100_test_loader:
+    for (images, labels) in dataloader:
 
         if args.gpu:
             images = images.cuda()
@@ -188,7 +189,7 @@ def eval_training(net, epoch=0, tb=True):
     print(
         f'Test set: Epoch: {epoch},'
         f'Average loss: {test_losses.avg:.4f},'
-        f'Accuracy: {correct.float() / len(cifar100_test_loader.dataset):.4f},'
+        f'Accuracy: {correct.float() / n_sampels:.4f},'
         f'Time consumed:{finish - start:.2f}s'
         '\n'
     )
@@ -196,9 +197,9 @@ def eval_training(net, epoch=0, tb=True):
     # add informations to tensorboard
     if tb:
         writer.add_scalar('Test/Average loss', test_losses.avg, epoch)
-        writer.add_scalar('Test/Accuracy', correct.float() / len(cifar100_test_loader.dataset), epoch)
+        writer.add_scalar('Test/Accuracy', correct.float() / n_sampels, epoch)
 
-    return correct.float() / len(cifar100_test_loader.dataset)
+    return correct.float() / n_sampels
 
 
 if __name__ == '__main__':
@@ -299,7 +300,7 @@ if __name__ == '__main__':
     net = get_network(args)
 
     # data preprocessing:
-    cifar100_training_loader = get_training_dataloader(
+    training_loader = get_training_dataloader(
         settings.CIFAR100_TRAIN_MEAN,
         settings.CIFAR100_TRAIN_STD,
         num_workers=4,
@@ -309,7 +310,7 @@ if __name__ == '__main__':
         prob_aug=args.prob_aug
     )
 
-    cifar100_test_loader = get_test_dataloader(
+    test_loader = get_test_dataloader(
         settings.CIFAR100_TRAIN_MEAN,
         settings.CIFAR100_TRAIN_STD,
         num_workers=4,
@@ -321,7 +322,7 @@ if __name__ == '__main__':
     optimizer = optim.SGD(net.parameters(), lr=args.lr, momentum=0.9, weight_decay=5e-4)
     train_scheduler = optim.lr_scheduler.MultiStepLR(optimizer, milestones=settings.MILESTONES,
                                                      gamma=0.2)  # learning rate decay
-    iter_per_epoch = len(cifar100_training_loader)
+    iter_per_epoch = len(training_loader)
     warmup_scheduler = WarmUpLR(optimizer, iter_per_epoch * args.warm)
 
     checkpoint_path = Path(settings.CHECKPOINT_PATH)
@@ -399,8 +400,8 @@ if __name__ == '__main__':
             if epoch <= resume_epoch:
                 continue
 
-        train(net, epoch)
-        acc = eval_training(net, epoch)
+        train(net, training_loader, epoch)
+        acc = eval_training(net, test_loader, epoch)
 
         # start to save best performance model after learning rate decay to 0.01
         if epoch > settings.MILESTONES[1] and best_acc < acc:
