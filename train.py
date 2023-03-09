@@ -23,11 +23,10 @@ from torch.utils.tensorboard import SummaryWriter
 from conf import get_args
 from conf import get_experiment_name
 from conf import settings, get_checkpoint_path
+from datasets import get_cifar100_dataloaders
 from utils import WarmUpLR
 from utils import best_acc_weights
 from utils import get_network
-from utils import get_test_dataloader
-from utils import get_training_dataloader
 from utils import last_epoch
 from utils import most_recent_weights
 from validate_utils import AverageMeter
@@ -202,7 +201,6 @@ def eval_training(net, dataloader, epoch=0, tb=True):
 
 
 def train_val_loop(net, training_loader, test_loader, checkpoint_path, best_acc, resume_epoch):
-    
     for epoch in range(1, settings.EPOCH + 1):
         if epoch > args.warm:
             train_scheduler.step(epoch)
@@ -227,8 +225,8 @@ def train_val_loop(net, training_loader, test_loader, checkpoint_path, best_acc,
             print(f'saving weights file to {weights_path}')
             torch.save(net.state_dict(), weights_path)
 
-def resume_network(net, checkpoint_path):
 
+def resume_network(net, checkpoint_path):
     best_acc = 0.0
     resume_epoch = -1
     if args.resume:
@@ -282,23 +280,7 @@ if __name__ == '__main__':
     net = get_network(args)
 
     # data preprocessing:
-    training_loader = get_training_dataloader(
-        settings.CIFAR100_TRAIN_MEAN,
-        settings.CIFAR100_TRAIN_STD,
-        num_workers=4,
-        batch_size=args.b,
-        shuffle=True,
-        multiply_data=args.multiply_data,
-        prob_aug=args.prob_aug
-    )
-
-    test_loader = get_test_dataloader(
-        settings.CIFAR100_TRAIN_MEAN,
-        settings.CIFAR100_TRAIN_STD,
-        num_workers=4,
-        batch_size=args.b,
-        shuffle=True
-    )
+    training_loader, test_loader = get_cifar100_dataloaders(args)
 
     loss_function = nn.CrossEntropyLoss()
     optimizer = optim.SGD(net.parameters(), lr=args.lr, momentum=0.9, weight_decay=5e-4)
