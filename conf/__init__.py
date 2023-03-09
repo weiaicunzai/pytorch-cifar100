@@ -3,6 +3,9 @@
 author baiyu
 """
 import conf.global_settings as settings
+from conf.argparse import get_args
+from conf.experement_setup import get_checkpoint_path
+from conf.experement_setup import get_experiment_name
 
 
 class Settings:

@@ -6,13 +6,11 @@
 author baiyu
 """
 
-import argparse
 import os
 import random
 import time
 import warnings
 from itertools import combinations
-from pathlib import Path
 from pprint import pprint
 
 import torch
@@ -22,14 +20,16 @@ from torch.backends import cudnn
 from torch.nn.functional import kl_div
 from torch.utils.tensorboard import SummaryWriter
 
-from conf import settings
+from conf import settings, get_checkpoint_path
+from conf import get_args
+from conf import get_experiment_name
+
 from utils import WarmUpLR
 from utils import best_acc_weights
 from utils import get_network
 from utils import get_test_dataloader
 from utils import get_training_dataloader
 from utils import last_epoch
-from utils import most_recent_folder
 from utils import most_recent_weights
 from validate_utils import AverageMeter
 
@@ -202,46 +202,36 @@ def eval_training(net, dataloader, epoch=0, tb=True):
     return correct.float() / n_sampels
 
 
+def train_val_loop(net, training_loader, test_loader, checkpoint_path, best_acc):
+    
+    for epoch in range(1, settings.EPOCH + 1):
+        if epoch > args.warm:
+            train_scheduler.step(epoch)
+
+        if args.resume:
+            if epoch <= resume_epoch:
+                continue
+
+        train(net, training_loader, epoch)
+        acc = eval_training(net, test_loader, epoch)
+
+        # start to save best performance model after learning rate decay to 0.01
+        if epoch > settings.MILESTONES[1] and best_acc < acc:
+            weights_path = checkpoint_path / f'{args.net}-{epoch}-best.pth'
+            print(f'saving weights file to {weights_path}')
+            torch.save(net.state_dict(), weights_path)
+            best_acc = acc
+            continue
+
+        if not epoch % settings.SAVE_EPOCH:
+            weights_path = checkpoint_path / f'{args.net}-{epoch}-regular.pth'
+            print(f'saving weights file to {weights_path}')
+            torch.save(net.state_dict(), weights_path)
+
+
 if __name__ == '__main__':
 
-    parser = argparse.ArgumentParser()
-    parser.add_argument('-net', type=str, required=True, help='net type')
-    parser.add_argument('-gpu', action='store_true', default=False, help='use gpu or not')
-    parser.add_argument('-b', type=int, default=128, help='batch size for dataloader')
-    parser.add_argument('-warm', type=int, default=1, help='warm up training phase')
-    parser.add_argument('-lr', type=float, default=0.1, help='initial learning rate')
-    parser.add_argument('-seed', type=int, default=0, help='random seed')
-    parser.add_argument('-resume', action='store_true', default=False, help='resume training')
-
-    parser.add_argument('-orig-augs', action='store_true', help='is use orig augs')
-
-    parser.add_argument('-multiply-data', type=int, default=1, help='multiply the number of datasets')
-    parser.add_argument('-x2-epoch', action='store_true', help='double the number of epochs')
-
-    parser.add_argument('-use-distil-aug', action='store_true', help='is use distil augmentation loss')
-    parser.add_argument('-distil-aug-weight', default=1.0, type=float, help='cross loss weight')
-    parser.add_argument('-prob-aug', default=1.0, type=float, help='')
-    parser.add_argument('-mode-aug', default="pad", type=str, help='')
-
-    parser.add_argument('-use-cross-loss', action='store_true', help='is use cross samples loss')
-    parser.add_argument('-cross-loss-start-epoch', default=0, type=int,
-                        help='milestone for start to use cross samples loss')
-    parser.add_argument('-only-correct-cross-loss', action='store_true', help='is use cross samples loss')
-    parser.add_argument('-cross-loss-weight', default=1.0, type=float, help='cross loss weight')
-
-    parser.add_argument('-use-avg-cross-loss', action='store_true', help='is use cross samples loss')
-    parser.add_argument('-avg-cross-loss-start-epoch', default=0, type=int,
-                        help='milestone for start to use cross samples loss')
-    parser.add_argument('-avg-cross-loss-weight', default=1.0, type=float, help='avg cross loss weight')
-
-    parser.add_argument('-bp-filt-size', type=int, default=None, help='')
-
-    parser.add_argument('-teacher', type=str, default='', help='name of folder with model')
-    parser.add_argument('-distil-function', default='l2', type=str, help='distillation function')
-    parser.add_argument('-distil-weight', default=0.0, type=float, help='distillation loss weight')
-    parser.add_argument('-soft-temper', default=1, type=int, help='soft logits temperature')
-
-    args = parser.parse_args()
+    args = get_args()
 
     if args.x2_epoch:
         settings.EPOCH *= 2
@@ -263,39 +253,7 @@ if __name__ == '__main__':
                   'You may see unexpected behavior when restarting '
                   'from checkpoints.')
 
-    exp_name = args.net
-
-    if args.bp_filt_size:
-        exp_name += f"_lpf{args.bp_filt_size}"
-
-    exp_name += f"_x{args.multiply_data}_data"
-
-    if args.orig_augs:
-        exp_name += "_orig_augs"
-    else:
-        exp_name += f"_rc_aug_{args.prob_aug}_aug_mode_{args.mode_aug}"
-
-    if args.use_cross_loss:
-        exp_name += f"_log_cross_loss_{args.cross_loss_weight}w"
-
-        if args.cross_loss_start_epoch > 0:
-            exp_name += f"_start{args.cross_loss_start_epoch}"
-
-        if args.only_correct_cross_loss:
-            exp_name += f"_only_correct"
-
-        if args.soft_temper > 1:
-            exp_name += f"_temp{args.soft_temper}"
-
-    if args.use_avg_cross_loss:
-        exp_name += f"_log_avg_cross_loss_{args.avg_cross_loss_weight}w"
-        if args.avg_cross_loss_start_epoch > 0:
-            exp_name += f"_start{args.avg_cross_loss_start_epoch}"
-
-    if args.x2_epoch:
-        exp_name += "_x2_epoch"
-
-    exp_name += "_log_no_w"
+    exp_name = get_experiment_name(args)
 
     net = get_network(args)
 
@@ -325,26 +283,7 @@ if __name__ == '__main__':
     iter_per_epoch = len(training_loader)
     warmup_scheduler = WarmUpLR(optimizer, iter_per_epoch * args.warm)
 
-    checkpoint_path = Path(settings.CHECKPOINT_PATH)
-
-    if args.use_distil_aug:
-        checkpoint_path = checkpoint_path / 'distil_aug'
-        checkpoint_path = checkpoint_path / f'w_{args.distil_aug_weight}' \
-                                            f'_func_{args.distil_function}' \
-                                            f'_temp_{args.temperature}_1mlstone'
-
-    checkpoint_path = checkpoint_path / exp_name / f"seed{args.seed}"
-
-    if args.resume:
-        recent_folder = most_recent_folder(
-            str(checkpoint_path),
-            fmt=settings.DATE_FORMAT
-        )
-
-        checkpoint_path = checkpoint_path / recent_folder
-
-    else:
-        checkpoint_path = checkpoint_path / settings.TIME_NOW
+    checkpoint_path = get_checkpoint_path(args, exp_name)
 
     # use tensorboard
     if not os.path.exists(settings.LOG_DIR):
@@ -392,28 +331,6 @@ if __name__ == '__main__':
 
         resume_epoch = last_epoch(str(checkpoint_path))
 
-    for epoch in range(1, settings.EPOCH + 1):
-        if epoch > args.warm:
-            train_scheduler.step(epoch)
-
-        if args.resume:
-            if epoch <= resume_epoch:
-                continue
-
-        train(net, training_loader, epoch)
-        acc = eval_training(net, test_loader, epoch)
-
-        # start to save best performance model after learning rate decay to 0.01
-        if epoch > settings.MILESTONES[1] and best_acc < acc:
-            weights_path = checkpoint_path / f'{args.net}-{epoch}-best.pth'
-            print(f'saving weights file to {weights_path}')
-            torch.save(net.state_dict(), weights_path)
-            best_acc = acc
-            continue
-
-        if not epoch % settings.SAVE_EPOCH:
-            weights_path = checkpoint_path / f'{args.net}-{epoch}-regular.pth'
-            print(f'saving weights file to {weights_path}')
-            torch.save(net.state_dict(), weights_path)
+    train_val_loop(net, training_loader, test_loader, checkpoint_path, best_acc)
 
     writer.close()
