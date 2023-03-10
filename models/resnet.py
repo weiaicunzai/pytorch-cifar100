@@ -351,15 +351,15 @@ class ResNet_BP(nn.Module):  # TODO: union with ResNet class
         return output
 
 
-def resnet18(bp_filt_size=None):
+def resnet18(bp_filt_size=None, num_classes=100):
     """ return a ResNet 18 object
     """
     if bp_filt_size:
         print(f"Use resnet18 with BlurPool {bp_filt_size}")
         time.sleep(2)
-        return ResNet_BP(BasicBlock_BP, [2, 2, 2, 2], bp_filt_size=bp_filt_size)
+        return ResNet_BP(BasicBlock_BP, [2, 2, 2, 2], bp_filt_size=bp_filt_size, num_classes=num_classes)
 
-    return ResNet(BasicBlock, [2, 2, 2, 2])
+    return ResNet(BasicBlock, [2, 2, 2, 2], num_classes=num_classes)
 
 
 def resnet34(bp_filt_size=None):

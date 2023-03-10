@@ -23,7 +23,7 @@ from torch.utils.tensorboard import SummaryWriter
 from conf import get_args
 from conf import get_experiment_name
 from conf import settings, get_checkpoint_path
-from datasets import get_cifar100_dataloaders
+from datasets import get_dataloaders
 from utils import WarmUpLR
 from utils import best_acc_weights
 from utils import get_network
@@ -280,7 +280,7 @@ if __name__ == '__main__':
     net = get_network(args)
 
     # data preprocessing:
-    training_loader, test_loader = get_cifar100_dataloaders(args)
+    training_loader, test_loader = get_dataloaders(args)
 
     loss_function = nn.CrossEntropyLoss()
     optimizer = optim.SGD(net.parameters(), lr=args.lr, momentum=0.9, weight_decay=5e-4)
@@ -308,7 +308,7 @@ if __name__ == '__main__':
     writer = SummaryWriter(log_dir=os.path.join(
         log_dir, exp_name, f"seed{args.seed}", settings.TIME_NOW))
 
-    input_tensor = torch.Tensor(1, 3, 32, 32)
+    input_tensor = next(iter(test_loader))[0]
     if args.gpu:
         input_tensor = input_tensor.cuda()
     writer.add_graph(net, input_tensor)

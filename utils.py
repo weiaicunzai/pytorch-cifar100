@@ -14,6 +14,13 @@ def get_network(args):
     """ return given network
     """
 
+    if args.dataset == "cifar100":
+        num_classes = 100
+    elif args.dataset == "tiny_imagenet":
+        num_classes = 200
+    else:
+        raise ValueError(f"Unknown dataset: {args.dataset}")
+
     if args.net == 'vgg16':
         from models.vgg import vgg16_bn
         net = vgg16_bn()
@@ -55,7 +62,7 @@ def get_network(args):
         net = xception()
     elif args.net == 'resnet18':
         from models.resnet import resnet18
-        net = resnet18(args.bp_filt_size)
+        net = resnet18(args.bp_filt_size, num_classes)
     elif args.net == 'resnet34':
         from models.resnet import resnet34
         net = resnet34()

@@ -10,6 +10,8 @@ def get_experiment_name(args):
     if args.bp_filt_size:
         exp_name += f"_lpf{args.bp_filt_size}"
 
+    exp_name += f"_{args.dataset}"
+
     exp_name += f"_x{args.multiply_data}_data"
 
     if args.orig_augs:
