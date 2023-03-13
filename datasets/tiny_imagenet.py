@@ -10,6 +10,7 @@ from torch.utils.data import Dataset
 from tqdm.auto import tqdm
 
 from datasets.utils import construct_dataloaders
+from datasets.utils import get_test_dataloader
 
 """
 TinyImageNetPath
@@ -242,6 +243,21 @@ class TinyImageNet(Dataset):
             img = self.transform(img)
 
         return img, label
+
+
+def get_tiny_imagenet_test_dataloader(batch_size=128, shuffle=False, num_workers=4, img_pad=0):
+     
+    test_loader = get_test_dataloader(
+        TinyImageNet, root="./data/",
+        mean=_TINY_IMAGENET_TRAIN_MEAN, std=_TINY_IMAGENET_TRAIN_STD,
+        batch_size=batch_size,
+        img_size=64,
+        num_workers=num_workers,
+        shuffle=shuffle,
+        img_pad=img_pad
+     )
+    
+    return test_loader
 
 
 def get_tiny_imagenet_dataloaders(args):
