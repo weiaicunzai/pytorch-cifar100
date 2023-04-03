@@ -13,7 +13,11 @@ _CIFAR100_TRAIN_MEAN = (0.5070751592371323, 0.48654887331495095, 0.4409178433670
 _CIFAR100_TRAIN_STD = (0.2673342858792401, 0.2564384629170883, 0.27615047132568404)
 
 
-def get_cifar100_test_dataloader(batch_size=128, shuffle=False, num_workers=4, img_pad=0):
+def unnormalize_batch(batch):
+    return batch * tensor(_CIFAR100_TRAIN_STD)[None, :, None, None] + tensor(_CIFAR100_TRAIN_MEAN)[None, :, None, None]  # unnormalize
+
+
+def get_cifar100_test_dataloader(batch_size=128, shuffle=False, num_workers=4, img_pad=0, data_root="."):
     test_loader = get_test_dataloader(
         CIFAR100, root='./data/',
         mean=_CIFAR100_TRAIN_MEAN,
