@@ -3,6 +3,8 @@
 author baiyu
 """
 
+from torch import tensor
+from pathlib import Path
 from torchvision.datasets import CIFAR100
 
 from datasets.utils import construct_dataloaders
@@ -19,7 +21,7 @@ def unnormalize_batch(batch):
 
 def get_cifar100_test_dataloader(batch_size=128, shuffle=False, num_workers=4, img_pad=0, data_root="."):
     test_loader = get_test_dataloader(
-        CIFAR100, root='./data/',
+        CIFAR100, root=Path(data_root) / 'data',
         mean=_CIFAR100_TRAIN_MEAN,
         std=_CIFAR100_TRAIN_STD,
         img_size=32,
@@ -32,9 +34,9 @@ def get_cifar100_test_dataloader(batch_size=128, shuffle=False, num_workers=4, i
     return test_loader
 
 
-def get_cifar100_dataloaders(args):
+def get_cifar100_dataloaders(args, data_root="."):
     training_loader, test_loader = construct_dataloaders(
-        CIFAR100, root='./data/',
+        CIFAR100, root=Path(data_root) / 'data',
         mean=_CIFAR100_TRAIN_MEAN,
         std=_CIFAR100_TRAIN_STD,
         batch_size=args.b,
