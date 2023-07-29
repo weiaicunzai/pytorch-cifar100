@@ -24,10 +24,7 @@ example for people don't know how to write it.
 ### 3. run tensorbard(optional)
 Install tensorboard
 ```bash
-$ pip install tensorboard
-$ mkdir runs
-Run tensorboard
-$ tensorboard --logdir='runs' --port=6006 --host='localhost'
+$ pip install sparseml[torch] deepsparse torch torchvision
 ```
 
 ### 4. train the model

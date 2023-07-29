@@ -44,6 +44,8 @@ if __name__ == '__main__':
     net.load_state_dict(torch.load(args.weights))
     print(net)
     net.eval()
+
+
     # Prepare the model for quantization
     # net.qconfig = torch.quantization.get_default_qconfig()
     net_prepared = torch.quantization.prepare(net,  inplace = False)
@@ -69,8 +71,7 @@ if __name__ == '__main__':
                 # print('GPU INFO.....')
                 # print(torch.cuda.memory_summary(), end='')
 
-            if True:
-            # with profile(activities=[ProfilerActivity.CPU], profile_memory=True, record_shapes=True) as prof:
+            with profile(activities=[ProfilerActivity.CPU], profile_memory=True, record_shapes=True) as prof:
                 starter.record()
                 output = net_quantized(image)
                 ender.record()

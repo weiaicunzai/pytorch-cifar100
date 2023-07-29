@@ -18,13 +18,45 @@ import torch.nn as nn
 import torch.optim as optim
 import torchvision
 import torchvision.transforms as transforms
+import torch.nn.functional as F
+
 
 from torch.utils.data import DataLoader
-from torch.utils.tensorboard import SummaryWriter
-
 from conf import settings
 from utils import get_network, get_training_dataloader, get_test_dataloader, WarmUpLR, \
     most_recent_folder, most_recent_weights, last_epoch, best_acc_weights
+import torch_pruning as tp
+
+def progressive_pruning(pruner, model, speed_up, example_inputs):
+    model.eval()
+    base_ops, _ = tp.utils.count_ops_and_params(model, example_inputs=example_inputs)
+    current_speed_up = 1
+    while current_speed_up < speed_up:
+        pruner.step(interactive=False)
+        pruned_ops, _ = tp.utils.count_ops_and_params(model, example_inputs=example_inputs)
+        current_speed_up = float(base_ops) / pruned_ops
+        if pruner.current_step == pruner.iterative_steps:
+            break
+        #print(current_speed_up)
+    return current_speed_up
+
+def eval(model, test_loader, device=None):
+    correct = 0
+    total = 0
+    loss = 0
+    if device is None:
+        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    model.to(device)
+    model.eval()
+    with torch.no_grad():
+        for i, (data, target) in enumerate(test_loader):
+            data, target = data.to(device), target.to(device)
+            out = model(data)
+            loss += F.cross_entropy(out, target, reduction="sum")
+            pred = out.max(1)[1]
+            correct += (pred == target).sum()
+            total += len(target)
+    return (correct / total).item(), (loss / total).item()
 
 def train(epoch):
 
@@ -45,11 +77,6 @@ def train(epoch):
         n_iter = (epoch - 1) * len(cifar100_training_loader) + batch_index + 1
 
         last_layer = list(net.children())[-1]
-        for name, para in last_layer.named_parameters():
-            if 'weight' in name:
-                writer.add_scalar('LastLayerGradients/grad_norm2_weights', para.grad.norm(), n_iter)
-            if 'bias' in name:
-                writer.add_scalar('LastLayerGradients/grad_norm2_bias', para.grad.norm(), n_iter)
 
         print('Training Epoch: {epoch} [{trained_samples}/{total_samples}]\tLoss: {:0.4f}\tLR: {:0.6f}'.format(
             loss.item(),
@@ -59,8 +86,6 @@ def train(epoch):
             total_samples=len(cifar100_training_loader.dataset)
         ))
 
-        #update training loss for each iteration
-        writer.add_scalar('Train/loss', loss.item(), n_iter)
 
         if epoch <= args.warm:
             warmup_scheduler.step()
@@ -68,7 +93,6 @@ def train(epoch):
     for name, param in net.named_parameters():
         layer, attr = os.path.splitext(name)
         attr = attr[1:]
-        writer.add_histogram("{}/{}".format(layer, attr), param, epoch)
 
     finish = time.time()
 
@@ -107,12 +131,7 @@ def eval_training(epoch=0, tb=True):
         correct.float() / len(cifar100_test_loader.dataset),
         finish - start
     ))
-    print()
-
-    #add informations to tensorboard
-    if tb:
-        writer.add_scalar('Test/Average loss', test_loss / len(cifar100_test_loader.dataset), epoch)
-        writer.add_scalar('Test/Accuracy', correct.float() / len(cifar100_test_loader.dataset), epoch)
+    print()   
 
     return correct.float() / len(cifar100_test_loader.dataset)
 
@@ -125,10 +144,12 @@ if __name__ == '__main__':
     parser.add_argument('-warm', type=int, default=1, help='warm up training phase')
     parser.add_argument('-lr', type=float, default=0.1, help='initial learning rate')
     parser.add_argument('-resume', action='store_true', default=False, help='resume training')
+    parser.add_argument('-sl_weights', type=str, required=True, help='the weights file of the pretrained sparsity learning')
     args = parser.parse_args()
 
     net = get_network(args)
 
+    device = torch.device("cuda" if args.gpu else "cpu")
     #data preprocessing:
     cifar100_training_loader = get_training_dataloader(
         settings.CIFAR100_TRAIN_MEAN,
@@ -166,20 +187,15 @@ if __name__ == '__main__':
     if not os.path.exists(settings.LOG_DIR):
         os.mkdir(settings.LOG_DIR)
 
-    #since tensorboard can't overwrite old values
-    #so the only way is to create a new tensorboard log
-    writer = SummaryWriter(log_dir=os.path.join(
-            settings.LOG_DIR, args.net, settings.TIME_NOW))
     input_tensor = torch.Tensor(1, 3, 32, 32)
     if args.gpu:
         input_tensor = input_tensor.cuda()
-    writer.add_graph(net, input_tensor)
-
+    print(234)
     #create checkpoint folder to save model
     if not os.path.exists(checkpoint_path):
         os.makedirs(checkpoint_path)
     checkpoint_path = os.path.join(checkpoint_path, '{net}-{epoch}-{type}.pth')
-
+    print(244)
     best_acc = 0.0
     if args.resume:
         best_weights = best_acc_weights(os.path.join(settings.CHECKPOINT_PATH, args.net, recent_folder))
@@ -199,7 +215,35 @@ if __name__ == '__main__':
         net.load_state_dict(torch.load(weights_path))
 
         resume_epoch = last_epoch(os.path.join(settings.CHECKPOINT_PATH, args.net, recent_folder))
+    net.load_state_dict(torch.load(args.sl_weights))
+    ignored_layers = []
+    for m in net.modules():
+        if isinstance(m, torch.nn.Linear) and m.out_features == 100:
+            ignored_layers.append(m) # DO NOT prune the final classifier!
 
+    for inputs in cifar100_test_loader:
+        example_inputs, _= inputs
+        break
+
+    imp = tp.importance.MagnitudeImportance(p=1)
+    iterative_steps = 100 # progressive pruning
+    pruner = tp.pruner.MagnitudePruner(
+        net,
+        example_inputs,
+        importance=imp,
+        iterative_steps=iterative_steps,
+        ch_sparsity=0.5, # remove 50% channels, ResNet18 = {64, 128, 256, 512} => ResNet18_Half = {32, 64, 128, 256}
+        ignored_layers=ignored_layers,
+    )
+
+    ori_ops, ori_size = tp.utils.count_ops_and_params(net, example_inputs=example_inputs)
+    ori_acc, ori_val_loss = eval(net, cifar100_test_loader, device=device)
+    args.logger.info("Pruning...")
+    progressive_pruning(pruner, net, speed_up=args.speed_up, example_inputs=example_inputs)
+    del pruner # remove reference
+    args.logger.info(net)
+    pruned_ops, pruned_size = tp.utils.count_ops_and_params(net, example_inputs=example_inputs)
+    pruned_acc, pruned_val_loss = eval(net, cifar100_test_loader, device=args.device)
 
     for epoch in range(1, settings.EPOCH + 1):
         if epoch > args.warm:
@@ -224,5 +268,3 @@ if __name__ == '__main__':
             weights_path = checkpoint_path.format(net=args.net, epoch=epoch, type='regular')
             print('saving weights file to {}'.format(weights_path))
             torch.save(net.state_dict(), weights_path)
-
-    writer.close()
