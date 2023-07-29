@@ -7,7 +7,7 @@ of a model
 
 author baiyu
 """
-
+import numpy as np
 import argparse
 
 from matplotlib import pyplot as plt
@@ -18,6 +18,8 @@ from torch.utils.data import DataLoader
 
 from conf import settings
 from utils import get_network, get_test_dataloader
+from torch.profiler import profile, record_function, ProfilerActivity
+
 
 if __name__ == '__main__':
 
@@ -46,6 +48,10 @@ if __name__ == '__main__':
     correct_5 = 0.0
     total = 0
 
+    starter, ender = starter, ender = torch.cuda.Event(enable_timing=True), torch.cuda.Event(enable_timing=True)
+    repetitions = len(cifar100_test_loader)
+    timings=np.zeros((repetitions,1))
+
     with torch.no_grad():
         for n_iter, (image, label) in enumerate(cifar100_test_loader):
             print("iteration: {}\ttotal {} iterations".format(n_iter + 1, len(cifar100_test_loader)))
@@ -53,11 +59,17 @@ if __name__ == '__main__':
             if args.gpu:
                 image = image.cuda()
                 label = label.cuda()
-                print('GPU INFO.....')
-                print(torch.cuda.memory_summary(), end='')
+                # print('GPU INFO.....')
+                # print(torch.cuda.memory_summary(), end='')
 
-
-            output = net(image)
+            starter.record()
+            with profile(activities=[ProfilerActivity.CPU], profile_memory=True, record_shapes=True) as prof:
+                output = net(image)
+            ender.record()
+            # WAIT FOR GPU SYNC
+            torch.cuda.synchronize()
+            curr_time = starter.elapsed_time(ender)
+            timings[n_iter] = curr_time
             _, pred = output.topk(5, 1, largest=True, sorted=True)
 
             label = label.view(label.size(0), -1).expand_as(pred)
@@ -74,6 +86,9 @@ if __name__ == '__main__':
         print(torch.cuda.memory_summary(), end='')
 
     print()
+    print("Average inference time (ms)/image: ", np.sum(timings) / repetitions)
     print("Top 1 err: ", 1 - correct_1 / len(cifar100_test_loader.dataset))
     print("Top 5 err: ", 1 - correct_5 / len(cifar100_test_loader.dataset))
     print("Parameter numbers: {}".format(sum(p.numel() for p in net.parameters())))
+    print(prof.key_averages().table(sort_by="cpu_memory_usage", row_limit=10))
+
