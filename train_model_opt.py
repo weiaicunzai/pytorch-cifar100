@@ -32,7 +32,7 @@ def progressive_pruning(pruner, model, speed_up, example_inputs):
     base_ops, _ = tp.utils.count_ops_and_params(model, example_inputs=example_inputs)
     current_speed_up = 1
     while current_speed_up < speed_up:
-        pruner.step(interactive=False)
+        pruner.step()
         pruned_ops, _ = tp.utils.count_ops_and_params(model, example_inputs=example_inputs)
         current_speed_up = float(base_ops) / pruned_ops
         if pruner.current_step == pruner.iterative_steps:
@@ -213,17 +213,20 @@ if __name__ == '__main__':
         net.load_state_dict(torch.load(weights_path))
 
         resume_epoch = last_epoch(os.path.join(settings.CHECKPOINT_PATH, args.net, recent_folder))
-    net.load_state_dict(torch.load(args.sl_weights))
+    # 0. Load Sparsity model
+    net.load_state_dict(torch.load(args.sl_weights, map_location=device))
+    # 1. Pruning
     ignored_layers = []
     for m in net.modules():
         if isinstance(m, torch.nn.Linear) and m.out_features == 100:
             ignored_layers.append(m) # DO NOT prune the final classifier!
-
+    
     for inputs in cifar100_test_loader:
         example_inputs, _= inputs
+        example_inputs = example_inputs.to(device)
         break
 
-    imp = tp.importance.MagnitudeImportance(p=1)
+    imp = tp.importance.TaylorImportance()
     iterative_steps = 100 # progressive pruning
     pruner = tp.pruner.MagnitudePruner(
         net,
@@ -233,16 +236,17 @@ if __name__ == '__main__':
         ch_sparsity=0.5, # remove 50% channels, ResNet18 = {64, 128, 256, 512} => ResNet18_Half = {32, 64, 128, 256}
         ignored_layers=ignored_layers,
     )
-
+    
     ori_ops, ori_size = tp.utils.count_ops_and_params(net, example_inputs=example_inputs)
     ori_acc, ori_val_loss = eval(net, cifar100_test_loader, device=device)
-    args.logger.info("Pruning...")
-    progressive_pruning(pruner, net, speed_up=args.speed_up, example_inputs=example_inputs)
+    print("Pruning...")
+    progressive_pruning(pruner, net, speed_up=2, example_inputs=example_inputs)
     del pruner # remove reference
-    args.logger.info(net)
+    print(net)
     pruned_ops, pruned_size = tp.utils.count_ops_and_params(net, example_inputs=example_inputs)
-    pruned_acc, pruned_val_loss = eval(net, cifar100_test_loader, device=args.device)
+    pruned_acc, pruned_val_loss = eval(net, cifar100_test_loader, device=device)
 
+    # Finetune pruned model
     for epoch in range(1, settings.EPOCH + 1):
         if epoch > args.warm:
             train_scheduler.step(epoch)
