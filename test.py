@@ -63,7 +63,7 @@ if __name__ == '__main__':
                 # print(torch.cuda.memory_summary(), end='')
 
             starter.record()
-            with profile(activities=[ProfilerActivity.CPU], profile_memory=True, record_shapes=True) as prof:
+            with profile(activities=[ProfilerActivity.CPU, ProfilerActivity.CUDA], profile_memory=True, record_shapes=True) as prof:
                 output = net(image)
             ender.record()
             # WAIT FOR GPU SYNC
@@ -90,4 +90,4 @@ if __name__ == '__main__':
     print("Top 1 err: ", 1 - correct_1 / len(cifar100_test_loader.dataset))
     print("Top 5 err: ", 1 - correct_5 / len(cifar100_test_loader.dataset))
     print("Parameter numbers: {}".format(sum(p.numel() for p in net.parameters())))
-    print(prof.key_averages().table(sort_by="cpu_memory_usage", row_limit=10))
+    print(prof.key_averages().table(sort_by="cpu_time_total", row_limit=10))
