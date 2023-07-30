@@ -18,14 +18,16 @@ from torch.utils.data import DataLoader
 
 from conf import settings
 from utils import get_network, get_test_dataloader
-import torch.quantization
 from torch.profiler import profile, record_function, ProfilerActivity
+import torch_pruning as tp
+from train_model_opt import progressive_pruning
 
 
 if __name__ == '__main__':
 
     parser = argparse.ArgumentParser()
     parser.add_argument('-net', type=str, required=True, help='net type')
+    parser.add_argument('-sl_weights', type=str, required=True, help='the weights file of the pretrained sparsity model')
     parser.add_argument('-weights', type=str, required=True, help='the weights file you want to test')
     parser.add_argument('-gpu', action='store_true', default=False, help='use gpu or not')
     parser.add_argument('-b', type=int, default=16, help='batch size for dataloader')
@@ -40,19 +42,9 @@ if __name__ == '__main__':
         num_workers=4,
         batch_size=args.b,
     )
-
-    net.load_state_dict(torch.load(args.weights))
-    print(net)
+    net.load_state_dict(torch.load(args.sl_weights))
     net.eval()
 
-
-    # Prepare the model for quantization
-    # net.qconfig = torch.quantization.get_default_qconfig()
-    net_prepared = torch.quantization.prepare(net,  inplace = False)
-
-    # Quantize the model
-    net_quantized = torch.quantization.convert(net_prepared, inplace=False)
-    torch.save(net_quantized.state_dict(), '123.pth')
     correct_1 = 0.0
     correct_5 = 0.0
     total = 0
@@ -60,6 +52,34 @@ if __name__ == '__main__':
     starter, ender = starter, ender = torch.cuda.Event(enable_timing=True), torch.cuda.Event(enable_timing=True)
     repetitions = len(cifar100_test_loader)
     timings=np.zeros((repetitions,1))
+
+    for inputs in cifar100_test_loader:
+        example_inputs, _= inputs
+        if args.gpu:
+            example_inputs = example_inputs.to('cuda')
+        break
+    
+    # Pruning
+    ignored_layers = []
+    for m in net.modules():
+        if isinstance(m, torch.nn.Linear) and m.out_features == 100:
+            ignored_layers.append(m) # DO NOT prune the final classifier! 
+
+    imp = tp.importance.MagnitudeImportance(p=1)
+    iterative_steps = 100 # progressive pruning
+    pruner = tp.pruner.MagnitudePruner(
+        net,
+        example_inputs,
+        importance=imp,
+        iterative_steps=iterative_steps,
+        ch_sparsity=0.5, # remove 50% channels, ResNet18 = {64, 128, 256, 512} => ResNet18_Half = {32, 64, 128, 256}
+        ignored_layers=ignored_layers,
+    )
+    print('---Pruning---')
+    progressive_pruning(pruner, net, speed_up=2, example_inputs=example_inputs)
+    ori_ops, ori_size = tp.utils.count_ops_and_params(net, example_inputs=example_inputs)
+    net.load_state_dict(torch.load(args.weights))
+    print(net)
 
     with torch.no_grad():
         for n_iter, (image, label) in enumerate(cifar100_test_loader):
@@ -71,11 +91,10 @@ if __name__ == '__main__':
                 # print('GPU INFO.....')
                 # print(torch.cuda.memory_summary(), end='')
 
+            starter.record()
             with profile(activities=[ProfilerActivity.CPU], profile_memory=True, record_shapes=True) as prof:
-                starter.record()
-                output = net_quantized(image)
-                ender.record()
-
+                output = net(image)
+            ender.record()
             # WAIT FOR GPU SYNC
             torch.cuda.synchronize()
             curr_time = starter.elapsed_time(ender)
@@ -96,9 +115,10 @@ if __name__ == '__main__':
         print(torch.cuda.memory_summary(), end='')
 
     print()
+    
     print("Average inference time (ms)/image: ", np.sum(timings) / repetitions)
     print("Top 1 err: ", 1 - correct_1 / len(cifar100_test_loader.dataset))
     print("Top 5 err: ", 1 - correct_5 / len(cifar100_test_loader.dataset))
-    print("Parameter numbers: {}".format(sum(p.numel() for p in net.parameters())))
-    # print(prof.key_averages().table(sort_by="cpu_memory_usage", row_limit=10))
+    print("Parameter numbers: ", ori_size)
+    print(prof.key_averages().table(sort_by="cpu_memory_usage", row_limit=10))
 

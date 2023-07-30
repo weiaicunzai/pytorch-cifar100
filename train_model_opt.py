@@ -226,7 +226,7 @@ if __name__ == '__main__':
         example_inputs = example_inputs.to(device)
         break
 
-    imp = tp.importance.TaylorImportance()
+    imp = tp.importance.MagnitudeImportance(p=1)
     iterative_steps = 100 # progressive pruning
     pruner = tp.pruner.MagnitudePruner(
         net,
@@ -246,7 +246,7 @@ if __name__ == '__main__':
     pruned_ops, pruned_size = tp.utils.count_ops_and_params(net, example_inputs=example_inputs)
     pruned_acc, pruned_val_loss = eval(net, cifar100_test_loader, device=device)
 
-    # Finetune pruned model
+    #2. Finetune pruned model
     for epoch in range(1, settings.EPOCH + 1):
         if epoch > args.warm:
             train_scheduler.step(epoch)
