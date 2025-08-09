@@ -1,0 +1,5 @@
+在对应工作目录下打开cmd
+输入
+python train.py -net vgg19
+
+python test.py -net vgg19 -weights checkpoint\vgg19\Wednesday_14_February_2024_17h_27m_54s\vgg19-1-best.pth

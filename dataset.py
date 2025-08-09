@@ -6,7 +6,7 @@ import os
 import sys
 import pickle
 
-from skimage import io
+# from skimage import io
 import matplotlib.pyplot as plt
 import numpy
 import torch
